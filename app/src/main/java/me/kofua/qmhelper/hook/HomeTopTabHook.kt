@@ -2,10 +2,10 @@ package me.kofua.qmhelper.hook
 
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.R
-import me.kofua.qmhelper.utils.currentContext
 import me.kofua.qmhelper.utils.hookBeforeMethod
 import me.kofua.qmhelper.utils.runCatchingOrNull
 import me.kofua.qmhelper.utils.sPrefs
+import me.kofua.qmhelper.utils.string
 import me.kofua.qmhelper.utils.stringArray
 
 class HomeTopTabHook(classLoader: ClassLoader) : BaseHook(classLoader) {
@@ -42,7 +42,7 @@ class HomeTopTabHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             Int::class.javaPrimitiveType,
             String::class.java
         ) { param ->
-            val name = currentContext.runCatchingOrNull { getString(param.args[0] as Int) }
+            val name = runCatchingOrNull { string(param.args[0] as Int) }
                 ?: return@hookBeforeMethod
             if (purifyHomeTobTabNames.contains(name))
                 param.result = null

@@ -101,7 +101,7 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                 settings.removeAt(settings.lastIndex)
             }
             settings.add(1, Setting.button(R.string.app_name) {
-                onQMHelperSettingClick(it.context)
+                onQMHelperSettingClicked(it.context)
             })
         }
         if (!purifyRedDots) return
@@ -130,7 +130,7 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
         return settingProviderClass.new(currentContext, fragment).also { unhook?.unhook() }
     }
 
-    private fun onQMHelperSettingClick(context: Context) {
+    private fun onQMHelperSettingClicked(context: Context) {
         val baseSettingFragmentClass = instance.baseSettingFragmentClass ?: return
         val baseSettingPackClass = instance.baseSettingPackClass ?: return
         val settingPackage = instance.settingPackage() ?: return

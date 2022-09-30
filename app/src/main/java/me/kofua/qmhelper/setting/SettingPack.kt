@@ -236,7 +236,7 @@ class SettingPack {
             }.show()
     }
 
-    private fun onExportClicked(): Boolean {
+    private fun onExportClicked() {
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             type = "text/xml"
             putExtra(Intent.EXTRA_TITLE, "qmhelper.xml")
@@ -252,10 +252,9 @@ class SettingPack {
         } catch (_: ActivityNotFoundException) {
             BannerTips.error(R.string.open_file_manager_failed)
         }
-        return true
     }
 
-    private fun onImportClicked(): Boolean {
+    private fun onImportClicked() {
         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
             type = "text/xml"
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -270,13 +269,12 @@ class SettingPack {
         } catch (_: ActivityNotFoundException) {
             BannerTips.error(R.string.open_file_manager_failed)
         }
-        return true
     }
 
-    private fun onShareLogClicked(): Boolean {
+    private fun onShareLogClicked() {
         if ((!logFile.exists() && !oldLogFile.exists()) || !shouldSaveLog) {
             BannerTips.failed(R.string.not_found_log_file)
-            return true
+            return
         }
         AlertDialog.Builder(activity)
             .setTitle(R.string.prefs_share_log_title)
@@ -308,7 +306,6 @@ class SettingPack {
                 }
             }
             .show()
-        return true
     }
 
     fun checkUpdate(dialog: Boolean, force: Boolean = false) = mainScope.launch(Dispatchers.IO) {
