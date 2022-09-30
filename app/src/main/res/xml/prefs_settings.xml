@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?><!--suppress DeprecatedClassUsageInspection -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/prefs_category_purify">
+        <SwitchPreference
+            android:key="purify_splash"
+            android:summary="@string/prefs_purify_splash_summary"
+            android:title="@string/prefs_purify_splash_title" />
+
+        <MultiSelectListPreference
+            android:entries="@array/home_top_tab_entries"
+            android:entryValues="@array/home_top_tab_values"
+            android:key="purify_home_top_tab"
+            android:summary="@string/prefs_purify_home_top_tab_summary"
+            android:title="@string/prefs_purify_home_top_tab_title" />
+
+        <SwitchPreference
+            android:key="purify_red_dots"
+            android:summary="@string/prefs_purify_red_dots_summary"
+            android:title="@string/prefs_purify_red_dots_title" />
+
+        <MultiSelectListPreference
+            android:entries="@array/more_items_entries"
+            android:entryValues="@array/more_items_values"
+            android:key="purify_more_items"
+            android:summary="@string/prefs_purify_more_items_summary"
+            android:title="@string/prefs_purify_more_items_title" />
+
+        <SwitchPreference
+            android:key="hide_music_world"
+            android:title="@string/prefs_hide_music_world_title" />
+
+        <SwitchPreference
+            android:key="hide_vip_bubble"
+            android:title="@string/prefs_hide_vip_bubble_title" />
+
+        <SwitchPreference
+            android:key="purify_live_guide"
+            android:title="@string/prefs_purify_live_guide_title" />
+
+        <SwitchPreference
+            android:key="forbid_slide"
+            android:title="@string/prefs_forbid_slide_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/prefs_category_backup">
+        <Preference
+            android:key="export"
+            android:title="@string/prefs_export_title" />
+
+        <Preference
+            android:key="import"
+            android:title="@string/prefs_import_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/prefs_category_settings">
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="save_log"
+            android:title="@string/prefs_save_log_title" />
+
+        <Preference
+            android:key="share_log"
+            android:title="@string/prefs_share_log_title" />
+    </PreferenceCategory>
+</PreferenceScreen>

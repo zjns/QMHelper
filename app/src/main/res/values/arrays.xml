@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="xposed_scope">
+        <item>com.tencent.qqmusic</item>
+    </string-array>
+    <string-array name="home_top_tab_entries">
+        <item>有声</item>
+        <item>直播</item>
+    </string-array>
+    <string-array name="home_top_tab_values" translatable="false">
+        <item>7</item>
+        <item>10</item>
+    </string-array>
+    <string-array name="more_items_entries">
+        <item>音乐推</item>
+        <item>创作者中心</item>
+        <item>弹一弹</item>
+        <item>免流量服务</item>
+        <item>青少年模式</item>
+        <item>安全中心</item>
+        <item>帮助与反馈</item>
+        <item>注销帐号</item>
+        <item>腾讯视频VIP福利</item>
+        <item>百变彩铃</item>
+    </string-array>
+    <string-array name="more_items_values" translatable="false">
+        <item>音乐推</item>
+        <item>创作者中心</item>
+        <item>弹一弹</item>
+        <item>免流量服务</item>
+        <item>青少年模式</item>
+        <item>安全中心</item>
+        <item>帮助与反馈</item>
+        <item>注销帐号</item>
+        <item>腾讯视频VIP福利</item>
+        <item>百变彩铃</item>
+    </string-array>
+</resources>

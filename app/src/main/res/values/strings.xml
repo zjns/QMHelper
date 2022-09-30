@@ -1,0 +1,58 @@
+<resources>
+    <string name="app_name">Q音助手</string>
+    <string name="xposed_description">适用于Q音</string>
+    <string name="settings_title">Q音助手设置</string>
+    <string name="back">返回</string>
+    <string name="reboot_host">重启客户端</string>
+    <string name="reboot_host_summary">配置修改后重启客户端才会生效</string>
+    <string name="pls_reboot_host">导入成功，请重启客户端</string>
+    <string name="prefs_category_main">主要功能</string>
+    <string name="prefs_purify_splash_title">净化开屏页面</string>
+    <string name="prefs_purify_splash_summary">去除客户端启动时的推广</string>
+    <string name="prefs_category_backup">备份和还原</string>
+    <string name="prefs_export_title">导出配置</string>
+    <string name="prefs_import_title">导入配置</string>
+    <string name="prefs_category_settings">设置</string>
+    <string name="prefs_save_log_title">保存日志到文件</string>
+    <string name="prefs_share_log_title">分享日志</string>
+    <string name="save_prefs_file">保存配置文件</string>
+    <string name="choose_prefs_file">选择配置文件</string>
+    <string name="open_file_manager_failed">文件管理器打开失败</string>
+    <string name="not_found_log_file">没有发现日志文件</string>
+    <string name="log_file_not_exist">日志文件不存在</string>
+    <string name="old_log_item">%1$s (崩溃相关发这个)</string>
+    <string name="hook_error">出现错误\n%1$s\n部分功能可能失效。%2$s</string>
+    <string name="not_supported">不支持该架构或框架，部分功能可能失效。</string>
+    <string name="prefs_purify_home_top_tab_title">净化首页顶部标签</string>
+    <string name="prefs_purify_home_top_tab_summary">选择要隐藏的标签</string>
+    <string name="prefs_purify_red_dots_title">净化更多及设置页面红点</string>
+    <string name="prefs_purify_red_dots_summary">更多及设置页面不显示红点</string>
+    <string name="prefs_purify_more_items_title">净化更多页面</string>
+    <string name="prefs_purify_more_items_summary">更多页面选择需要移除的项</string>
+    <string name="prefs_hide_music_world_title">我的页面隐藏音乐空间入口</string>
+    <string name="prefs_hide_vip_bubble_title">我的页面隐藏会员购买横条</string>
+    <string name="prefs_purify_live_guide_title">播放页右上角屏蔽直播入口</string>
+    <string name="prefs_forbid_slide_title">播放页禁止上划查看视频</string>
+    <string name="tips_title">Q音助手提示</string>
+    <string name="tips_open_clean_mode">设置里开启简洁模式配合食用更佳哟！</string>
+    <string name="go_to_mode_setting">前往设置</string>
+    <string name="i_know">我知道了</string>
+    <string name="jump_failed">跳转失败</string>
+    <string name="prefs_category_purify">精简美化</string>
+    <string name="prefs_category_about">关于</string>
+    <string name="prefs_version_title">版本</string>
+    <string name="prefs_check_update_title">检查更新</string>
+    <string name="found_update">发现新版本，点击查看</string>
+    <string name="found_update_with_version">发现新版本 %1$s</string>
+    <string name="no_update">暂无更新</string>
+    <string name="update_now">立即更新</string>
+    <string name="check_update_failed">更新检查失败</string>
+    <string name="releases_url" translatable="false">https://api.github.com/repos/zjns/QMHelper/releases</string>
+    <string name="update_url" translatable="false">https://github.com/zjns/QMHelper/releases/tag/%1$s</string>
+    <string name="prefs_author_title">作者</string>
+    <string name="prefs_author_summary" translatable="false">Kofua</string>
+    <string name="repo_url" translatable="false">https://github.com/zjns/QMHelper</string>
+    <string name="prefs_tg_channel_title">TG频道</string>
+    <string name="prefs_tg_channel_summary">点击加入TG频道</string>
+    <string name="tg_url" translatable="false">https://t.me/bb_show</string>
+</resources>
