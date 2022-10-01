@@ -9,6 +9,7 @@ import com.google.protobuf.gradle.protobuf
 import com.google.protobuf.gradle.protoc
 import java.nio.file.Paths
 import java.util.Properties
+import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id("com.android.application")
@@ -23,6 +24,16 @@ fun AndroidSourceSet.proto(action: SourceDirectorySet.() -> Unit) {
         ?.getByName("proto")
         ?.let { it as? SourceDirectorySet }
         ?.apply(action)
+}
+
+fun findInPath(executable: String): String? {
+    val pathEnv = System.getenv("PATH")
+    return pathEnv.split(File.pathSeparator).map { folder ->
+        Paths.get("${folder}${File.separator}${executable}${if (OperatingSystem.current().isWindows) ".exe" else ""}")
+            .toFile()
+    }.firstOrNull { path ->
+        path.exists()
+    }?.absolutePath
 }
 
 val releaseStoreFile: String? by rootProject
@@ -70,6 +81,10 @@ android {
                 )
                 cppFlags("-std=c++20", *flags)
                 cFlags("-std=c18", *flags)
+                findInPath("ccache")?.let {
+                    println("Using ccache $it")
+                    arguments += "-DANDROID_CCACHE=$it"
+                }
             }
         }
     }

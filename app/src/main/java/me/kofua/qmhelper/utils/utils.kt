@@ -62,7 +62,7 @@ fun getVersionCode(packageName: String) = try {
 
 val currentContext by lazy { AndroidAppHelper.currentApplication() as Context }
 
-val packageName: String by lazy { currentContext.packageName }
+val hostPackageName: String by lazy { currentContext.packageName }
 
 val isBuiltIn get() = modulePath.endsWith("so") || modulePath.contains("lspatch")
 

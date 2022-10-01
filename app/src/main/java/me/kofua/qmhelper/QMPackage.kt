@@ -13,12 +13,12 @@ import me.kofua.qmhelper.utils.findDexClassLoader
 import me.kofua.qmhelper.utils.findFieldByExactType
 import me.kofua.qmhelper.utils.from
 import me.kofua.qmhelper.utils.getVersionCode
+import me.kofua.qmhelper.utils.hostPackageName
 import me.kofua.qmhelper.utils.isAbstract
 import me.kofua.qmhelper.utils.isFinal
 import me.kofua.qmhelper.utils.isNotStatic
 import me.kofua.qmhelper.utils.isPublic
 import me.kofua.qmhelper.utils.isStatic
-import me.kofua.qmhelper.utils.packageName
 import me.kofua.qmhelper.utils.print
 import me.kofua.qmhelper.utils.runCatchingOrNull
 import java.io.File
@@ -118,7 +118,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
             val t = measureTimeMillis {
                 if (hookInfoFile.isFile && hookInfoFile.canRead()) {
                     val lastUpdateTime = context.packageManager.getPackageInfo(
-                        packageName,
+                        hostPackageName,
                         0
                     ).lastUpdateTime
                     val lastModuleUpdateTime = try {
@@ -131,7 +131,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                             ?: Configs.HookInfo.newBuilder().build()
                     }
                     if (info.lastUpdateTime >= lastUpdateTime && info.lastUpdateTime >= lastModuleUpdateTime
-                        && getVersionCode(context.packageName) == info.clientVersionCode
+                        && getVersionCode(hostPackageName) == info.clientVersionCode
                         && BuildConfig.VERSION_CODE == info.moduleVersionCode
                         && BuildConfig.VERSION_NAME == info.moduleVersionName
                     ) return info
@@ -170,7 +170,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
             }
             val dexHelper = DexHelper(classLoader.findDexClassLoader() ?: return@hookInfo)
             lastUpdateTime = max(
-                context.packageManager.getPackageInfo(packageName, 0).lastUpdateTime,
+                context.packageManager.getPackageInfo(hostPackageName, 0).lastUpdateTime,
                 runCatchingOrNull {
                     context.packageManager.getPackageInfo(
                         BuildConfig.APPLICATION_ID,
@@ -178,7 +178,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     )
                 }?.lastUpdateTime ?: 0
             )
-            clientVersionCode = getVersionCode(context.packageName)
+            clientVersionCode = getVersionCode(hostPackageName)
             moduleVersionCode = BuildConfig.VERSION_CODE
             moduleVersionName = BuildConfig.VERSION_NAME
             baseFragment = baseFragment {
