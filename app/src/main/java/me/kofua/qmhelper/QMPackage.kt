@@ -68,6 +68,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val baseSettingFragmentClass by Weak { hookInfo.setting.baseSettingFragment.class_ from classLoader }
     val baseSettingPackClass by Weak { hookInfo.setting.baseSettingPack.class_ from classLoader }
     val baseSettingProviderClass by Weak { hookInfo.setting.baseSettingProvider.class_ from classLoader }
+    val authAgentClass by Weak { hookInfo.authAgent.class_ from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -108,6 +109,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun title() = hookInfo.setting.baseSettingFragment.title.orNull
     fun createSettingProvider() = hookInfo.setting.baseSettingPack.createSettingProvider.orNull
     fun create() = hookInfo.setting.baseSettingProvider.create.orNull
+    fun startActionActivity() = hookInfo.authAgent.startActionActivity.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -599,6 +601,13 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     .from(classLoader)?.name ?: dexHelper.findMethodUsingStringExtract(
                     "runningModeSetting"
                 )?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass?.name ?: return@class_
+            }
+            authAgent = authAgent {
+                val startActionActivityMethod = dexHelper.findMethodUsingStringExtract(
+                    "LOGIN_CHECK_SDK"
+                )?.let { dexHelper.decodeMethodIndex(it) } ?: return@authAgent
+                class_ = class_ { name = startActionActivityMethod.declaringClass.name }
+                startActionActivity = method { name = startActionActivityMethod.name }
             }
 
             dexHelper.close()

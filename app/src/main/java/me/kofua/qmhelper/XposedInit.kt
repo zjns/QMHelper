@@ -19,6 +19,7 @@ import me.kofua.qmhelper.hook.HomeTopTabHook
 import me.kofua.qmhelper.hook.SSLHook
 import me.kofua.qmhelper.hook.SettingsHook
 import me.kofua.qmhelper.hook.SplashHook
+import me.kofua.qmhelper.hook.WebLoginHook
 import me.kofua.qmhelper.utils.BannerTips
 import me.kofua.qmhelper.utils.Log
 import me.kofua.qmhelper.utils.callMethod
@@ -58,7 +59,7 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     currentContext.assets.callMethod("addAssetPath", modulePath)
 
                     Log.d("QQMusic process launched ...")
-                    Log.d("QMHelper version: ${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE}) from $modulePath${if (isBuiltIn) "(BuiltIn)" else ""}")
+                    Log.d("QMHelper version: ${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE}) from $modulePath${if (isBuiltIn) " (BuiltIn)" else ""}")
                     Log.d("QQMusic version: ${getPackageVersion(lpparam.packageName)} (${if (is64) "64" else "32"}bit)")
                     Log.d("SDK: ${Build.VERSION.RELEASE}(${Build.VERSION.SDK_INT}); Phone: ${Build.BRAND} ${Build.MODEL}")
                     Log.d("Config: ${sPrefs.all}")
@@ -69,6 +70,9 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                         startHook(SSLHook(lpparam.classLoader))
                         startHook(DebugHook(lpparam.classLoader))
                         startHook(ABTesterHook(lpparam.classLoader))
+                    }
+                    if (isBuiltIn) {
+                        startHook(WebLoginHook(lpparam.classLoader))
                     }
                     startHook(SettingsHook(lpparam.classLoader))
                     startHook(SplashHook(lpparam.classLoader))

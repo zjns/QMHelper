@@ -147,6 +147,11 @@ message AppStarterActivity {
   optional Method add_second_fragment = 3;
 }
 
+message AuthAgent {
+  optional Class class = 1;
+  optional Method start_action_activity = 2;
+}
+
 message HookInfo {
   int64 last_update_time = 1;
   int32 client_version_code = 2;
@@ -169,4 +174,5 @@ message HookInfo {
   optional SpManager sp_manager = 19;
   optional AppStarterActivity app_starter_activity = 20;
   optional Class mode_fragment = 21;
+  optional AuthAgent auth_agent = 22;
 }

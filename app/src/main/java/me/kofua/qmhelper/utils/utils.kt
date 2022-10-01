@@ -64,7 +64,7 @@ val currentContext by lazy { AndroidAppHelper.currentApplication() as Context }
 
 val packageName: String by lazy { currentContext.packageName }
 
-val isBuiltIn get() = modulePath.contains("cache/lspatch")
+val isBuiltIn get() = modulePath.endsWith("so") || modulePath.contains("lspatch")
 
 val is64 get() = currentContext.applicationInfo.nativeLibraryDir.contains("64")
 
