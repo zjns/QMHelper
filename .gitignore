@@ -7,5 +7,4 @@
 /captures
 .externalNativeBuild
 *.apk
-*.jar
 signing.properties
