@@ -268,12 +268,6 @@ inline fun String.replaceMethod(
 
 fun MethodHookParam.invokeOriginalMethod(): Any? = invokeOriginalMethod(method, thisObject, args)
 
-inline fun <T, R> T.runCatchingOrNull(func: T.() -> R?) = try {
-    func()
-} catch (e: Throwable) {
-    null
-}
-
 fun Any.getObjectField(field: String?): Any? = getObjectField(this, field)
 
 fun Any.getObjectFieldOrNull(field: String?): Any? = runCatchingOrNull {

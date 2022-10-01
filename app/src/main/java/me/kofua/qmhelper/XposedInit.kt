@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.Application
 import android.app.Instrumentation
 import android.content.Context
+import android.content.res.Resources
+import android.content.res.XModuleResources
 import android.os.Build
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.IXposedHookZygoteInit
@@ -38,6 +40,7 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
 
     override fun initZygote(startupParam: IXposedHookZygoteInit.StartupParam) {
         modulePath = startupParam.modulePath
+        moduleRes = XModuleResources.createInstance(modulePath, null)
     }
 
     override fun handleLoadPackage(lpparam: LoadPackageParam) {
@@ -126,6 +129,7 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
 
     companion object {
         lateinit var modulePath: String
+        lateinit var moduleRes: Resources
 
         private val hookers = ArrayList<BaseHook>()
         private var lateInitHook: XC_MethodHook.Unhook? = null

@@ -277,7 +277,7 @@ class SettingPack {
             return
         }
         AlertDialog.Builder(activity)
-            .setTitle(R.string.prefs_share_log_title)
+            .setTitle(string(R.string.prefs_share_log_title))
             .setItems(
                 arrayOf(
                     "log.txt",
@@ -345,11 +345,11 @@ class SettingPack {
                 AlertDialog.Builder(activity)
                     .setTitle(string(R.string.found_update_with_version, latestVer))
                     .setMessage(changelog)
-                    .setPositiveButton(R.string.update_now) { _, _ ->
+                    .setPositiveButton(string(R.string.update_now)) { _, _ ->
                         val uri = Uri.parse(string(R.string.update_url, latestVerTag))
                         activity?.startActivity(Intent(Intent.ACTION_VIEW, uri))
                     }
-                    .setNegativeButton(R.string.i_know, null)
+                    .setNegativeButton(string(R.string.i_know), null)
                     .show()
             }
         } else {

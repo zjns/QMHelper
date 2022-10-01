@@ -13,7 +13,6 @@ import me.kofua.qmhelper.XposedInit.Companion.modulePath
 import me.kofua.qmhelper.setting.Setting
 import me.kofua.qmhelper.setting.SettingPack
 import me.kofua.qmhelper.utils.BannerTips
-import me.kofua.qmhelper.utils.Log
 import me.kofua.qmhelper.utils.UiMode
 import me.kofua.qmhelper.utils.callMethod
 import me.kofua.qmhelper.utils.callSuper
@@ -28,7 +27,6 @@ import me.kofua.qmhelper.utils.hookBeforeMethod
 import me.kofua.qmhelper.utils.invocationHandler
 import me.kofua.qmhelper.utils.new
 import me.kofua.qmhelper.utils.proxy
-import me.kofua.qmhelper.utils.reflexToString
 import me.kofua.qmhelper.utils.sPrefs
 import me.kofua.qmhelper.utils.setObjectField
 import me.kofua.qmhelper.utils.string
@@ -55,12 +53,12 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                 handler.postDelayed({
                     if (activity.isDestroyed || activity.isFinishing) return@postDelayed
                     AlertDialog.Builder(activity)
-                        .setTitle(R.string.tips_title)
-                        .setMessage(R.string.tips_open_clean_mode)
-                        .setNegativeButton(R.string.i_know) { _, _ ->
+                        .setTitle(string(R.string.tips_title))
+                        .setMessage(string(R.string.tips_open_clean_mode))
+                        .setNegativeButton(string(R.string.i_know)) { _, _ ->
                             sPrefs.edit { putBoolean("ui_mode_hint", true) }
                         }
-                        .setPositiveButton(R.string.go_to_mode_setting) { _, _ ->
+                        .setPositiveButton(string(R.string.go_to_mode_setting)) { _, _ ->
                             sPrefs.edit { putBoolean("ui_mode_hint", true) }
                             instance.modeFragmentClass?.let {
                                 activity.callMethod(instance.addSecondFragment(), it, null)
@@ -84,7 +82,6 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             val settings = param.thisObject
                 .getObjectFieldAs<MutableList<Any?>>(instance.moreListField)
             settings.forEach { s ->
-                Log.d("kofua, setting item: ${s.reflexToString()}")
                 if (purifyRedDots) {
                     s?.getObjectField(instance.rightDescField)?.takeIf {
                         it != "未开启"

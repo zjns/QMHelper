@@ -15,6 +15,7 @@ import com.google.protobuf.GeneratedMessageLite
 import kotlinx.coroutines.MainScope
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.XposedInit.Companion.modulePath
+import me.kofua.qmhelper.XposedInit.Companion.moduleRes
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -63,7 +64,7 @@ val currentContext by lazy { AndroidAppHelper.currentApplication() as Context }
 
 val packageName: String by lazy { currentContext.packageName }
 
-val isBuiltIn get() = !modulePath.endsWith("apk")
+val isBuiltIn get() = modulePath.contains("cache/lspatch")
 
 val is64 get() = currentContext.applicationInfo.nativeLibraryDir.contains("64")
 
@@ -157,10 +158,17 @@ fun Any?.reflexToString() = this?.javaClass?.declaredFields?.joinToString {
     }"
 }
 
-fun string(@StringRes resId: Int) = currentContext.getString(resId)
-fun string(@StringRes resId: Int, vararg args: Any) = currentContext.getString(resId, *args)
-fun stringArray(@ArrayRes resId: Int): Array<String> =
-    currentContext.resources.getStringArray(resId)
+fun string(@StringRes resId: Int) = currentContext.runCatchingOrNull {
+    getString(resId)
+} ?: moduleRes.getString(resId)
+
+fun string(@StringRes resId: Int, vararg args: Any) = currentContext.runCatchingOrNull {
+    getString(resId, *args)
+} ?: moduleRes.getString(resId, *args)
+
+fun stringArray(@ArrayRes resId: Int): Array<String> = currentContext.resources.runCatchingOrNull {
+    getStringArray(resId)
+} ?: moduleRes.getStringArray(resId)
 
 val qmSp by lazy {
     instance.spManagerClass?.callStaticMethodAs<SharedPreferences>(instance.getSp()) ?: sPrefs
@@ -172,3 +180,9 @@ val mainScope = MainScope()
 @SuppressLint("ApplySharedPref")
 fun SharedPreferences.edit(commit: Boolean = false, action: SharedPreferences.Editor.() -> Unit) =
     edit().apply(action).run { if (commit) commit() else apply() }
+
+inline fun <T, R> T.runCatchingOrNull(func: T.() -> R?) = try {
+    func()
+} catch (e: Throwable) {
+    null
+}
