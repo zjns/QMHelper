@@ -79,6 +79,7 @@ class SettingPack {
         }?.let { add(it) }
         Setting.switch(
             R.string.prefs_hide_music_world_title,
+            R.string.prefs_hide_music_world_summary,
             isSwitchOn = { sPrefs.getBoolean("hide_music_world", false) },
             onSwitchChanged = { enabled ->
                 sPrefs.edit { putBoolean("hide_music_world", enabled) }
@@ -86,6 +87,7 @@ class SettingPack {
         )?.let { add(it) }
         Setting.switch(
             R.string.prefs_hide_vip_bubble_title,
+            R.string.prefs_hide_vip_bubble_summary,
             isSwitchOn = { sPrefs.getBoolean("hide_vip_bubble", false) },
             onSwitchChanged = { enabled ->
                 sPrefs.edit { putBoolean("hide_vip_bubble", enabled) }
@@ -93,6 +95,7 @@ class SettingPack {
         )?.let { add(it) }
         Setting.switch(
             R.string.prefs_purify_live_guide_title,
+            R.string.prefs_purify_live_guide_summary,
             isSwitchOn = { sPrefs.getBoolean("purify_live_guide", false) },
             onSwitchChanged = { enabled: Boolean ->
                 sPrefs.edit { putBoolean("purify_live_guide", enabled) }
@@ -100,6 +103,7 @@ class SettingPack {
         )?.let { add(it) }
         Setting.switch(
             R.string.prefs_forbid_slide_title,
+            R.string.prefs_forbid_slide_summary,
             isSwitchOn = { sPrefs.getBoolean("forbid_slide", false) },
             onSwitchChanged = { enabled ->
                 sPrefs.edit { putBoolean("forbid_slide", enabled) }
@@ -119,9 +123,18 @@ class SettingPack {
         }?.let { add(it) }
         Setting.switch(
             R.string.prefs_hide_ad_bar_title,
+            R.string.prefs_hide_ad_bar_summary,
             isSwitchOn = { sPrefs.getBoolean("hide_ad_bar", false) },
             onSwitchChanged = { enabled ->
                 sPrefs.edit { putBoolean("hide_ad_bar", enabled) }
+            }
+        )?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_forbid_music_world_title,
+            R.string.prefs_forbid_music_world_summary,
+            isSwitchOn = { sPrefs.getBoolean("forbid_music_world", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("forbid_music_world", enabled) }
             }
         )?.let { add(it) }
 

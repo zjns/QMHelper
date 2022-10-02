@@ -3,6 +3,7 @@
 package me.kofua.qmhelper
 
 import android.content.Context
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import me.kofua.qmhelper.utils.BannerTips
@@ -74,6 +75,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val jsonObjectClass by Weak { hookInfo.gson.jsonObject from classLoader }
     val uiModeManagerClass by Weak { hookInfo.uiModeManager.class_ from classLoader }
     val adBarClass by Weak { hookInfo.adBar.class_ from classLoader }
+    val musicWorldTouchListenerClass by Weak { hookInfo.musicWorldTouchListener from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -665,6 +667,24 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 } ?: return@apkDownloadAdBar
                 class_ = class_ { name = clazz.name }
                 this.methods.addAll(methods.map { method { name = it.name } })
+            }
+            musicWorldTouchListener = class_ {
+                name = dexHelper.findMethodUsingString(
+                    "MusicWorldEntrance",
+                    false,
+                    -1,
+                    -1,
+                    null,
+                    -1,
+                    null,
+                    null,
+                    null,
+                    false
+                ).asSequence().firstNotNullOfOrNull {
+                    dexHelper.decodeMethodIndex(it)?.declaringClass?.takeIf { c ->
+                        View.OnTouchListener::class.java.isAssignableFrom(c)
+                    }
+                }?.name ?: return@class_
             }
 
             dexHelper.close()

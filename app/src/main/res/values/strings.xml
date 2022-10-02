@@ -25,14 +25,18 @@
     <string name="not_supported">不支持该架构或框架，部分功能可能失效。</string>
     <string name="prefs_purify_home_top_tab_title">净化首页顶部标签</string>
     <string name="prefs_purify_home_top_tab_summary">选择要隐藏的标签</string>
-    <string name="prefs_purify_red_dots_title">净化更多及设置页面红点</string>
+    <string name="prefs_purify_red_dots_title">净化红点</string>
     <string name="prefs_purify_red_dots_summary">更多及设置页面不显示红点</string>
     <string name="prefs_purify_more_items_title">净化更多页面</string>
     <string name="prefs_purify_more_items_summary">更多页面选择需要移除的项</string>
-    <string name="prefs_hide_music_world_title">我的页面隐藏音乐空间入口</string>
-    <string name="prefs_hide_vip_bubble_title">我的页面隐藏会员购买横条</string>
-    <string name="prefs_purify_live_guide_title">播放页右上角屏蔽直播入口</string>
-    <string name="prefs_forbid_slide_title">播放页禁止上划查看视频</string>
+    <string name="prefs_hide_music_world_title">隐藏音乐空间入口</string>
+    <string name="prefs_hide_music_world_summary">我的页面隐藏音乐空间入口</string>
+    <string name="prefs_hide_vip_bubble_title">隐藏会员购买横条</string>
+    <string name="prefs_hide_vip_bubble_summary">我的页面隐藏会员购买横条</string>
+    <string name="prefs_purify_live_guide_title">屏蔽直播入口</string>
+    <string name="prefs_purify_live_guide_summary">播放页右上角屏蔽直播入口</string>
+    <string name="prefs_forbid_slide_title">禁止上划查看视频</string>
+    <string name="prefs_forbid_slide_summary">播放页禁止上划查看视频</string>
     <string name="tips_title">Q音助手提示</string>
     <string name="tips_open_clean_mode">设置里开启简洁模式配合食用更佳哟！</string>
     <string name="go_to_mode_setting">前往设置</string>
@@ -57,5 +61,8 @@
     <string name="tg_url" translatable="false">https://t.me/bb_show</string>
     <string name="prefs_block_live_title">移除首页直播版块</string>
     <string name="prefs_purify_search_title">净化搜索</string>
-    <string name="prefs_hide_ad_bar_title">我的收藏页面隐藏推广横条</string>
+    <string name="prefs_hide_ad_bar_title">隐藏推广横条</string>
+    <string name="prefs_hide_ad_bar_summary">我的收藏页面隐藏推广横条</string>
+    <string name="prefs_forbid_music_world_title">隐藏音乐空间</string>
+    <string name="prefs_forbid_music_world_summary">我的页面禁止下拉进入音乐空间</string>
 </resources>

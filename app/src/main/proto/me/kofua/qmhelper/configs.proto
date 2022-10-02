@@ -202,4 +202,5 @@ message HookInfo {
   optional Gson gson = 24;
   optional UiModeManager ui_mode_manager = 25;
   optional ApkDownloadAdBar ad_bar = 26;
+  optional Class music_world_touch_listener = 27;
 }

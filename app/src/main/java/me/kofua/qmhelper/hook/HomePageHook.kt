@@ -1,5 +1,6 @@
 package me.kofua.qmhelper.hook
 
+import android.view.MotionEvent
 import android.view.View
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.utils.callMethod
@@ -56,6 +57,10 @@ class HomePageHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                         view.callMethod(methodA)
                 }
             }
+        }
+        if (sPrefs.getBoolean("forbid_music_world", false)) {
+            instance.musicWorldTouchListenerClass
+                ?.replaceMethod("onTouch", View::class.java, MotionEvent::class.java) { false }
         }
     }
 }
