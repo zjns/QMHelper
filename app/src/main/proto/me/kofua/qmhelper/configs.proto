@@ -152,6 +152,18 @@ message AuthAgent {
   optional Method start_action_activity = 2;
 }
 
+message JsonRespParser {
+  optional Class class = 1;
+  optional Method parse_module_item = 2;
+}
+
+message Gson {
+  optional Class class = 1;
+  optional Method from_json = 2;
+  optional Method to_json = 3;
+  optional Class json_object = 4;
+}
+
 message HookInfo {
   int64 last_update_time = 1;
   int32 client_version_code = 2;
@@ -175,4 +187,6 @@ message HookInfo {
   optional AppStarterActivity app_starter_activity = 20;
   optional Class mode_fragment = 21;
   optional AuthAgent auth_agent = 22;
+  optional JsonRespParser json_resp_parser = 23;
+  optional Gson gson = 24;
 }

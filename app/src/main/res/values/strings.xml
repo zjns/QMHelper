@@ -55,4 +55,6 @@
     <string name="prefs_tg_channel_title">TG频道</string>
     <string name="prefs_tg_channel_summary">点击加入TG频道</string>
     <string name="tg_url" translatable="false">https://t.me/bb_show</string>
+    <string name="prefs_block_live_title">移除首页直播版块</string>
+    <string name="prefs_purify_search_title">净化搜索</string>
 </resources>

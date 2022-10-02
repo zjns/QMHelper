@@ -105,6 +105,18 @@ class SettingPack {
                 sPrefs.edit { putBoolean("forbid_slide", enabled) }
             }
         )?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_block_live_title,
+            isSwitchOn = { sPrefs.getBoolean("block_live", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("block_live", enabled) }
+            }
+        )?.let { add(it) }
+        Setting.button(
+            R.string.prefs_purify_search_title,
+        ) {
+            onPurifySearchClicked()
+        }?.let { add(it) }
 
         Setting.category(R.string.prefs_category_backup)
             ?.let { add(it) }
@@ -367,5 +379,14 @@ class SettingPack {
     private fun onTGChannelClicked() {
         val uri = Uri.parse(string(R.string.tg_url))
         activity?.startActivity(Intent(Intent.ACTION_VIEW, uri))
+    }
+
+    private fun onPurifySearchClicked() {
+        val checkedValues = sPrefs.getStringSet("purify_search", null) ?: setOf()
+        val entries = stringArray(R.array.purify_search_entries)
+        val values = stringArray(R.array.purify_search_value)
+        showMultiChoiceDialog(entries, values, checkedValues) {
+            sPrefs.edit { putStringSet("purify_search", it) }
+        }
     }
 }

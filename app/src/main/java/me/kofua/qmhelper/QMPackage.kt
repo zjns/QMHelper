@@ -69,6 +69,9 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val baseSettingPackClass by Weak { hookInfo.setting.baseSettingPack.class_ from classLoader }
     val baseSettingProviderClass by Weak { hookInfo.setting.baseSettingProvider.class_ from classLoader }
     val authAgentClass by Weak { hookInfo.authAgent.class_ from classLoader }
+    val jsonRespParserClass by Weak { hookInfo.jsonRespParser.class_ from classLoader }
+    val gsonClass by Weak { hookInfo.gson.class_ from classLoader }
+    val jsonObjectClass by Weak { hookInfo.gson.jsonObject from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -110,6 +113,9 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun createSettingProvider() = hookInfo.setting.baseSettingPack.createSettingProvider.orNull
     fun create() = hookInfo.setting.baseSettingProvider.create.orNull
     fun startActionActivity() = hookInfo.authAgent.startActionActivity.orNull
+    fun parseModuleItem() = hookInfo.jsonRespParser.parseModuleItem.orNull
+    fun fromJson() = hookInfo.gson.fromJson.orNull
+    fun toJson() = hookInfo.gson.toJson.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -608,6 +614,31 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 )?.let { dexHelper.decodeMethodIndex(it) } ?: return@authAgent
                 class_ = class_ { name = startActionActivityMethod.declaringClass.name }
                 startActionActivity = method { name = startActionActivityMethod.name }
+            }
+            val parseModuleItemMethod = dexHelper.findMethodUsingStringExtract(
+                "[parseModuleItem] "
+            )?.let { dexHelper.decodeMethodIndex(it) as? Method }
+            jsonRespParser = jsonRespParser {
+                parseModuleItemMethod ?: return@jsonRespParser
+                class_ = class_ { name = parseModuleItemMethod.declaringClass.name }
+                parseModuleItem = method { name = parseModuleItemMethod.name }
+            }
+            gson = gson {
+                val gsonClass = "com.google.gson.Gson".from(classLoader)
+                    ?: dexHelper.findMethodUsingStringExtract("GSON cannot serialize ")
+                        ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@gson
+                val fromJsonMethod = gsonClass.declaredMethods.find { m ->
+                    m.parameterTypes.let { it.size == 2 && it[0] == String::class.java && it[1] == Class::class.java }
+                } ?: return@gson
+                val toJsonMethod = gsonClass.declaredMethods.find { m ->
+                    m.parameterTypes.let { it.size == 1 && it[0] == Any::class.java } && m.returnType == String::class.java
+                } ?: return@gson
+                val jsonObjectClass = parseModuleItemMethod?.parameterTypes
+                    ?.getOrNull(2) ?: return@gson
+                class_ = class_ { name = gsonClass.name }
+                fromJson = method { name = fromJsonMethod.name }
+                toJson = method { name = toJsonMethod.name }
+                jsonObject = class_ { name = jsonObjectClass.name }
             }
 
             dexHelper.close()

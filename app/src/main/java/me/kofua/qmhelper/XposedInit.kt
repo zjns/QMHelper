@@ -13,6 +13,7 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import me.kofua.qmhelper.hook.ABTesterHook
 import me.kofua.qmhelper.hook.BaseHook
+import me.kofua.qmhelper.hook.CgiHook
 import me.kofua.qmhelper.hook.DebugHook
 import me.kofua.qmhelper.hook.HomePageHook
 import me.kofua.qmhelper.hook.HomeTopTabHook
@@ -78,6 +79,7 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     startHook(SplashHook(lpparam.classLoader))
                     startHook(HomeTopTabHook(lpparam.classLoader))
                     startHook(HomePageHook(lpparam.classLoader))
+                    startHook(CgiHook(lpparam.classLoader))
                 }
             }
         }

@@ -16,8 +16,6 @@ import kotlinx.coroutines.MainScope
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.XposedInit.Companion.modulePath
 import me.kofua.qmhelper.XposedInit.Companion.moduleRes
-import org.json.JSONArray
-import org.json.JSONObject
 import java.io.File
 import java.lang.ref.WeakReference
 import kotlin.reflect.KProperty
@@ -83,16 +81,6 @@ val sCaches
 @SuppressLint("DiscouragedApi")
 fun getResId(name: String, type: String) =
     currentContext.resources.getIdentifier(name, type, currentContext.packageName)
-
-fun String?.toJSONObject() = JSONObject(this.orEmpty())
-
-@Suppress("UNCHECKED_CAST")
-fun <T> JSONArray.asSequence() = (0 until length()).asSequence().map { get(it) as T }
-
-operator fun JSONArray.iterator(): Iterator<JSONObject> =
-    (0 until length()).asSequence().map { get(it) as JSONObject }.iterator()
-
-fun JSONArray?.orEmpty() = this ?: JSONArray()
 
 val shouldSaveLog get() = sPrefs.getBoolean("save_log", true)
 
