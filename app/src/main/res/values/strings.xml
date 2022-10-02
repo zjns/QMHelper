@@ -9,7 +9,7 @@
     <string name="prefs_category_main">主要功能</string>
     <string name="prefs_purify_splash_title">净化开屏页面</string>
     <string name="prefs_purify_splash_summary">去除客户端启动时的推广</string>
-    <string name="prefs_category_backup">备份和还原</string>
+    <string name="prefs_category_backup">备份与还原</string>
     <string name="prefs_export_title">导出配置</string>
     <string name="prefs_import_title">导入配置</string>
     <string name="prefs_category_settings">设置</string>
@@ -38,7 +38,7 @@
     <string name="go_to_mode_setting">前往设置</string>
     <string name="i_know">我知道了</string>
     <string name="jump_failed">跳转失败</string>
-    <string name="prefs_category_purify">精简美化</string>
+    <string name="prefs_category_purify">精简与美化</string>
     <string name="prefs_category_about">关于</string>
     <string name="prefs_version_title">版本</string>
     <string name="prefs_check_update_title">检查更新</string>
@@ -57,4 +57,5 @@
     <string name="tg_url" translatable="false">https://t.me/bb_show</string>
     <string name="prefs_block_live_title">移除首页直播版块</string>
     <string name="prefs_purify_search_title">净化搜索</string>
+    <string name="prefs_hide_ad_bar_title">我的收藏页面隐藏推广横条</string>
 </resources>

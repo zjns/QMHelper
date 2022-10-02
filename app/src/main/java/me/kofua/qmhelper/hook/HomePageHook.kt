@@ -1,6 +1,10 @@
 package me.kofua.qmhelper.hook
 
+import android.view.View
 import me.kofua.qmhelper.QMPackage.Companion.instance
+import me.kofua.qmhelper.utils.callMethod
+import me.kofua.qmhelper.utils.hookAfterAllConstructors
+import me.kofua.qmhelper.utils.hookAfterMethod
 import me.kofua.qmhelper.utils.hookBeforeMethod
 import me.kofua.qmhelper.utils.replaceMethod
 import me.kofua.qmhelper.utils.sPrefs
@@ -31,6 +35,27 @@ class HomePageHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                 instance.setCanSlide(),
                 Boolean::class.javaPrimitiveType
             ) { it.args[0] = false }
+        }
+        if (sPrefs.getBoolean("hide_ad_bar", false)) {
+            instance.adBarClass?.run {
+                hookAfterAllConstructors { param ->
+                    val view = param.thisObject as View
+                    view.visibility = View.GONE
+                }
+                instance.adBarMethods.takeIf { it.size == 2 } ?: return@run
+                val methodA = instance.adBarMethods[0]
+                val methodB = instance.adBarMethods[1]
+                hookAfterMethod(methodA) { param ->
+                    val view = param.thisObject as View
+                    if (view.visibility == View.VISIBLE)
+                        view.callMethod(methodB)
+                }
+                hookAfterMethod(methodB) { param ->
+                    val view = param.thisObject as View
+                    if (view.visibility == View.VISIBLE)
+                        view.callMethod(methodA)
+                }
+            }
         }
     }
 }

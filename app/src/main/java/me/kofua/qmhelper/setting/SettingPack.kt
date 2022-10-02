@@ -117,6 +117,13 @@ class SettingPack {
         ) {
             onPurifySearchClicked()
         }?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_hide_ad_bar_title,
+            isSwitchOn = { sPrefs.getBoolean("hide_ad_bar", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("hide_ad_bar", enabled) }
+            }
+        )?.let { add(it) }
 
         Setting.category(R.string.prefs_category_backup)
             ?.let { add(it) }
@@ -142,7 +149,6 @@ class SettingPack {
         Setting.button(
             R.string.reboot_host,
             R.string.reboot_host_summary,
-            arrow = false
         ) {
             activity?.let { restartApplication(it) }
         }?.let { add(it) }

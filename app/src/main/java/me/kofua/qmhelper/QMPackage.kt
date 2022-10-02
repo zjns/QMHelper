@@ -73,6 +73,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val gsonClass by Weak { hookInfo.gson.class_ from classLoader }
     val jsonObjectClass by Weak { hookInfo.gson.jsonObject from classLoader }
     val uiModeManagerClass by Weak { hookInfo.uiModeManager.class_ from classLoader }
+    val adBarClass by Weak { hookInfo.adBar.class_ from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -87,6 +88,8 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val builderSummaryField get() = hookInfo.setting.builder.summary.orNull
     val builderSwitchListenerField get() = hookInfo.setting.builder.switchListener.orNull
     val builderClickListenerField get() = hookInfo.setting.builder.clickListener.orNull
+
+    val adBarMethods get() = hookInfo.adBar.methodsList.map { it.name }
 
     fun initTabFragment() = hookInfo.homePageFragment.initTabFragment.orNull
     fun addTabById() = hookInfo.mainDesktopHeader.addTabById.orNull
@@ -646,11 +649,22 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 val clazz = dexHelper.findMethodUsingStringExtract("UIModeManager")
                     ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
                     ?: return@uiModeManager
-                val isThemeForbidMethod = clazz.declaredMethods.find { m ->
+                val method = clazz.declaredMethods.find { m ->
                     m.returnType == Boolean::class.javaPrimitiveType && m.parameterTypes.let { it.size == 1 && it[0] == String::class.java }
                 } ?: return@uiModeManager
                 class_ = class_ { name = clazz.name }
-                isThemeForbid = method { name = isThemeForbidMethod.name }
+                isThemeForbid = method { name = method.name }
+            }
+            adBar = apkDownloadAdBar {
+                val clazz = "com.tencent.qqmusic.business.ad.topbarad.apkdownload.ApkDownloadAdBar"
+                    .from(classLoader) ?: dexHelper.findMethodUsingStringExtract("ApkDownloadAdBar")
+                    ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
+                ?: return@apkDownloadAdBar
+                val methods = clazz.interfaces.getOrNull(0)?.methods?.filter {
+                    it.returnType == Void::class.javaPrimitiveType && it.parameterTypes.isEmpty()
+                } ?: return@apkDownloadAdBar
+                class_ = class_ { name = clazz.name }
+                this.methods.addAll(methods.map { method { name = it.name } })
             }
 
             dexHelper.close()

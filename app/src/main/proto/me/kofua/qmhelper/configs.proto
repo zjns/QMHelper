@@ -169,6 +169,12 @@ message UiModeManager {
   optional Method is_theme_forbid = 2;
 }
 
+message ApkDownloadAdBar {
+  optional Class class = 1;
+  optional Method apply_style = 2;
+  repeated Method methods = 3;
+}
+
 message HookInfo {
   int64 last_update_time = 1;
   int32 client_version_code = 2;
@@ -195,4 +201,5 @@ message HookInfo {
   optional JsonRespParser json_resp_parser = 23;
   optional Gson gson = 24;
   optional UiModeManager ui_mode_manager = 25;
+  optional ApkDownloadAdBar ad_bar = 26;
 }
