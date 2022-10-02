@@ -164,6 +164,11 @@ message Gson {
   optional Class json_object = 4;
 }
 
+message UiModeManager {
+  optional Class class = 1;
+  optional Method is_theme_forbid = 2;
+}
+
 message HookInfo {
   int64 last_update_time = 1;
   int32 client_version_code = 2;
@@ -189,4 +194,5 @@ message HookInfo {
   optional AuthAgent auth_agent = 22;
   optional JsonRespParser json_resp_parser = 23;
   optional Gson gson = 24;
+  optional UiModeManager ui_mode_manager = 25;
 }

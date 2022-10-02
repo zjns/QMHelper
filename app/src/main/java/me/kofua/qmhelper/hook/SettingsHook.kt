@@ -27,6 +27,7 @@ import me.kofua.qmhelper.utils.hookBeforeMethod
 import me.kofua.qmhelper.utils.invocationHandler
 import me.kofua.qmhelper.utils.new
 import me.kofua.qmhelper.utils.proxy
+import me.kofua.qmhelper.utils.replaceMethod
 import me.kofua.qmhelper.utils.sPrefs
 import me.kofua.qmhelper.utils.setObjectField
 import me.kofua.qmhelper.utils.string
@@ -78,6 +79,10 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             val data = param.args[2] as? Intent
             settingPack.onActivityResult(requestCode, resultCode, data)
         }
+        instance.uiModeManagerClass?.replaceMethod(
+            instance.isThemeForbid(),
+            String::class.java
+        ) { false }
         instance.moreFragmentClass?.hookAfterMethod(instance.resume()) { param ->
             val settings = param.thisObject
                 .getObjectFieldAs<MutableList<Any?>>(instance.moreListField)

@@ -72,6 +72,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val jsonRespParserClass by Weak { hookInfo.jsonRespParser.class_ from classLoader }
     val gsonClass by Weak { hookInfo.gson.class_ from classLoader }
     val jsonObjectClass by Weak { hookInfo.gson.jsonObject from classLoader }
+    val uiModeManagerClass by Weak { hookInfo.uiModeManager.class_ from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -116,6 +117,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun parseModuleItem() = hookInfo.jsonRespParser.parseModuleItem.orNull
     fun fromJson() = hookInfo.gson.fromJson.orNull
     fun toJson() = hookInfo.gson.toJson.orNull
+    fun isThemeForbid() = hookInfo.uiModeManager.isThemeForbid.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -639,6 +641,16 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 fromJson = method { name = fromJsonMethod.name }
                 toJson = method { name = toJsonMethod.name }
                 jsonObject = class_ { name = jsonObjectClass.name }
+            }
+            uiModeManager = uiModeManager {
+                val clazz = dexHelper.findMethodUsingStringExtract("UIModeManager")
+                    ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
+                    ?: return@uiModeManager
+                val isThemeForbidMethod = clazz.declaredMethods.find { m ->
+                    m.returnType == Boolean::class.javaPrimitiveType && m.parameterTypes.let { it.size == 1 && it[0] == String::class.java }
+                } ?: return@uiModeManager
+                class_ = class_ { name = clazz.name }
+                isThemeForbid = method { name = isThemeForbidMethod.name }
             }
 
             dexHelper.close()
