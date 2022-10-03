@@ -1,16 +1,22 @@
 package me.kofua.qmhelper.setting
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.net.Uri
+import android.provider.DocumentsContract
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.kofua.qmhelper.BuildConfig
 import me.kofua.qmhelper.R
 import me.kofua.qmhelper.utils.BannerTips
+import me.kofua.qmhelper.utils.Decryptor
 import me.kofua.qmhelper.utils.Weak
 import me.kofua.qmhelper.utils.currentContext
 import me.kofua.qmhelper.utils.edit
@@ -18,11 +24,13 @@ import me.kofua.qmhelper.utils.iterator
 import me.kofua.qmhelper.utils.logFile
 import me.kofua.qmhelper.utils.mainScope
 import me.kofua.qmhelper.utils.oldLogFile
+import me.kofua.qmhelper.utils.realDirPath
 import me.kofua.qmhelper.utils.runCatchingOrNull
 import me.kofua.qmhelper.utils.sCaches
 import me.kofua.qmhelper.utils.sPrefs
 import me.kofua.qmhelper.utils.shouldSaveLog
 import me.kofua.qmhelper.utils.showMessageDialog
+import me.kofua.qmhelper.utils.showMessageDialogX
 import me.kofua.qmhelper.utils.string
 import me.kofua.qmhelper.utils.stringArray
 import org.json.JSONArray
@@ -33,9 +41,13 @@ import kotlin.system.exitProcess
 class SettingPack {
     var activity by Weak<Activity> { null }
 
+    private var clickCounter = 0
+
     companion object {
         private const val CODE_EXPORT = 2333
         private const val CODE_IMPORT = 2334
+        private const val CODE_STORAGE = 2335
+        private const val CODE_CHOOSE_DECRYPT_DIR = 2336
 
         @JvmStatic
         fun restartApplication(activity: Activity) {
@@ -167,13 +179,38 @@ class SettingPack {
             activity?.let { restartApplication(it) }
         }?.let { add(it) }
 
+        if (sPrefs.getBoolean("hidden", false)) {
+            Setting.category(R.string.prefs_category_hidden)
+                ?.let { add(it) }
+            Setting.switch(
+                R.string.prefs_hidden_title,
+                R.string.prefs_hidden_summary,
+                isSwitchOn = { sPrefs.getBoolean("hidden", false) },
+                onSwitchChanged = { enabled ->
+                    sPrefs.edit { putBoolean("hidden", enabled) }
+                    if (enabled) {
+                        BannerTips.success(R.string.hidden_enabled)
+                    } else {
+                        BannerTips.success(R.string.hidden_disabled)
+                    }
+                }
+            )?.let { add(it) }
+            Setting.button(
+                R.string.prefs_decrypt_downloads_title
+            ) {
+                onDecryptButtonClicked()
+            }?.let { add(it) }
+        }
+
         Setting.category(R.string.prefs_category_about)
             ?.let { add(it) }
         Setting.button(
             string(R.string.prefs_version_title),
             "%s (%s)".format(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
             arrow = false
-        )?.let { add(it) }
+        ) {
+            onVersionClicked()
+        }?.let { add(it) }
         val latestVer = sCaches.getString("latest_version", "")
         Setting.button(
             R.string.prefs_check_update_title,
@@ -224,6 +261,42 @@ class SettingPack {
                         } catch (_: Exception) {
                         }
                     }
+                }
+            }
+
+            CODE_CHOOSE_DECRYPT_DIR -> {
+                val uri = data?.data
+                if (uri == null || resultCode != Activity.RESULT_OK) return
+                val saveDir = uri.realDirPath()?.let { File(it) }
+                    ?: run { BannerTips.failed(R.string.invalid_storage_path); return }
+                decryptSongs(saveDir)
+            }
+        }
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == CODE_STORAGE) {
+            val activity = activity ?: return
+            if (grantResults.isNotEmpty() && grantResults.first() == PERMISSION_GRANTED) {
+                chooseDecryptSaveDir()
+            } else {
+                val storagePerm = Manifest.permission.WRITE_EXTERNAL_STORAGE
+                if (activity.shouldShowRequestPermissionRationale(storagePerm)) {
+                    activity.showMessageDialog(
+                        R.string.tips_title,
+                        R.string.need_to_request_storage_perm,
+                        android.R.string.ok,
+                        android.R.string.cancel
+                    ) {
+                        activity.requestPermissions(arrayOf(storagePerm), CODE_STORAGE)
+                    }
+                } else {
+                    BannerTips.failed(R.string.storage_perm_grant_failed)
                 }
             }
         }
@@ -377,8 +450,8 @@ class SettingPack {
                 activity?.showMessageDialog(
                     string(R.string.found_update_with_version, latestVer),
                     changelog,
-                    string(R.string.i_know),
                     string(R.string.update_now),
+                    string(R.string.i_know)
                 ) {
                     val uri = Uri.parse(string(R.string.update_url, latestVerTag))
                     activity?.startActivity(Intent(Intent.ACTION_VIEW, uri))
@@ -388,6 +461,16 @@ class SettingPack {
             sCaches.edit { remove("latest_version") }
             if (!dialog) return@launch
             BannerTips.success(R.string.no_update)
+        }
+    }
+
+    private fun onVersionClicked() {
+        if (sPrefs.getBoolean("hidden", false) || clickCounter == 7) return
+        if (++clickCounter == 7) {
+            sPrefs.edit { putBoolean("hidden", true) }
+            BannerTips.success(R.string.hidden_enabled)
+        } else if (clickCounter >= 4) {
+            BannerTips.success(string(R.string.hidden_remain_click_count, 7 - clickCounter))
         }
     }
 
@@ -408,5 +491,77 @@ class SettingPack {
         showMultiChoiceDialog(entries, values, checkedValues) {
             sPrefs.edit { putStringSet("purify_search", it) }
         }
+    }
+
+    private fun onDecryptButtonClicked() {
+        val activity = activity ?: return
+
+        val storagePerm = Manifest.permission.WRITE_EXTERNAL_STORAGE
+        if (activity.checkSelfPermission(storagePerm) == PERMISSION_GRANTED) {
+            chooseDecryptSaveDir()
+        } else {
+            activity.requestPermissions(arrayOf(storagePerm), CODE_STORAGE)
+        }
+    }
+
+    @SuppressLint("InlinedApi")
+    private fun chooseDecryptSaveDir() {
+        val initialUri = "content://com.android.externalstorage.documents/document/primary:Music"
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.parse(initialUri))
+        }
+        try {
+            activity?.startActivityForResult(intent, CODE_CHOOSE_DECRYPT_DIR)
+            BannerTips.success(R.string.pls_choose_save_dir)
+        } catch (_: ActivityNotFoundException) {
+            BannerTips.error(R.string.open_file_manager_failed)
+        }
+    }
+
+    private fun decryptSongs(saveDir: File) = mainScope.launch {
+        val (total, success, successOrigSongs) = withContext(Dispatchers.IO) {
+            Decryptor.batchDecrypt(saveDir) { srcFile, current, total, success ->
+                val name = srcFile.name
+                if (success) {
+                    BannerTips.success(
+                        string(R.string.single_decrypt_success, current, total, name)
+                    )
+                } else {
+                    BannerTips.failed(
+                        string(R.string.single_decrypt_failed, current, total, name)
+                    )
+                }
+            }
+        }
+        if (total != 0) delay(3000)
+        val failed = total - success
+        if (total == 0)
+            activity?.showMessageDialog(
+                R.string.decrypt_completed_title,
+                R.string.decrypt_completed_summary_none,
+                android.R.string.ok
+            )
+        else if (failed == 0)
+            activity?.showMessageDialogX(
+                string(R.string.decrypt_completed_title),
+                string(R.string.decrypt_completed_summary_all, total),
+                string(R.string.yes),
+                string(R.string.no)
+            )?.let {
+                if (it) withContext(Dispatchers.IO) {
+                    Decryptor.deleteOrigSongs(successOrigSongs)
+                }
+            }
+        else
+            activity?.showMessageDialogX(
+                string(R.string.decrypt_completed_title),
+                string(R.string.decrypt_completed_summary, total, success, failed),
+                string(R.string.yes),
+                string(R.string.no)
+            )?.let {
+                if (it) withContext(Dispatchers.IO) {
+                    Decryptor.deleteOrigSongs(successOrigSongs)
+                }
+            }
     }
 }

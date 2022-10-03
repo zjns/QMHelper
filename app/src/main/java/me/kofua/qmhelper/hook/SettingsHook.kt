@@ -55,8 +55,8 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                     activity.showMessageDialog(
                         string(R.string.tips_title),
                         string(R.string.tips_open_clean_mode),
-                        string(R.string.i_know),
                         string(R.string.go_to_mode_setting),
+                        string(R.string.i_know),
                         { sPrefs.edit { putBoolean("ui_mode_hint", true) } },
                     ) {
                         sPrefs.edit { putBoolean("ui_mode_hint", true) }
@@ -77,6 +77,18 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             val resultCode = param.args[1] as Int
             val data = param.args[2] as? Intent
             settingPack.onActivityResult(requestCode, resultCode, data)
+        }
+        @Suppress("UNCHECKED_CAST")
+        instance.appStarterActivityClass?.hookAfterMethod(
+            "onRequestPermissionsResult",
+            Int::class.javaPrimitiveType,
+            Array<String>::class.java,
+            IntArray::class.java,
+        ) { param ->
+            val requestCode = param.args[0] as Int
+            val permissions = param.args[1] as Array<String>
+            val grantResults = param.args[2] as IntArray
+            settingPack.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
         instance.uiModeManagerClass?.replaceMethod(
             instance.isThemeForbid(),

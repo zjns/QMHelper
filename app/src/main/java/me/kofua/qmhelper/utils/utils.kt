@@ -2,10 +2,14 @@ package me.kofua.qmhelper.utils
 
 import android.annotation.SuppressLint
 import android.app.AndroidAppHelper
+import android.content.ContentResolver
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.provider.DocumentsContract
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
@@ -173,4 +177,28 @@ inline fun <T, R> T.runCatchingOrNull(func: T.() -> R?) = try {
     func()
 } catch (e: Throwable) {
     null
+}
+
+fun Uri.realDirPath() = when (scheme) {
+    null, ContentResolver.SCHEME_FILE -> path
+
+    ContentResolver.SCHEME_CONTENT -> {
+        if (authority == "com.android.externalstorage.documents") {
+            val treeDocId = runCatchingOrNull {
+                DocumentsContract.getTreeDocumentId(this)
+            } ?: ""
+            if (!treeDocId.contains(":")) {
+                null
+            } else {
+                val type = treeDocId.substringBefore(':')
+                val dirPath = treeDocId.substringAfter(':')
+                val externalStorage = if (type == "primary") {
+                    Environment.getExternalStorageDirectory().absolutePath
+                } else "/storage/$type"
+                File(externalStorage, dirPath).absolutePath
+            }
+        } else null
+    }
+
+    else -> null
 }

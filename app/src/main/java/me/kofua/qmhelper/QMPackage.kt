@@ -77,6 +77,9 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val uiModeManagerClass by Weak { hookInfo.uiModeManager.class_ from classLoader }
     val adBarClass by Weak { hookInfo.adBar.class_ from classLoader }
     val musicWorldTouchListenerClass by Weak { hookInfo.musicWorldTouchListener from classLoader }
+    val eKeyManagerClass by Weak { hookInfo.eKeyManager.class_ from classLoader }
+    val eKeyDecryptorClass by Weak { hookInfo.eKeyDecryptor.class_ from classLoader }
+    val vipDownloadHelperClass by Weak { hookInfo.vipDownloadHelper.class_ from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -91,6 +94,8 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val builderSummaryField get() = hookInfo.setting.builder.summary.orNull
     val builderSwitchListenerField get() = hookInfo.setting.builder.switchListener.orNull
     val builderClickListenerField get() = hookInfo.setting.builder.clickListener.orNull
+    val eKeyDecryptorInstanceField get() = hookInfo.eKeyDecryptor.instance.orNull
+    val eKeyManagerInstanceField get() = hookInfo.eKeyManager.instance.orNull
 
     val adBarMethods get() = hookInfo.adBar.methodsList.map { it.name }
 
@@ -125,6 +130,9 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun fromJson() = hookInfo.gson.fromJson.orNull
     fun toJson() = hookInfo.gson.toJson.orNull
     fun isThemeForbid() = hookInfo.uiModeManager.isThemeForbid.orNull
+    fun getFileEKey() = hookInfo.eKeyManager.getFileEKey.orNull
+    fun decryptFile() = hookInfo.eKeyDecryptor.decryptFile.orNull
+    fun staticDecryptFile() = hookInfo.vipDownloadHelper.decryptFile.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -610,7 +618,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 val appStarterActivityClass = doOnCreateMethod.declaringClass
                 val showMessageDialogMethod = appStarterActivityClass.methods.find { m ->
                     Dialog::class.java.isAssignableFrom(m.returnType)
-                            && m.parameterTypes.let { it.size == 8 && it[0] == String::class.java && it[7] == Boolean::class.java }
+                            && m.parameterTypes.let { it.size == 8 && it[0] == String::class.java && it[7] == Boolean::class.javaPrimitiveType }
                 } ?: return@appStarterActivity
                 class_ = class_ { name = appStarterActivityClass.name }
                 doOnCreate = method { name = doOnCreateMethod.name }
@@ -693,6 +701,38 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                         View.OnTouchListener::class.java.isAssignableFrom(c)
                     }
                 }?.name ?: return@class_
+            }
+            eKeyManager = audioStreamEKeyManager {
+                val getFileEKeyMethod = dexHelper.findMethodUsingStringExtract(
+                    "getFileEKey filePath is empty!"
+                )?.let { dexHelper.decodeMethodIndex(it) } ?: return@audioStreamEKeyManager
+                val eKeyManagerClass = getFileEKeyMethod.declaringClass
+                val instanceField = eKeyManagerClass.declaredFields.find {
+                    it.type == eKeyManagerClass
+                } ?: return@audioStreamEKeyManager
+                class_ = class_ { name = eKeyManagerClass.name }
+                instance = field { name = instanceField.name }
+                getFileEKey = method { name = getFileEKeyMethod.name }
+            }
+            eKeyDecryptor = eKeyDecryptor {
+                val decryptFileMethod = dexHelper.findMethodUsingStringExtract(
+                    "decryptFile srcFilePath = "
+                )?.let { dexHelper.decodeMethodIndex(it) } ?: return@eKeyDecryptor
+                val companionClass = decryptFileMethod.declaringClass
+                val decryptorClass = companionClass.declaringClass ?: return@eKeyDecryptor
+                val instanceField = decryptorClass.declaredFields.find {
+                    it.type == companionClass
+                } ?: return@eKeyDecryptor
+                class_ = class_ { name = decryptorClass.name }
+                instance = field { name = instanceField.name }
+                decryptFile = method { name = decryptFileMethod.name }
+            }
+            vipDownloadHelper = vipDownloadHelper {
+                val decryptFileMethod = dexHelper.findMethodUsingStringExtract(
+                    "decryptFile create dest = "
+                )?.let { dexHelper.decodeMethodIndex(it) } ?: return@vipDownloadHelper
+                class_ = class_ { name = decryptFileMethod.declaringClass.name }
+                decryptFile = method { name = decryptFileMethod.name }
             }
 
             dexHelper.close()

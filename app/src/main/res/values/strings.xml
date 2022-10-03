@@ -65,4 +65,23 @@
     <string name="prefs_hide_ad_bar_summary">我的收藏页面隐藏推广横条</string>
     <string name="prefs_forbid_music_world_title">隐藏音乐空间</string>
     <string name="prefs_forbid_music_world_summary">我的页面禁止下拉进入音乐空间</string>
+    <string name="prefs_category_hidden">隐藏功能</string>
+    <string name="prefs_hidden_title">启用隐藏功能</string>
+    <string name="prefs_hidden_summary">所有隐藏功能仅供学习交流，请低调使用</string>
+    <string name="hidden_enabled">已开启隐藏功能，重启客户端后生效</string>
+    <string name="hidden_disabled">已关闭隐藏功能，重启客户端后生效</string>
+    <string name="hidden_remain_click_count">再按%1$d次开启隐藏功能</string>
+    <string name="prefs_decrypt_downloads_title">解密已下载音乐</string>
+    <string name="need_to_request_storage_perm">需要获取外置存储写入权限才能进一步操作，是否继续？</string>
+    <string name="storage_perm_grant_failed">外置存储写入权限获取失败，请打开APP的系统权限设置页面手动开启权限。</string>
+    <string name="pls_choose_save_dir">请选择保存解密歌曲的文件夹</string>
+    <string name="invalid_storage_path">请选择有效的外置存储文件夹</string>
+    <string name="decrypt_completed_title">解密完成</string>
+    <string name="decrypt_completed_summary_none">没有找到需要解密的音乐！</string>
+    <string name="decrypt_completed_summary_all">解密完成，共%1$d首加密音乐，全部解密成功。是否删除原文件？</string>
+    <string name="decrypt_completed_summary">解密完成，共%1$d首加密音乐，%2$d首解密成功，%3$d首解密失败。是否删除原文件？</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="single_decrypt_success">[%1$d/%2$d] %3$s 解密成功</string>
+    <string name="single_decrypt_failed">[%1$d/%2$d] %3$s 解密失败</string>
 </resources>

@@ -176,6 +176,23 @@ message ApkDownloadAdBar {
   repeated Method methods = 3;
 }
 
+message AudioStreamEKeyManager {
+  optional Class class = 1;
+  optional Field instance = 2;
+  optional Method get_file_e_key = 3;
+}
+
+message EKeyDecryptor {
+  optional Class class = 1;
+  optional Field instance = 2;
+  optional Method decrypt_file = 3;
+}
+
+message VipDownloadHelper {
+  optional Class class = 1;
+  optional Method decrypt_file = 2;
+}
+
 message HookInfo {
   int64 last_update_time = 1;
   int32 client_version_code = 2;
@@ -204,4 +221,7 @@ message HookInfo {
   optional UiModeManager ui_mode_manager = 25;
   optional ApkDownloadAdBar ad_bar = 26;
   optional Class music_world_touch_listener = 27;
+  optional AudioStreamEKeyManager e_key_manager = 28;
+  optional EKeyDecryptor e_key_decryptor = 29;
+  optional VipDownloadHelper vip_download_helper = 30;
 }
