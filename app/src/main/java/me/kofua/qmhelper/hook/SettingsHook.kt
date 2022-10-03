@@ -1,7 +1,6 @@
 package me.kofua.qmhelper.hook
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -30,6 +29,7 @@ import me.kofua.qmhelper.utils.proxy
 import me.kofua.qmhelper.utils.replaceMethod
 import me.kofua.qmhelper.utils.sPrefs
 import me.kofua.qmhelper.utils.setObjectField
+import me.kofua.qmhelper.utils.showMessageDialog
 import me.kofua.qmhelper.utils.string
 import me.kofua.qmhelper.utils.uiMode
 import java.lang.reflect.InvocationHandler
@@ -52,19 +52,18 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             settingPack.checkUpdate(dialog = false)
             if (uiMode == UiMode.NORMAL && !sPrefs.getBoolean("ui_mode_hint", false)) {
                 handler.postDelayed({
-                    if (activity.isDestroyed || activity.isFinishing) return@postDelayed
-                    AlertDialog.Builder(activity)
-                        .setTitle(string(R.string.tips_title))
-                        .setMessage(string(R.string.tips_open_clean_mode))
-                        .setNegativeButton(string(R.string.i_know)) { _, _ ->
-                            sPrefs.edit { putBoolean("ui_mode_hint", true) }
-                        }
-                        .setPositiveButton(string(R.string.go_to_mode_setting)) { _, _ ->
-                            sPrefs.edit { putBoolean("ui_mode_hint", true) }
-                            instance.modeFragmentClass?.let {
-                                activity.callMethod(instance.addSecondFragment(), it, null)
-                            } ?: BannerTips.error(R.string.jump_failed)
-                        }.show()
+                    activity.showMessageDialog(
+                        string(R.string.tips_title),
+                        string(R.string.tips_open_clean_mode),
+                        string(R.string.i_know),
+                        string(R.string.go_to_mode_setting),
+                        { sPrefs.edit { putBoolean("ui_mode_hint", true) } },
+                    ) {
+                        sPrefs.edit { putBoolean("ui_mode_hint", true) }
+                        instance.modeFragmentClass?.let {
+                            activity.callMethod(instance.addSecondFragment(), it, null)
+                        } ?: BannerTips.error(R.string.jump_failed)
+                    }
                 }, 2000L)
             }
         }

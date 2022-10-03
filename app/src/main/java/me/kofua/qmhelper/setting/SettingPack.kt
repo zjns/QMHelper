@@ -22,6 +22,7 @@ import me.kofua.qmhelper.utils.runCatchingOrNull
 import me.kofua.qmhelper.utils.sCaches
 import me.kofua.qmhelper.utils.sPrefs
 import me.kofua.qmhelper.utils.shouldSaveLog
+import me.kofua.qmhelper.utils.showMessageDialog
 import me.kofua.qmhelper.utils.string
 import me.kofua.qmhelper.utils.stringArray
 import org.json.JSONArray
@@ -373,15 +374,15 @@ class SettingPack {
             sCaches.edit { putString("latest_version", latestVer) }
             if (!dialog) return@launch
             withContext(Dispatchers.Main) {
-                AlertDialog.Builder(activity)
-                    .setTitle(string(R.string.found_update_with_version, latestVer))
-                    .setMessage(changelog)
-                    .setPositiveButton(string(R.string.update_now)) { _, _ ->
-                        val uri = Uri.parse(string(R.string.update_url, latestVerTag))
-                        activity?.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                    }
-                    .setNegativeButton(string(R.string.i_know), null)
-                    .show()
+                activity?.showMessageDialog(
+                    string(R.string.found_update_with_version, latestVer),
+                    changelog,
+                    string(R.string.i_know),
+                    string(R.string.update_now),
+                ) {
+                    val uri = Uri.parse(string(R.string.update_url, latestVerTag))
+                    activity?.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                }
             }
         } else {
             sCaches.edit { remove("latest_version") }

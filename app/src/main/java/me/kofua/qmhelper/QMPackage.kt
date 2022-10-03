@@ -2,6 +2,7 @@
 
 package me.kofua.qmhelper
 
+import android.app.Dialog
 import android.content.Context
 import android.view.View
 import android.widget.ImageView
@@ -110,6 +111,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun getSp() = hookInfo.spManager.get.orNull
     fun doOnCreate() = hookInfo.appStarterActivity.doOnCreate.orNull
     fun addSecondFragment() = hookInfo.appStarterActivity.addSecondFragment.orNull
+    fun showMessageDialog() = hookInfo.appStarterActivity.showMessageDialog.orNull
     fun with() = hookInfo.setting.with.orNull
     fun build() = hookInfo.setting.builder.build.orNull
     fun isSwitchOn() = hookInfo.setting.switchListener.isSwitchOn.orNull
@@ -605,9 +607,15 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 val addSecondFragmentMethod = dexHelper
                     .findMethodUsingStringExtract("[addSecondFragment] gotoFirstFragment")
                     ?.let { dexHelper.decodeMethodIndex(it) } ?: return@appStarterActivity
-                class_ = class_ { name = doOnCreateMethod.declaringClass.name }
+                val appStarterActivityClass = doOnCreateMethod.declaringClass
+                val showMessageDialogMethod = appStarterActivityClass.methods.find { m ->
+                    Dialog::class.java.isAssignableFrom(m.returnType)
+                            && m.parameterTypes.let { it.size == 8 && it[0] == String::class.java && it[7] == Boolean::class.java }
+                } ?: return@appStarterActivity
+                class_ = class_ { name = appStarterActivityClass.name }
                 doOnCreate = method { name = doOnCreateMethod.name }
                 addSecondFragment = method { name = addSecondFragmentMethod.name }
+                showMessageDialog = method { name = showMessageDialogMethod.name }
             }
             modeFragment = class_ {
                 name = "com.tencent.qqmusic.fragment.morefeatures.ModeSettingFragment"

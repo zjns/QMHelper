@@ -145,6 +145,7 @@ message AppStarterActivity {
   optional Class class = 1;
   optional Method do_on_create = 2;
   optional Method add_second_fragment = 3;
+  optional Method show_message_dialog = 4;
 }
 
 message AuthAgent {
