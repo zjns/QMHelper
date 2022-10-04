@@ -62,5 +62,22 @@ class HomePageHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             instance.musicWorldTouchListenerClass
                 ?.replaceMethod("onTouch", View::class.java, MotionEvent::class.java) { false }
         }
+        if (sPrefs.getBoolean("block_bottom_tips", false)) {
+            instance.bottomTipControllerClass?.replaceMethod(instance.updateBottomTips()) { null }
+        }
+        val blockCoverAds = sPrefs.getStringSet("block_cover_ads", null) ?: setOf()
+        if (blockCoverAds.contains("video")) {
+            instance.videoViewDelegateClass?.replaceMethod(instance.onResult()) { null }
+        }
+        if (blockCoverAds.contains("genre")) {
+            instance.genreViewDelegateClass?.declaredMethods?.find { m ->
+                m.name == instance.onBind() && m.parameterTypes.let { it.size > 1 && it[0] == instance.genreViewDelegateClass }
+            }?.replaceMethod { null }
+        }
+        if (sPrefs.getBoolean("block_user_guide", false)) {
+            instance.userGuideViewDelegateClass?.declaredMethods?.find {
+                it.name == instance.showUserGuide() && it.returnType == Void::class.javaPrimitiveType
+            }?.replaceMethod { null }
+        }
     }
 }

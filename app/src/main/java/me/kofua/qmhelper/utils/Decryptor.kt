@@ -70,11 +70,11 @@ object Decryptor {
         val fileExt = srcFilePath.substringAfterLast(".", "")
         val decExt = decExtMap[fileExt]?.ext
             ?: if (fileExt.isEmpty()) "decrypted" else "$fileExt.decrypted"
-        val destFilePath = if (saveDir == null) {
+        val destFilePath = (if (saveDir == null) {
             "$fileNoExt.$decExt"
         } else {
             File(saveDir, "${srcFile.nameWithoutExtension}.$decExt").absolutePath
-        }.replace(pureRegex, "")
+        }).replace(pureRegex, "")
         File(destFilePath).delete()
         val eKey = getFileEKey(srcFilePath)
             .ifEmpty { return staticDecrypt(srcFilePath, destFilePath) }

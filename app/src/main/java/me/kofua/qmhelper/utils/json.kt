@@ -17,7 +17,7 @@ fun JSONArray?.orEmpty() = this ?: JSONArray()
 val gson by lazy { instance.gsonClass?.new() }
 
 inline fun <reified T> String.fromJson(): T? {
-    return gson?.callMethod(instance.fromJson(), this, T::class.java) as? T
+    return gson?.callMethodAs(instance.fromJson(), this, T::class.java)
 }
 
 fun String.fromJson(type: Class<*>?): Any? {
@@ -25,5 +25,5 @@ fun String.fromJson(type: Class<*>?): Any? {
 }
 
 fun Any.toJson(): String? {
-    return gson?.callMethod(instance.toJson(), this) as? String
+    return gson?.callMethodAs(instance.toJson(), this)
 }

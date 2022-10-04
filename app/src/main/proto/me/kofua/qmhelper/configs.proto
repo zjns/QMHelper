@@ -193,6 +193,26 @@ message VipDownloadHelper {
   optional Method decrypt_file = 2;
 }
 
+message BottomTipController {
+  optional Class class = 1;
+  optional Method update_bottom_tips = 2;
+}
+
+message VideoViewDelegate {
+  optional Class class = 1;
+  optional Method on_result = 2;
+}
+
+message GenreViewDelegate {
+  optional Class class = 1;
+  optional Method on_bind = 2;
+}
+
+message UserGuideViewDelegate {
+  optional Class class = 1;
+  optional Method show_user_guide = 2;
+}
+
 message HookInfo {
   int64 last_update_time = 1;
   int32 client_version_code = 2;
@@ -224,4 +244,8 @@ message HookInfo {
   optional AudioStreamEKeyManager e_key_manager = 28;
   optional EKeyDecryptor e_key_decryptor = 29;
   optional VipDownloadHelper vip_download_helper = 30;
+  optional BottomTipController bottom_tip_controller = 31;
+  optional VideoViewDelegate video_view_delegate = 32;
+  optional GenreViewDelegate genre_view_delegate = 33;
+  optional UserGuideViewDelegate user_guide_view_delegate = 34;
 }

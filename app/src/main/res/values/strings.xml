@@ -84,4 +84,10 @@
     <string name="no">否</string>
     <string name="single_decrypt_success">[%1$d/%2$d] %3$s 解密成功</string>
     <string name="single_decrypt_failed">[%1$d/%2$d] %3$s 解密失败</string>
+    <string name="prefs_block_bottom_tips_title">屏蔽底部提示栏</string>
+    <string name="prefs_block_bottom_tips_summary">屏蔽播放页底部提示栏</string>
+    <string name="prefs_block_cover_ads_title">屏蔽封面推广</string>
+    <string name="prefs_block_cover_ads_summary">屏蔽播放页封面各种推广</string>
+    <string name="prefs_block_user_guide_title">屏蔽关注提醒</string>
+    <string name="prefs_block_user_guide_summary">屏蔽播放页音乐人关注提醒</string>
 </resources>

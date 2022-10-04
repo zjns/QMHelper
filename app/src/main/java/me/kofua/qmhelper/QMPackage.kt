@@ -80,6 +80,10 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val eKeyManagerClass by Weak { hookInfo.eKeyManager.class_ from classLoader }
     val eKeyDecryptorClass by Weak { hookInfo.eKeyDecryptor.class_ from classLoader }
     val vipDownloadHelperClass by Weak { hookInfo.vipDownloadHelper.class_ from classLoader }
+    val bottomTipControllerClass by Weak { hookInfo.bottomTipController.class_ from classLoader }
+    val videoViewDelegateClass by Weak { hookInfo.videoViewDelegate.class_ from classLoader }
+    val genreViewDelegateClass by Weak { hookInfo.genreViewDelegate.class_ from classLoader }
+    val userGuideViewDelegateClass by Weak { hookInfo.userGuideViewDelegate.class_ from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -133,6 +137,10 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun getFileEKey() = hookInfo.eKeyManager.getFileEKey.orNull
     fun decryptFile() = hookInfo.eKeyDecryptor.decryptFile.orNull
     fun staticDecryptFile() = hookInfo.vipDownloadHelper.decryptFile.orNull
+    fun updateBottomTips() = hookInfo.bottomTipController.updateBottomTips.orNull
+    fun onResult() = hookInfo.videoViewDelegate.onResult.orNull
+    fun onBind() = hookInfo.genreViewDelegate.onBind.orNull
+    fun showUserGuide() = hookInfo.userGuideViewDelegate.showUserGuide.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -733,6 +741,32 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 )?.let { dexHelper.decodeMethodIndex(it) } ?: return@vipDownloadHelper
                 class_ = class_ { name = decryptFileMethod.declaringClass.name }
                 decryptFile = method { name = decryptFileMethod.name }
+            }
+            bottomTipController = bottomTipController {
+                val method = dexHelper.findMethodUsingStringExtract("updateBottomTips ")
+                    ?.let { dexHelper.decodeMethodIndex(it) } ?: return@bottomTipController
+                class_ = class_ { name = method.declaringClass.name }
+                updateBottomTips = method { name = method.name }
+            }
+            videoViewDelegate = videoViewDelegate {
+                val method = dexHelper.findMethodUsingStringExtract("[onResult] show mv icon.")
+                    ?.let { dexHelper.decodeMethodIndex(it) } ?: return@videoViewDelegate
+                class_ = class_ { name = method.declaringClass.name }
+                onResult = method { name = method.name }
+            }
+            genreViewDelegate = genreViewDelegate {
+                val method = dexHelper.findMethodUsingStringExtract(
+                    "[onBind] hide the song genre tags info."
+                )?.let { dexHelper.decodeMethodIndex(it) } ?: return@genreViewDelegate
+                class_ = class_ { name = method.declaringClass.name }
+                onBind = method { name = method.name }
+            }
+            userGuideViewDelegate = userGuideViewDelegate {
+                val method = dexHelper.findMethodUsingStringExtract(
+                    "showNewUserGuide hasGuideShowing ="
+                )?.let { dexHelper.decodeMethodIndex(it) } ?: return@userGuideViewDelegate
+                class_ = class_ { name = method.declaringClass.name }
+                showUserGuide = method { name = method.name }
             }
 
             dexHelper.close()

@@ -150,6 +150,28 @@ class SettingPack {
                 sPrefs.edit { putBoolean("forbid_music_world", enabled) }
             }
         )?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_block_bottom_tips_title,
+            R.string.prefs_block_bottom_tips_summary,
+            isSwitchOn = { sPrefs.getBoolean("block_bottom_tips", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("block_bottom_tips", enabled) }
+            }
+        )?.let { add(it) }
+        Setting.button(
+            R.string.prefs_block_cover_ads_title,
+            R.string.prefs_block_cover_ads_summary
+        ) {
+            onBlockCoverAdsClicked()
+        }?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_block_user_guide_title,
+            R.string.prefs_block_user_guide_summary,
+            isSwitchOn = { sPrefs.getBoolean("block_user_guide", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("block_user_guide", enabled) }
+            }
+        )?.let { add(it) }
 
         Setting.category(R.string.prefs_category_backup)
             ?.let { add(it) }
@@ -487,7 +509,7 @@ class SettingPack {
     private fun onPurifySearchClicked() {
         val checkedValues = sPrefs.getStringSet("purify_search", null) ?: setOf()
         val entries = stringArray(R.array.purify_search_entries)
-        val values = stringArray(R.array.purify_search_value)
+        val values = stringArray(R.array.purify_search_values)
         showMultiChoiceDialog(entries, values, checkedValues) {
             sPrefs.edit { putStringSet("purify_search", it) }
         }
@@ -501,6 +523,15 @@ class SettingPack {
             chooseDecryptSaveDir()
         } else {
             activity.requestPermissions(arrayOf(storagePerm), CODE_STORAGE)
+        }
+    }
+
+    private fun onBlockCoverAdsClicked() {
+        val entries = stringArray(R.array.block_cover_ads_entries)
+        val values = stringArray(R.array.block_cover_ads_values)
+        val checkedValues = sPrefs.getStringSet("block_cover_ads", null) ?: setOf()
+        showMultiChoiceDialog(entries, values, checkedValues) {
+            sPrefs.edit { putStringSet("block_cover_ads", it) }
         }
     }
 

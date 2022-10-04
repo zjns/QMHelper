@@ -3,6 +3,7 @@
     <string-array name="xposed_scope">
         <item>com.tencent.qqmusic</item>
     </string-array>
+
     <string-array name="home_top_tab_entries">
         <item>有声</item>
         <item>直播</item>
@@ -11,6 +12,7 @@
         <item>7</item>
         <item>10</item>
     </string-array>
+
     <string-array name="more_items_entries">
         <item>音乐推</item>
         <item>创作者中心</item>
@@ -35,16 +37,26 @@
         <item>腾讯视频VIP福利</item>
         <item>百变彩铃</item>
     </string-array>
+
     <array name="purify_search_entries">
         <item>滚动热词</item>
         <item>搜索页推广</item>
         <item>搜索页推荐热词</item>
         <item>搜索页热词分类列表</item>
     </array>
-    <array name="purify_search_value" translatable="false">
+    <array name="purify_search_values" translatable="false">
         <item>scroll</item>
         <item>ads</item>
         <item>rcmd</item>
         <item>rcmd-list</item>
+    </array>
+
+    <array name="block_cover_ads_entries">
+        <item>视频推荐</item>
+        <item>类型标签</item>
+    </array>
+    <array name="block_cover_ads_values" translatable="false">
+        <item>video</item>
+        <item>genre</item>
     </array>
 </resources>
