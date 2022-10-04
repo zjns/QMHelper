@@ -73,6 +73,9 @@ class HomePageHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             instance.genreViewDelegateClass?.declaredMethods?.find { m ->
                 m.name == instance.onBind() && m.parameterTypes.let { it.size > 1 && it[0] == instance.genreViewDelegateClass }
             }?.replaceMethod { null }
+            instance.topSongViewDelegateClass?.declaredMethods?.find { m ->
+                m.name == instance.topSongOnBind() && m.parameterTypes.let { it.size > 1 && it[0] == instance.topSongViewDelegateClass }
+            }?.replaceMethod { null }
         }
         if (sPrefs.getBoolean("block_user_guide", false)) {
             instance.userGuideViewDelegateClass?.declaredMethods?.find {

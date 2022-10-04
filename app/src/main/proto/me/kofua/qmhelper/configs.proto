@@ -213,6 +213,11 @@ message UserGuideViewDelegate {
   optional Method show_user_guide = 2;
 }
 
+message TopSongViewDelegate {
+  optional Class class = 1;
+  optional Method on_bind = 2;
+}
+
 message HookInfo {
   int64 last_update_time = 1;
   int32 client_version_code = 2;
@@ -248,4 +253,5 @@ message HookInfo {
   optional VideoViewDelegate video_view_delegate = 32;
   optional GenreViewDelegate genre_view_delegate = 33;
   optional UserGuideViewDelegate user_guide_view_delegate = 34;
+  optional TopSongViewDelegate top_song_view_delegate = 35;
 }

@@ -84,6 +84,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val videoViewDelegateClass by Weak { hookInfo.videoViewDelegate.class_ from classLoader }
     val genreViewDelegateClass by Weak { hookInfo.genreViewDelegate.class_ from classLoader }
     val userGuideViewDelegateClass by Weak { hookInfo.userGuideViewDelegate.class_ from classLoader }
+    val topSongViewDelegateClass by Weak { hookInfo.topSongViewDelegate.class_ from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -141,6 +142,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun onResult() = hookInfo.videoViewDelegate.onResult.orNull
     fun onBind() = hookInfo.genreViewDelegate.onBind.orNull
     fun showUserGuide() = hookInfo.userGuideViewDelegate.showUserGuide.orNull
+    fun topSongOnBind() = hookInfo.topSongViewDelegate.onBind.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -767,6 +769,13 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 )?.let { dexHelper.decodeMethodIndex(it) } ?: return@userGuideViewDelegate
                 class_ = class_ { name = method.declaringClass.name }
                 showUserGuide = method { name = method.name }
+            }
+            topSongViewDelegate = topSongViewDelegate {
+                val method = dexHelper.findMethodUsingStringExtract(
+                    "[onBind] show top song info: peakCount="
+                )?.let { dexHelper.decodeMethodIndex(it) } ?: return@topSongViewDelegate
+                class_ = class_ { name = method.declaringClass.name }
+                onBind = method { name = method.name }
             }
 
             dexHelper.close()

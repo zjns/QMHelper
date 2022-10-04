@@ -182,25 +182,6 @@ class SettingPack {
             onImportClicked()
         }?.let { add(it) }
 
-        Setting.category(R.string.prefs_category_settings)
-            ?.let { add(it) }
-        Setting.switch(
-            R.string.prefs_save_log_title,
-            isSwitchOn = { sPrefs.getBoolean("save_log", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("save_log", enabled) }
-            }
-        )?.let { add(it) }
-        Setting.button(R.string.prefs_share_log_title) {
-            onShareLogClicked()
-        }?.let { add(it) }
-        Setting.button(
-            R.string.reboot_host,
-            R.string.reboot_host_summary,
-        ) {
-            activity?.let { restartApplication(it) }
-        }?.let { add(it) }
-
         if (sPrefs.getBoolean("hidden", false)) {
             Setting.category(R.string.prefs_category_hidden)
                 ?.let { add(it) }
@@ -223,6 +204,25 @@ class SettingPack {
                 onDecryptButtonClicked()
             }?.let { add(it) }
         }
+
+        Setting.category(R.string.prefs_category_settings)
+            ?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_save_log_title,
+            isSwitchOn = { sPrefs.getBoolean("save_log", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("save_log", enabled) }
+            }
+        )?.let { add(it) }
+        Setting.button(R.string.prefs_share_log_title) {
+            onShareLogClicked()
+        }?.let { add(it) }
+        Setting.button(
+            R.string.reboot_host,
+            R.string.reboot_host_summary,
+        ) {
+            activity?.let { restartApplication(it) }
+        }?.let { add(it) }
 
         Setting.category(R.string.prefs_category_about)
             ?.let { add(it) }
