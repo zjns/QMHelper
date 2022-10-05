@@ -8,12 +8,13 @@ import android.view.ViewGroup
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.utils.Log
 import me.kofua.qmhelper.utils.from
+import me.kofua.qmhelper.utils.getObjectField
 import me.kofua.qmhelper.utils.getResId
 import me.kofua.qmhelper.utils.hookAfterMethod
-import me.kofua.qmhelper.utils.hookBeforeAllConstructors
 import me.kofua.qmhelper.utils.hookBeforeMethod
 import me.kofua.qmhelper.utils.isPublic
 import me.kofua.qmhelper.utils.isStatic
+import org.json.JSONObject
 import java.lang.reflect.Proxy
 
 class DebugHook(classLoader: ClassLoader) : BaseHook(classLoader) {
@@ -83,12 +84,6 @@ class DebugHook(classLoader: ClassLoader) : BaseHook(classLoader) {
         ) { param ->
             Log.d("kofua, creating fragment: ${param.thisObject}, view: ${param.result}")
         }
-        "com.tencent.qqmusic.ui.actionsheet.GroupedHorizontalMenuLayout\$d".from(classLoader)
-            ?.hookBeforeAllConstructors {
-                Thread.currentThread().stackTrace.forEach {
-                    Log.d("kofua, trace: $it")
-                }
-            }
         "com.tencent.qqmusiccommon.util.MLog".from(classLoader)?.declaredMethods
             ?.filter { m ->
                 m.isPublic && m.isStatic && m.returnType == Void::class.javaPrimitiveType
@@ -158,6 +153,10 @@ class DebugHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                     }
                     param.result = null
                 }
+            }
+        "com.tencent.qqmusiccommon.hippy.bridge.WebApiHippyBridge".from(classLoader)
+            ?.declaredMethods?.find { it.name == "invoke" }?.hookAfterMethod { param ->
+                Log.d("kofua, invoke, hippyMapJson: ${JSONObject(param.args[0].getObjectField("mDatas") as Map<*, *>)}")
             }
     }
 }

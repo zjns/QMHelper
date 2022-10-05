@@ -218,6 +218,20 @@ message TopSongViewDelegate {
   optional Method on_bind = 2;
 }
 
+message DataPlugin {
+  optional Class class = 1;
+  optional Method handle_js_request = 3;
+  optional Field runtime = 2;
+  optional Method activity = 4;
+}
+
+message AlbumIntroViewHolder {
+  optional Class class = 1;
+  optional Method on_holder_created = 2;
+  optional Field tv_album_detail = 3;
+  optional Field last_text_content = 4;
+}
+
 message HookInfo {
   int64 last_update_time = 1;
   int32 client_version_code = 2;
@@ -254,4 +268,7 @@ message HookInfo {
   optional GenreViewDelegate genre_view_delegate = 33;
   optional UserGuideViewDelegate user_guide_view_delegate = 34;
   optional TopSongViewDelegate top_song_view_delegate = 35;
+  optional DataPlugin data_plugin = 36;
+  optional AlbumIntroViewHolder album_intro_view_holder = 37;
+  optional Class album_tag_view_holder = 38;
 }

@@ -60,6 +60,17 @@ class SettingPack {
     }
 
     fun getSettings() = buildList {
+        Setting.category(R.string.prefs_category_main)
+            ?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_copy_enhance_title,
+            R.string.prefs_copy_enhance_summary,
+            isSwitchOn = { sPrefs.getBoolean("copy_enhance", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("copy_enhance", enabled) }
+            }
+        )?.let { add(it) }
+
         Setting.category(R.string.prefs_category_purify)
             ?.let { add(it) }
         Setting.switch(

@@ -90,4 +90,11 @@
     <string name="prefs_block_cover_ads_summary">屏蔽播放页封面各种推广</string>
     <string name="prefs_block_user_guide_title">屏蔽关注提醒</string>
     <string name="prefs_block_user_guide_summary">屏蔽播放页音乐人关注提醒</string>
+    <string name="prefs_copy_enhance_title">长按自由复制</string>
+    <string name="prefs_copy_enhance_summary">长按评论/专辑简介/专辑详情弹出自由选择对话框</string>
+    <string name="copy_enhance">自由复制</string>
+    <string name="share">分享</string>
+    <string name="share_copy_content">分享复制内容</string>
+    <string name="copy_all">复制全部</string>
+    <string name="copy_success">复制成功</string>
 </resources>

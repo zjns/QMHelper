@@ -2,6 +2,7 @@
 
 package me.kofua.qmhelper
 
+import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.view.View
@@ -85,6 +86,10 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val genreViewDelegateClass by Weak { hookInfo.genreViewDelegate.class_ from classLoader }
     val userGuideViewDelegateClass by Weak { hookInfo.userGuideViewDelegate.class_ from classLoader }
     val topSongViewDelegateClass by Weak { hookInfo.topSongViewDelegate.class_ from classLoader }
+    val dataPluginClass by Weak { hookInfo.dataPlugin.class_ from classLoader }
+    val expandableTextViewClass by Weak { "com.tencent.expandabletextview.ExpandableTextView" from classLoader }
+    val albumIntroViewHolderClass by Weak { hookInfo.albumIntroViewHolder.class_ from classLoader }
+    val albumTagViewHolderClass by Weak { hookInfo.albumTagViewHolder from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -101,6 +106,9 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val builderClickListenerField get() = hookInfo.setting.builder.clickListener.orNull
     val eKeyDecryptorInstanceField get() = hookInfo.eKeyDecryptor.instance.orNull
     val eKeyManagerInstanceField get() = hookInfo.eKeyManager.instance.orNull
+    val runtimeField get() = hookInfo.dataPlugin.runtime.orNull
+    val tvAlbumDetailField get() = hookInfo.albumIntroViewHolder.tvAlbumDetail.orNull
+    val lastTextContentField get() = hookInfo.albumIntroViewHolder.lastTextContent.orNull
 
     val adBarMethods get() = hookInfo.adBar.methodsList.map { it.name }
 
@@ -143,6 +151,9 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun onBind() = hookInfo.genreViewDelegate.onBind.orNull
     fun showUserGuide() = hookInfo.userGuideViewDelegate.showUserGuide.orNull
     fun topSongOnBind() = hookInfo.topSongViewDelegate.onBind.orNull
+    fun handleJsRequest() = hookInfo.dataPlugin.handleJsRequest.orNull
+    fun activity() = hookInfo.dataPlugin.activity.orNull
+    fun onHolderCreated() = hookInfo.albumIntroViewHolder.onHolderCreated.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -776,6 +787,48 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 )?.let { dexHelper.decodeMethodIndex(it) } ?: return@topSongViewDelegate
                 class_ = class_ { name = method.declaringClass.name }
                 onBind = method { name = method.name }
+            }
+            dataPlugin = dataPlugin {
+                val handleJsRequestMethod = dexHelper.findMethodUsingStringExtract(
+                    "[handleJsRequest] writeGlobalData"
+                )?.let { dexHelper.decodeMethodIndex(it) } ?: return@dataPlugin
+                val dataPluginClass = handleJsRequestMethod.declaringClass
+                val basePluginClass = dataPluginClass.superclass ?: return@dataPlugin
+                val runtimeField = basePluginClass.declaredFields
+                    .find { it.isPublic } ?: return@dataPlugin
+                val activityMethod = runtimeField.type.declaredMethods.find {
+                    it.parameterTypes.isEmpty() && it.returnType == Activity::class.java
+                } ?: return@dataPlugin
+                class_ = class_ { name = dataPluginClass.name }
+                handleJsRequest = method { name = handleJsRequestMethod.name }
+                runtime = field { name = runtimeField.name }
+                activity = method { name = activityMethod.name }
+            }
+            albumIntroViewHolder = albumIntroViewHolder {
+                val c = "com.tencent.qqmusic.albumdetail.ui.viewholders.AlbumIntroduceViewHolder"
+                    .from(classLoader) ?: dexHelper.findMethodUsingStringExtract("tvAlbumDetail")
+                    ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
+                ?: return@albumIntroViewHolder
+                val m = c.declaredMethods.find { m ->
+                    m.isPublic && m.returnType == Void::class.javaPrimitiveType && m.parameterTypes
+                        .let { it.size == 1 && it[0] == View::class.java }
+                } ?: return@albumIntroViewHolder
+                val tvAlbumDetailField = c.declaredFields.find {
+                    it.isNotStatic && TextView::class.java.isAssignableFrom(it.type)
+                } ?: return@albumIntroViewHolder
+                val lastTextContentField = c.declaredFields.find {
+                    it.isNotStatic && it.type == String::class.java
+                } ?: return@albumIntroViewHolder
+                class_ = class_ { name = c.name }
+                onHolderCreated = method { name = m.name }
+                tvAlbumDetail = field { name = tvAlbumDetailField.name }
+                lastTextContent = field { name = lastTextContentField.name }
+            }
+            albumTagViewHolder = class_ {
+                name = "com.tencent.qqmusic.albumdetail.ui.viewholders.AlbumTagViewHolder"
+                    .from(classLoader)?.name ?: dexHelper.findMethodUsingStringExtract(
+                    "tvAlbumInfo"
+                )?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass?.name ?: return@class_
             }
 
             dexHelper.close()

@@ -2,6 +2,8 @@ package me.kofua.qmhelper.utils
 
 import android.annotation.SuppressLint
 import android.app.AndroidAppHelper
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ContentResolver
 import android.content.Context
 import android.content.SharedPreferences
@@ -10,9 +12,6 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.DocumentsContract
-import android.util.TypedValue
-import android.view.View
-import android.view.ViewGroup
 import androidx.annotation.ArrayRes
 import androidx.annotation.StringRes
 import com.google.protobuf.GeneratedMessageLite
@@ -127,23 +126,6 @@ fun GeneratedMessageLite<*, *>.print(indent: Int = 0): String {
     return sb.toString()
 }
 
-operator fun ViewGroup.iterator(): MutableIterator<View> = object : MutableIterator<View> {
-    private var index = 0
-    override fun hasNext() = index < childCount
-    override fun next() = getChildAt(index++) ?: throw IndexOutOfBoundsException()
-    override fun remove() = removeViewAt(--index)
-}
-
-val ViewGroup.children: Sequence<View>
-    get() = object : Sequence<View> {
-        override fun iterator() = this@children.iterator()
-    }
-
-fun View.addBackgroundRipple() = with(TypedValue()) {
-    context.theme.resolveAttribute(android.R.attr.selectableItemBackground, this, true)
-    setBackgroundResource(resourceId)
-}
-
 fun Any?.reflexToString() = this?.javaClass?.declaredFields?.joinToString {
     "${it.name}: ${
         it.run { isAccessible = true;get(this@reflexToString) }
@@ -202,3 +184,13 @@ fun Uri.realDirPath() = when (scheme) {
 
     else -> null
 }
+
+fun CharSequence.copyToClipboard(label: String? = "") {
+    ClipData.newPlainText(label, this)?.let {
+        currentContext.getSystemService(ClipboardManager::class.java)
+            .setPrimaryClip(it)
+    }
+}
+
+inline fun <C : CharSequence> C?.ifNotEmpty(action: (text: C) -> Unit) =
+    if (!isNullOrEmpty()) action(this) else Unit

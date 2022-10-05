@@ -294,6 +294,8 @@ fun Any.getLongFieldOrNull(field: String?) = runCatchingOrNull {
     getLongField(this, field)
 }
 
+fun Any.getBooleanField(field: String?) = getBooleanField(this, field)
+
 fun Any.getBooleanFieldOrNull(field: String?) = runCatchingOrNull {
     getBooleanField(this, field)
 }
