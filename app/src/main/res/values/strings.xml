@@ -14,6 +14,7 @@
     <string name="prefs_import_title">导入配置</string>
     <string name="prefs_category_settings">设置</string>
     <string name="prefs_save_log_title">保存日志到文件</string>
+    <string name="prefs_save_log_summary">启用后，日志将保存到文件%s</string>
     <string name="prefs_share_log_title">分享日志</string>
     <string name="save_prefs_file">保存配置文件</string>
     <string name="choose_prefs_file">选择配置文件</string>

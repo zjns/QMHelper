@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
+import android.widget.RelativeLayout
 import android.widget.TextView
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.R
@@ -16,7 +18,9 @@ import me.kofua.qmhelper.utils.UiMode
 import me.kofua.qmhelper.utils.callMethod
 import me.kofua.qmhelper.utils.callSuper
 import me.kofua.qmhelper.utils.currentContext
+import me.kofua.qmhelper.utils.dp
 import me.kofua.qmhelper.utils.edit
+import me.kofua.qmhelper.utils.getIntField
 import me.kofua.qmhelper.utils.getObjectField
 import me.kofua.qmhelper.utils.getObjectFieldAs
 import me.kofua.qmhelper.utils.handler
@@ -41,6 +45,10 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
         sPrefs.getStringSet("purify_more_items", null) ?: setOf()
     }
     private val settingPack = SettingPack()
+    private val settingViewTextFields by lazy {
+        instance.settingViewClass?.declaredFields?.filter { it.type == TextView::class.java }
+            ?.map { it.name } ?: listOf()
+    }
 
     override fun startHook() {
         instance.appStarterActivityClass?.hookAfterMethod(
@@ -94,6 +102,22 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             instance.isThemeForbid(),
             String::class.java
         ) { false }
+        instance.settingViewClass?.hookAfterMethod(
+            instance.setSetting(), instance.settingClass
+        ) { param ->
+            val viewGroup = param.thisObject as ViewGroup
+            val setting = param.args[0] ?: return@hookAfterMethod
+            settingViewTextFields.forEach {
+                viewGroup.getObjectFieldAs<TextView?>(it)?.isSingleLine = false
+            }
+            if (setting.getIntField(instance.typeField) != Setting.Type.DIVIDER.key) {
+                (viewGroup.layoutParams as? RelativeLayout.LayoutParams)?.apply {
+                    height = RelativeLayout.LayoutParams.WRAP_CONTENT
+                }?.let { viewGroup.layoutParams = it }
+                if (viewGroup.minimumHeight == 50.dp)
+                    viewGroup.setPadding(0, 6.dp, 0, 6.dp)
+            }
+        }
         instance.moreFragmentClass?.hookAfterMethod(instance.resume()) { param ->
             val settings = param.thisObject
                 .getObjectFieldAs<MutableList<Any?>>(instance.moreListField)

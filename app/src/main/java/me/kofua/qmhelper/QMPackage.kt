@@ -90,11 +90,13 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val expandableTextViewClass by Weak { "com.tencent.expandabletextview.ExpandableTextView" from classLoader }
     val albumIntroViewHolderClass by Weak { hookInfo.albumIntroViewHolder.class_ from classLoader }
     val albumTagViewHolderClass by Weak { hookInfo.albumTagViewHolder from classLoader }
+    val settingViewClass by Weak { hookInfo.settingView.class_ from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
     val moreListField get() = hookInfo.moreFragment.moreList.orNull
     val settingListField get() = hookInfo.settingFragment.settingList.orNull
+    val typeField get() = hookInfo.setting.type.orNull
     val titleField get() = hookInfo.setting.title.orNull
     val rightDescField get() = hookInfo.setting.rightDesc.orNull
     val redDotListenerField get() = hookInfo.setting.redDotListener.orNull
@@ -154,6 +156,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun handleJsRequest() = hookInfo.dataPlugin.handleJsRequest.orNull
     fun activity() = hookInfo.dataPlugin.activity.orNull
     fun onHolderCreated() = hookInfo.albumIntroViewHolder.onHolderCreated.orNull
+    fun setSetting() = hookInfo.settingView.setSetting.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -375,11 +378,13 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 class_ = class_ { name = getMethod.declaringClass.name }
                 get = method { name = getMethod.name }
             }
+            val settingBuilderClass = dexHelper.findMethodUsingStringExtract(
+                "onSwitchLister can't be null while type is TYPE_SWITCH"
+            )?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
+            val settingClass = settingBuilderClass?.declaringClass
             setting = setting {
-                val settingBuilderClass = dexHelper.findMethodUsingStringExtract(
-                    "onSwitchLister can't be null while type is TYPE_SWITCH"
-                )?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@setting
-                val settingClass = settingBuilderClass.declaringClass ?: return@setting
+                settingBuilderClass ?: return@setting
+                settingClass ?: return@setting
                 val withMethod = settingClass.declaredMethods.find {
                     it.isStatic && it.returnType == settingBuilderClass
                 } ?: return@setting
@@ -401,6 +406,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 } ?: return@setting
                 class_ = class_ { name = settingClass.name }
                 with = method { name = withMethod.name }
+                type = field { name = fields[0].name }
                 title = field { name = fields[1].name }
                 rightDesc = field { name = fields[3].name }
                 redDotListener = field { name = fields[10].name }
@@ -829,6 +835,15 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     .from(classLoader)?.name ?: dexHelper.findMethodUsingStringExtract(
                     "tvAlbumInfo"
                 )?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass?.name ?: return@class_
+            }
+            settingView = settingView {
+                val clazz = "com.tencent.qqmusic.fragment.morefeatures.settings.view.SettingView"
+                    .from(classLoader) ?: return@settingView
+                val method = clazz.declaredMethods.find { m ->
+                    m.parameterTypes.let { it.size == 1 && it[0] == settingClass }
+                } ?: return@settingView
+                class_ = class_ { name = clazz.name }
+                setSetting = method { name = method.name }
             }
 
             dexHelper.close()

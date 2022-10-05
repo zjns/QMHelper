@@ -38,14 +38,15 @@ message AdManager {
 message Setting {
   optional Class class = 1;
   optional Method with = 2;
-  optional Field title = 3;
-  optional Field right_desc = 4;
-  optional Field red_dot_listener = 5;
-  optional SettingBuilder builder = 6;
-  optional SwitchListener switch_listener = 7;
-  optional BaseSettingFragment base_setting_fragment = 8;
-  optional BaseSettingPack base_setting_pack = 9;
-  optional BaseSettingProvider base_setting_provider = 10;
+  optional Field type = 3;
+  optional Field title = 4;
+  optional Field right_desc = 5;
+  optional Field red_dot_listener = 6;
+  optional SettingBuilder builder = 7;
+  optional SwitchListener switch_listener = 8;
+  optional BaseSettingFragment base_setting_fragment = 9;
+  optional BaseSettingPack base_setting_pack = 10;
+  optional BaseSettingProvider base_setting_provider = 11;
 }
 
 message SettingBuilder {
@@ -232,6 +233,11 @@ message AlbumIntroViewHolder {
   optional Field last_text_content = 4;
 }
 
+message SettingView {
+  optional Class class = 1;
+  optional Method set_setting = 2;
+}
+
 message HookInfo {
   int64 last_update_time = 1;
   int32 client_version_code = 2;
@@ -271,4 +277,5 @@ message HookInfo {
   optional DataPlugin data_plugin = 36;
   optional AlbumIntroViewHolder album_intro_view_holder = 37;
   optional Class album_tag_view_holder = 38;
+  optional SettingView setting_view = 39;
 }

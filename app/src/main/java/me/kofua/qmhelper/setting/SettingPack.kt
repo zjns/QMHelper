@@ -219,7 +219,8 @@ class SettingPack {
         Setting.category(R.string.prefs_category_settings)
             ?.let { add(it) }
         Setting.switch(
-            R.string.prefs_save_log_title,
+            string(R.string.prefs_save_log_title),
+            string(R.string.prefs_save_log_summary, logFile.absolutePath),
             isSwitchOn = { sPrefs.getBoolean("save_log", false) },
             onSwitchChanged = { enabled ->
                 sPrefs.edit { putBoolean("save_log", enabled) }
