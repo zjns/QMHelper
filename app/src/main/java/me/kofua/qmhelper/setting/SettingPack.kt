@@ -183,6 +183,22 @@ class SettingPack {
                 sPrefs.edit { putBoolean("block_user_guide", enabled) }
             }
         )?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_block_comment_banners_title,
+            R.string.prefs_block_comment_banners_summary,
+            isSwitchOn = { sPrefs.getBoolean("block_comment_banners", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("block_comment_banners", enabled) }
+            }
+        )?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_remove_comment_recommend_title,
+            R.string.prefs_remove_comment_recommend_summary,
+            isSwitchOn = { sPrefs.getBoolean("remove_comment_recommend", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("remove_comment_recommend", enabled) }
+            }
+        )?.let { add(it) }
 
         Setting.category(R.string.prefs_category_backup)
             ?.let { add(it) }

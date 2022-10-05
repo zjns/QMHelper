@@ -13,6 +13,8 @@ operator fun JSONArray.iterator(): Iterator<JSONObject> =
     (0 until length()).asSequence().map { get(it) as JSONObject }.iterator()
 
 fun JSONArray?.orEmpty() = this ?: JSONArray()
+fun JSONArray?.isEmpty() = this == null || this.length() == 0
+fun JSONArray?.isNotEmpty() = !isEmpty()
 
 val gson by lazy { instance.gsonClass?.new() }
 

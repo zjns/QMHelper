@@ -4,6 +4,7 @@ import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.utils.asSequence
 import me.kofua.qmhelper.utils.fromJson
 import me.kofua.qmhelper.utils.hookBeforeMethod
+import me.kofua.qmhelper.utils.isNotEmpty
 import me.kofua.qmhelper.utils.runCatchingOrNull
 import me.kofua.qmhelper.utils.sPrefs
 import me.kofua.qmhelper.utils.toJSONObject
@@ -13,6 +14,8 @@ class CgiHook(classLoader: ClassLoader) : BaseHook(classLoader) {
     override fun startHook() {
         val blockLive = sPrefs.getBoolean("block_live", false)
         val purifySearch = sPrefs.getStringSet("purify_search", null) ?: setOf()
+        val blockCommentBanners = sPrefs.getBoolean("block_comment_banners", false)
+        val removeCommentRecommend = sPrefs.getBoolean("remove_comment_recommend", false)
 
         if (!blockLive && purifySearch.isEmpty()) return
         instance.jsonRespParserClass?.declaredMethods?.find {
@@ -66,6 +69,26 @@ class CgiHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                 data.remove("map_business_keys")
                 param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
                     ?: return@hookBeforeMethod
+            } else if (path == "notice" && blockCommentBanners) {
+                val json = param.args[2]?.toString() ?: return@hookBeforeMethod
+                val jo = json.runCatchingOrNull { toJSONObject() } ?: return@hookBeforeMethod
+                val data = jo.optJSONObject(path)
+                    ?.optJSONObject("data") ?: return@hookBeforeMethod
+                if (data.optJSONArray("Banners").isNotEmpty()) {
+                    data.remove("Banners")
+                    param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
+                        ?: return@hookBeforeMethod
+                }
+            } else if (path == "recommend" && removeCommentRecommend) {
+                val json = param.args[2]?.toString() ?: return@hookBeforeMethod
+                val jo = json.runCatchingOrNull { toJSONObject() } ?: return@hookBeforeMethod
+                val data = jo.optJSONObject(path)
+                    ?.optJSONObject("data") ?: return@hookBeforeMethod
+                if (data.optJSONArray("RecItems").isNotEmpty()) {
+                    data.remove("RecItems")
+                    param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
+                        ?: return@hookBeforeMethod
+                }
             }
         }
     }

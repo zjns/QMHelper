@@ -98,4 +98,8 @@
     <string name="share_copy_content">分享复制内容</string>
     <string name="copy_all">复制全部</string>
     <string name="copy_success">复制成功</string>
+    <string name="prefs_block_comment_banners_title">屏蔽评论页顶部横幅</string>
+    <string name="prefs_block_comment_banners_summary">屏蔽评论页顶部推广横幅</string>
+    <string name="prefs_remove_comment_recommend_title">移除评论列表推荐</string>
+    <string name="prefs_remove_comment_recommend_summary">移除评论列表直播等推荐内容</string>
 </resources>
