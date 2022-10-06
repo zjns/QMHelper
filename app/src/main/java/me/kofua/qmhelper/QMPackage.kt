@@ -157,6 +157,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun activity() = hookInfo.dataPlugin.activity.orNull
     fun onHolderCreated() = hookInfo.albumIntroViewHolder.onHolderCreated.orNull
     fun setSetting() = hookInfo.settingView.setSetting.orNull
+    fun setLastClickTime() = hookInfo.settingView.setLastClickTime.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -838,12 +839,18 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
             }
             settingView = settingView {
                 val clazz = "com.tencent.qqmusic.fragment.morefeatures.settings.view.SettingView"
-                    .from(classLoader) ?: return@settingView
+                    .from(classLoader) ?: dexHelper.findMethodUsingStringExtract(
+                    "initView: titleText "
+                )?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@settingView
                 val method = clazz.declaredMethods.find { m ->
                     m.parameterTypes.let { it.size == 1 && it[0] == settingClass }
                 } ?: return@settingView
                 class_ = class_ { name = clazz.name }
                 setSetting = method { name = method.name }
+                val setLastClickTimeMethod = clazz.declaredMethods.find { m ->
+                    m.isSynthetic && m.parameterTypes.let { it.size == 2 && it[1] == Long::class.javaPrimitiveType }
+                } ?: return@settingView
+                setLastClickTime = method { name = setLastClickTimeMethod.name }
             }
 
             dexHelper.close()

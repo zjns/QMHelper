@@ -515,8 +515,9 @@ class SettingPack {
     }
 
     private fun onVersionClicked() {
-        if (sPrefs.getBoolean("hidden", false) || clickCounter == 7) return
+        if (sPrefs.getBoolean("hidden", false)) return
         if (++clickCounter == 7) {
+            clickCounter = 0
             sPrefs.edit { putBoolean("hidden", true) }
             BannerTips.success(R.string.hidden_enabled)
         } else if (clickCounter >= 4) {

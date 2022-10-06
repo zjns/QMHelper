@@ -118,6 +118,11 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                     viewGroup.setPadding(0, 6.dp, 0, 6.dp)
             }
         }
+        instance.setLastClickTime()?.let { m ->
+            instance.settingViewClass?.hookBeforeMethod(
+                m, instance.settingViewClass, Long::class.javaPrimitiveType
+            ) { it.args[1] = 0L }
+        }
         instance.moreFragmentClass?.hookAfterMethod(instance.resume()) { param ->
             val settings = param.thisObject
                 .getObjectFieldAs<MutableList<Any?>>(instance.moreListField)

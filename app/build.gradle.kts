@@ -7,9 +7,9 @@ import com.google.protobuf.gradle.generateProtoTasks
 import com.google.protobuf.gradle.id
 import com.google.protobuf.gradle.protobuf
 import com.google.protobuf.gradle.protoc
+import org.gradle.internal.os.OperatingSystem
 import java.nio.file.Paths
 import java.util.Properties
-import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id("com.android.application")
@@ -183,7 +183,8 @@ android {
             "-Xno-call-assertions",
             "-Xno-receiver-assertions",
             "-opt-in=kotlin.RequiresOptIn",
-            "-Xcontext-receivers"
+            "-Xcontext-receivers",
+            "-opt-in=kotlin.time.ExperimentalTime",
         )
     }
 

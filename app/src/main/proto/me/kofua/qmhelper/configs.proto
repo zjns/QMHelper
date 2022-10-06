@@ -236,6 +236,7 @@ message AlbumIntroViewHolder {
 message SettingView {
   optional Class class = 1;
   optional Method set_setting = 2;
+  optional Method set_last_click_time = 3;
 }
 
 message HookInfo {
