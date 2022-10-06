@@ -199,6 +199,14 @@ class SettingPack {
                 sPrefs.edit { putBoolean("remove_comment_recommend", enabled) }
             }
         )?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_remove_mine_kol_title,
+            R.string.prefs_remove_mine_kol_summary,
+            isSwitchOn = { sPrefs.getBoolean("remove_mine_kol", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("remove_mine_kol", enabled) }
+            }
+        )?.let { add(it) }
 
         Setting.category(R.string.prefs_category_backup)
             ?.let { add(it) }

@@ -16,6 +16,7 @@ class CgiHook(classLoader: ClassLoader) : BaseHook(classLoader) {
         val purifySearch = sPrefs.getStringSet("purify_search", null) ?: setOf()
         val blockCommentBanners = sPrefs.getBoolean("block_comment_banners", false)
         val removeCommentRecommend = sPrefs.getBoolean("remove_comment_recommend", false)
+        val removeMineKol = sPrefs.getBoolean("remove_mine_kol", false)
 
         if (!blockLive && purifySearch.isEmpty()) return
         instance.jsonRespParserClass?.declaredMethods?.find {
@@ -86,6 +87,16 @@ class CgiHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                     ?.optJSONObject("data") ?: return@hookBeforeMethod
                 if (data.optJSONArray("RecItems").isNotEmpty()) {
                     data.remove("RecItems")
+                    param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
+                        ?: return@hookBeforeMethod
+                }
+            } else if (path == "music.sociality.KolEntrance.GetKolEntrance" && removeMineKol) {
+                val json = param.args[2]?.toString() ?: return@hookBeforeMethod
+                val jo = json.runCatchingOrNull { toJSONObject() } ?: return@hookBeforeMethod
+                val data = jo.optJSONObject(path)
+                    ?.optJSONObject("data") ?: return@hookBeforeMethod
+                if (data.optBoolean("ShowEntrance")) {
+                    data.put("ShowEntrance", false)
                     param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
                         ?: return@hookBeforeMethod
                 }

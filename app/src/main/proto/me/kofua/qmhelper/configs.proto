@@ -173,8 +173,7 @@ message UiModeManager {
 
 message ApkDownloadAdBar {
   optional Class class = 1;
-  optional Method apply_style = 2;
-  repeated Method methods = 3;
+  repeated Method methods = 2;
 }
 
 message AudioStreamEKeyManager {
