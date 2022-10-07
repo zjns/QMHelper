@@ -218,6 +218,14 @@ class SettingPack {
                 sPrefs.edit { putBoolean("fix_song_filename", enabled) }
             }
         )?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_allow_save_to_sdcard_extern_title,
+            R.string.prefs_allow_save_to_sdcard_extern_summary,
+            isSwitchOn = { sPrefs.getBoolean("allow_save_to_sdcard_extern", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("allow_save_to_sdcard_extern", enabled) }
+            }
+        )?.let { add(it) }
 
         if (sPrefs.getBoolean("hidden", false)) {
             Setting.category(R.string.prefs_category_hidden)

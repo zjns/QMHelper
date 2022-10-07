@@ -243,6 +243,11 @@ message FileUtils {
   optional Method to_valid_filename = 2;
 }
 
+message StorageUtils {
+  optional Class class = 1;
+  optional Method get_volumes = 2;
+}
+
 message HookInfo {
   int64 last_update_time = 1;
   int32 client_version_code = 2;
@@ -284,4 +289,6 @@ message HookInfo {
   optional Class album_tag_view_holder = 38;
   optional SettingView setting_view = 39;
   optional FileUtils file_utils = 40;
+  optional Class storage_volume = 41;
+  optional StorageUtils storage_utils = 42;
 }

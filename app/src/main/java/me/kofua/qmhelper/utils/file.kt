@@ -1,6 +1,8 @@
 // copy from android.os.FileUtils.java
 package me.kofua.qmhelper.utils
 
+import androidx.annotation.IntRange
+
 private fun Char.isValidFatFilenameChar(): Boolean {
     return if (code in 0x00..0x1F) {
         false
@@ -40,7 +42,7 @@ private fun trimFilename(res: StringBuilder, maxBytes: Int) {
  * Mutate the given filename to make it valid for a FAT filesystem,
  * replacing any invalid characters with "_".
  */
-fun String?.toValidFatFilename(maxBytes: Int = 255): String {
+fun String?.toValidFatFilename(@IntRange(1, 255) maxBytes: Int = 255): String {
     require(maxBytes <= 255) { "maxBytes must not greater than 255." }
     if (isNullOrEmpty() || "." == this || ".." == this)
         return "(invalid)"
@@ -59,7 +61,7 @@ fun String?.toValidFatFilename(maxBytes: Int = 255): String {
  * Mutate the given filename to make it valid for an ext4 filesystem,
  * replacing any invalid characters with "_".
  */
-fun String?.toValidExtFilename(maxBytes: Int = 255): String {
+fun String?.toValidExtFilename(@IntRange(1, 255) maxBytes: Int = 255): String {
     require(maxBytes <= 255) { "maxBytes must not greater than 255." }
     if (isNullOrEmpty() || "." == this || ".." == this)
         return "(invalid)"

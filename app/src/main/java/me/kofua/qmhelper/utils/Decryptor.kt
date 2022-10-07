@@ -2,6 +2,7 @@ package me.kofua.qmhelper.utils
 
 import android.os.Environment
 import me.kofua.qmhelper.QMPackage.Companion.instance
+import me.kofua.qmhelper.utils.StorageVolume.Companion.toMockVolume
 import java.io.File
 
 typealias SingleDecryptListener = (
@@ -33,7 +34,7 @@ object Decryptor {
         "mdolby" to Ext("m4a", 2),
         "mmp4" to Ext("mp4", 2)
     )
-    private val File.isEncrypted
+    private val File.isEncrypted: Boolean
         get() = absolutePath.substringAfterLast(".").let { ext ->
             wideEncExt.any { ext.contains(it) }
         }
@@ -43,20 +44,37 @@ object Decryptor {
         saveDir: File,
         listener: SingleDecryptListener? = null
     ): Triple<Int, Int, List<File>> {
-        val externalDir = Environment.getExternalStorageDirectory()
-        val songDir = File(externalDir, "qqmusic/song").takeIf { it.isDirectory }
-            ?: return Triple(0, 0, listOf())
-        val encSongs = songDir.listFiles()?.filter { it.isEncrypted } ?: listOf()
+        val encSongs = getEncSongs().ifEmpty {
+            return Triple(0, 0, listOf())
+        }
         val total = encSongs.size
         var current = 1
         val successOrigSongs = mutableListOf<File>()
         val success = encSongs.count { f ->
             decrypt(f, saveDir).also {
                 listener?.invoke(f, current++, total, it)
-                it.takeIf { true }?.let { successOrigSongs.add(f) }
+                it.takeIf { true }?.run { successOrigSongs.add(f) }
             }
         }
         return Triple(total, success, successOrigSongs)
+    }
+
+    private fun getEncSongs(): List<File> {
+        return runCatching {
+            instance.storageUtilsClass?.callStaticMethodAs<Set<*>>(
+                instance.getVolumes(), currentContext
+            )?.mapNotNull { it?.toMockVolume()?.path }
+                ?.flatMap { p ->
+                    File(p, "qqmusic/song")
+                        .takeIf { it.isDirectory }
+                        ?.listFiles()?.toList()
+                        ?: listOf()
+                }?.filter { it.isEncrypted }
+        }.onFailure { Log.e(it) }.getOrNull() ?: run {
+            val externalDir = Environment.getExternalStorageDirectory()
+            val songDir = File(externalDir, "qqmusic/song")
+            songDir.listFiles()?.filter { it.isEncrypted }
+        } ?: listOf()
     }
 
     fun deleteOrigSongs(songs: List<File>) = songs.forEach { it.delete() }

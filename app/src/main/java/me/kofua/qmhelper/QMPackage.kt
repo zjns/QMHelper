@@ -92,6 +92,8 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val albumTagViewHolderClass by Weak { hookInfo.albumTagViewHolder from classLoader }
     val settingViewClass by Weak { hookInfo.settingView.class_ from classLoader }
     val fileUtilsClass by Weak { hookInfo.fileUtils.class_ from classLoader }
+    val storageVolumeClass by Weak { hookInfo.storageVolume from classLoader }
+    val storageUtilsClass by Weak { hookInfo.storageUtils.class_ from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -160,6 +162,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun setSetting() = hookInfo.settingView.setSetting.orNull
     fun setLastClickTime() = hookInfo.settingView.setLastClickTime.orNull
     fun toValidFilename() = hookInfo.fileUtils.toValidFilename.orNull
+    fun getVolumes() = hookInfo.storageUtils.getVolumes.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -870,6 +873,19 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 } ?: return@fileUtils
                 class_ = class_ { name = toValidFilenameMethod.declaringClass.name }
                 toValidFilename = method { name = toValidFilenameMethod.name }
+            }
+            storageVolume = class_ {
+                name = "com.tencent.qqmusiccommon.storage.StorageVolume".from(classLoader)?.name
+                    ?: dexHelper.findMethodUsingStringExtract("StorageVolume [mStorageId=")
+                        ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass?.name
+                            ?: return@class_
+            }
+            storageUtils = storageUtils {
+                val getVolumesMethod = dexHelper.findMethodUsingStringExtract(
+                    "StorageVolume From Android API SDK_INT : "
+                )?.let { dexHelper.decodeMethodIndex(it) } ?: return@storageUtils
+                class_ = class_ { name = getVolumesMethod.declaringClass.name }
+                getVolumes = method { name = getVolumesMethod.name }
             }
 
             dexHelper.close()
