@@ -194,3 +194,5 @@ fun CharSequence.copyToClipboard(label: String? = "") {
 
 inline fun <C : CharSequence> C?.ifNotEmpty(action: (text: C) -> Unit) =
     if (!isNullOrEmpty()) action(this) else Unit
+
+fun String.toUri(): Uri = Uri.parse(this)

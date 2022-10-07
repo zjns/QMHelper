@@ -7,7 +7,6 @@ import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
-import android.net.Uri
 import android.provider.DocumentsContract
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -33,6 +32,7 @@ import me.kofua.qmhelper.utils.showMessageDialog
 import me.kofua.qmhelper.utils.showMessageDialogX
 import me.kofua.qmhelper.utils.string
 import me.kofua.qmhelper.utils.stringArray
+import me.kofua.qmhelper.utils.toUri
 import org.json.JSONArray
 import java.io.File
 import java.net.URL
@@ -208,14 +208,16 @@ class SettingPack {
             }
         )?.let { add(it) }
 
-        Setting.category(R.string.prefs_category_backup)
+        Setting.category(R.string.prefs_category_misc)
             ?.let { add(it) }
-        Setting.button(R.string.prefs_export_title) {
-            onExportClicked()
-        }?.let { add(it) }
-        Setting.button(R.string.prefs_import_title) {
-            onImportClicked()
-        }?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_fix_song_filename_title,
+            R.string.prefs_fix_song_filename_summary,
+            isSwitchOn = { sPrefs.getBoolean("fix_song_filename", false) },
+            onSwitchChanged = { enabled ->
+                sPrefs.edit { putBoolean("fix_song_filename", enabled) }
+            }
+        )?.let { add(it) }
 
         if (sPrefs.getBoolean("hidden", false)) {
             Setting.category(R.string.prefs_category_hidden)
@@ -258,6 +260,15 @@ class SettingPack {
             R.string.reboot_host_summary,
         ) {
             activity?.let { restartApplication(it) }
+        }?.let { add(it) }
+
+        Setting.category(R.string.prefs_category_backup)
+            ?.let { add(it) }
+        Setting.button(R.string.prefs_export_title) {
+            onExportClicked()
+        }?.let { add(it) }
+        Setting.button(R.string.prefs_import_title) {
+            onImportClicked()
         }?.let { add(it) }
 
         Setting.category(R.string.prefs_category_about)
@@ -457,7 +468,7 @@ class SettingPack {
                         overwrite = true
                     )
                     val uri =
-                        Uri.parse("content://${activity?.packageName}.fileprovider/gdt_sdk_download_path2/log.txt")
+                        "content://${activity?.packageName}.fileprovider/gdt_sdk_download_path2/log.txt".toUri()
                     activity?.startActivity(Intent.createChooser(Intent().apply {
                         action = Intent.ACTION_SEND
                         putExtra(Intent.EXTRA_STREAM, uri)
@@ -511,7 +522,7 @@ class SettingPack {
                     string(R.string.update_now),
                     string(R.string.i_know)
                 ) {
-                    val uri = Uri.parse(string(R.string.update_url, latestVerTag))
+                    val uri = string(R.string.update_url, latestVerTag).toUri()
                     activity?.startActivity(Intent(Intent.ACTION_VIEW, uri))
                 }
             }
@@ -534,12 +545,12 @@ class SettingPack {
     }
 
     private fun onAuthorClicked() {
-        val uri = Uri.parse(string(R.string.repo_url))
+        val uri = string(R.string.repo_url).toUri()
         activity?.startActivity(Intent(Intent.ACTION_VIEW, uri))
     }
 
     private fun onTGChannelClicked() {
-        val uri = Uri.parse(string(R.string.tg_url))
+        val uri = string(R.string.tg_url).toUri()
         activity?.startActivity(Intent(Intent.ACTION_VIEW, uri))
     }
 
@@ -576,7 +587,7 @@ class SettingPack {
     private fun chooseDecryptSaveDir() {
         val initialUri = "content://com.android.externalstorage.documents/document/primary:Music"
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-            putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.parse(initialUri))
+            putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri.toUri())
         }
         try {
             activity?.startActivityForResult(intent, CODE_CHOOSE_DECRYPT_DIR)

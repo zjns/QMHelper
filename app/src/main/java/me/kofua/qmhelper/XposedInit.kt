@@ -18,6 +18,7 @@ import me.kofua.qmhelper.hook.CopyHook
 import me.kofua.qmhelper.hook.DebugHook
 import me.kofua.qmhelper.hook.HomePageHook
 import me.kofua.qmhelper.hook.HomeTopTabHook
+import me.kofua.qmhelper.hook.MiscHook
 import me.kofua.qmhelper.hook.SSLHook
 import me.kofua.qmhelper.hook.SettingsHook
 import me.kofua.qmhelper.hook.SplashHook
@@ -82,6 +83,7 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     startHook(HomePageHook(lpparam.classLoader))
                     startHook(CgiHook(lpparam.classLoader))
                     startHook(CopyHook(lpparam.classLoader))
+                    startHook(MiscHook(lpparam.classLoader))
                 }
             }
         }

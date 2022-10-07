@@ -71,7 +71,7 @@ class HomePageHook(classLoader: ClassLoader) : BaseHook(classLoader) {
         }
         if (blockCoverAds.contains("genre")) {
             instance.genreViewDelegateClass?.declaredMethods?.find { m ->
-                m.name == instance.onBind() && m.parameterTypes.let { it.size > 1 && it[0] == instance.genreViewDelegateClass }
+                m.name == instance.genreOnBind() && m.parameterTypes.let { it.size > 1 && it[0] == instance.genreViewDelegateClass }
             }?.replaceMethod { null }
             instance.topSongViewDelegateClass?.declaredMethods?.find { m ->
                 m.name == instance.topSongOnBind() && m.parameterTypes.let { it.size > 1 && it[0] == instance.topSongViewDelegateClass }

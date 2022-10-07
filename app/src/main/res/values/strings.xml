@@ -104,4 +104,7 @@
     <string name="prefs_remove_comment_recommend_summary">移除评论列表直播等推荐内容</string>
     <string name="prefs_remove_mine_kol_title">移除创作中心</string>
     <string name="prefs_remove_mine_kol_summary">我的页面移除创作者中心</string>
+    <string name="prefs_category_misc">杂项</string>
+    <string name="prefs_fix_song_filename_title">修正歌曲下载文件名</string>
+    <string name="prefs_fix_song_filename_summary">歌曲下载文件名移除mqms后缀，长度限制增大到250</string>
 </resources>

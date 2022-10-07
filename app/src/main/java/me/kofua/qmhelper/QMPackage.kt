@@ -91,6 +91,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val albumIntroViewHolderClass by Weak { hookInfo.albumIntroViewHolder.class_ from classLoader }
     val albumTagViewHolderClass by Weak { hookInfo.albumTagViewHolder from classLoader }
     val settingViewClass by Weak { hookInfo.settingView.class_ from classLoader }
+    val fileUtilsClass by Weak { hookInfo.fileUtils.class_ from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -150,7 +151,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun staticDecryptFile() = hookInfo.vipDownloadHelper.decryptFile.orNull
     fun updateBottomTips() = hookInfo.bottomTipController.updateBottomTips.orNull
     fun onResult() = hookInfo.videoViewDelegate.onResult.orNull
-    fun onBind() = hookInfo.genreViewDelegate.onBind.orNull
+    fun genreOnBind() = hookInfo.genreViewDelegate.onBind.orNull
     fun showUserGuide() = hookInfo.userGuideViewDelegate.showUserGuide.orNull
     fun topSongOnBind() = hookInfo.topSongViewDelegate.onBind.orNull
     fun handleJsRequest() = hookInfo.dataPlugin.handleJsRequest.orNull
@@ -158,6 +159,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun onHolderCreated() = hookInfo.albumIntroViewHolder.onHolderCreated.orNull
     fun setSetting() = hookInfo.settingView.setSetting.orNull
     fun setLastClickTime() = hookInfo.settingView.setLastClickTime.orNull
+    fun toValidFilename() = hookInfo.fileUtils.toValidFilename.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -166,8 +168,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
             val t = measureTimeMillis {
                 if (hookInfoFile.isFile && hookInfoFile.canRead()) {
                     val lastUpdateTime = context.packageManager.getPackageInfo(
-                        hostPackageName,
-                        0
+                        hostPackageName, 0
                     ).lastUpdateTime
                     val lastModuleUpdateTime = try {
                         context.packageManager.getPackageInfo(BuildConfig.APPLICATION_ID, 0)
@@ -220,10 +221,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
             lastUpdateTime = max(
                 context.packageManager.getPackageInfo(hostPackageName, 0).lastUpdateTime,
                 runCatchingOrNull {
-                    context.packageManager.getPackageInfo(
-                        BuildConfig.APPLICATION_ID,
-                        0
-                    )
+                    context.packageManager.getPackageInfo(BuildConfig.APPLICATION_ID, 0)
                 }?.lastUpdateTime ?: 0
             )
             clientVersionCode = getVersionCode(hostPackageName)
@@ -851,6 +849,27 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     m.isSynthetic && m.parameterTypes.let { it.size == 2 && it[1] == Long::class.javaPrimitiveType }
                 } ?: return@settingView
                 setLastClickTime = method { name = setLastClickTimeMethod.name }
+            }
+            fileUtils = fileUtils {
+                val getSongNameIndex = dexHelper.findMethodUsingStringExtract(
+                    "[getDownloadSongName] songInfo is null"
+                ) ?: return@fileUtils
+                val stringIndex = dexHelper.encodeClassIndex(String::class.java)
+                val toValidFilenameMethod = dexHelper.findMethodInvoking(
+                    getSongNameIndex,
+                    stringIndex,
+                    -1,
+                    null,
+                    -1,
+                    longArrayOf(stringIndex, stringIndex, stringIndex),
+                    null,
+                    null,
+                    true
+                ).asSequence().firstNotNullOfOrNull {
+                    dexHelper.decodeMethodIndex(it)
+                } ?: return@fileUtils
+                class_ = class_ { name = toValidFilenameMethod.declaringClass.name }
+                toValidFilename = method { name = toValidFilenameMethod.name }
             }
 
             dexHelper.close()
