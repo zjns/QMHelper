@@ -22,7 +22,7 @@
     <string name="not_found_log_file">没有发现日志文件</string>
     <string name="log_file_not_exist">日志文件不存在</string>
     <string name="old_log_item">%1$s (崩溃相关发这个)</string>
-    <string name="hook_error">出现错误\n%1$s\n部分功能可能失效。%2$s</string>
+    <string name="hook_error">出现错误\n%1$s\n部分功能可能失效。</string>
     <string name="not_supported">不支持该架构或框架，部分功能可能失效。</string>
     <string name="prefs_purify_home_top_tab_title">净化首页顶部标签</string>
     <string name="prefs_purify_home_top_tab_summary">选择要隐藏的标签</string>

@@ -433,8 +433,10 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     onSwitchStatusChange = method { name = onSwitchStatusChangeMethod.name }
                 }
 
-                val debugSettingFragmentClass = dexHelper.findMethodUsingStringExtract("DebugMode")
-                    ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@setting
+                val debugSettingFragmentClass =
+                    "com.tencent.qqmusic.fragment.debug.DebugSettingFragment"
+                        .from(classLoader) ?: dexHelper.findMethodUsingStringExtract("DebugMode")
+                        ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@setting
                 val baseSettingFragmentClass =
                     debugSettingFragmentClass.superclass ?: return@setting
                 val settingPackMethod = debugSettingFragmentClass.declaredMethods.find {

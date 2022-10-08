@@ -1,6 +1,5 @@
 package me.kofua.qmhelper
 
-import android.app.Activity
 import android.app.Application
 import android.app.Instrumentation
 import android.content.Context
@@ -9,7 +8,6 @@ import android.content.res.XModuleResources
 import android.os.Build
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.IXposedHookZygoteInit
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import me.kofua.qmhelper.hook.ABTesterHook
 import me.kofua.qmhelper.hook.BaseHook
@@ -87,10 +85,6 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                 }
             }
         }
-        lateInitHook = Activity::class.java.hookBeforeMethod("onResume") {
-            startLateHook()
-            lateInitHook?.unhook()
-        }
     }
 
     private fun startHook(hooker: BaseHook) {
@@ -100,21 +94,7 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
         } catch (t: Throwable) {
             Log.e(t)
             val errorMessage = t.message ?: ""
-            val stackTrace = t.stackTrace.joinToString("\n")
-            BannerTips.error(string(R.string.hook_error, errorMessage, stackTrace))
-        }
-    }
-
-    private fun startLateHook() {
-        hookers.forEach {
-            try {
-                it.lateInitHook()
-            } catch (t: Throwable) {
-                Log.e(t)
-                val errorMessage = t.message ?: ""
-                val stackTrace = t.stackTrace.joinToString("\n")
-                BannerTips.error(string(R.string.hook_error, errorMessage, stackTrace))
-            }
+            BannerTips.error(string(R.string.hook_error, errorMessage))
         }
     }
 
@@ -142,6 +122,5 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
         lateinit var moduleRes: Resources
 
         private val hookers = ArrayList<BaseHook>()
-        private var lateInitHook: XC_MethodHook.Unhook? = null
     }
 }
