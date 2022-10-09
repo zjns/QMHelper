@@ -1,11 +1,14 @@
 package me.kofua.qmhelper.setting
 
+import android.content.SharedPreferences
 import android.view.View
 import androidx.annotation.StringRes
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.utils.callMethod
 import me.kofua.qmhelper.utils.callStaticMethod
 import me.kofua.qmhelper.utils.currentContext
+import me.kofua.qmhelper.utils.edit
+import me.kofua.qmhelper.utils.sPrefs
 import me.kofua.qmhelper.utils.setIntField
 import me.kofua.qmhelper.utils.setObjectField
 import me.kofua.qmhelper.utils.string
@@ -44,6 +47,26 @@ class Setting {
             isSwitchOn: IsSwitchOn? = null,
             onSwitchChanged: OnSwitchChanged? = null
         ) = switch(string(title), summary?.let { string(it) }, isSwitchOn, onSwitchChanged)
+
+        fun switch(
+            key: String,
+            title: String,
+            summary: String? = null,
+            defValue: Boolean = false,
+            prefs: SharedPreferences = sPrefs,
+        ) = switch(
+            title,
+            summary,
+            { prefs.getBoolean(key, defValue) },
+        ) { prefs.edit { putBoolean(key, it) } }
+
+        fun switch(
+            key: String,
+            @StringRes title: Int,
+            @StringRes summary: Int? = null,
+            defValue: Boolean = false,
+            prefs: SharedPreferences = sPrefs,
+        ) = switch(key, string(title), summary?.let { string(it) }, defValue, prefs)
 
         fun button(
             title: String,

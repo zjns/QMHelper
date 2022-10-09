@@ -63,23 +63,17 @@ class SettingPack {
         Setting.category(R.string.prefs_category_main)
             ?.let { add(it) }
         Setting.switch(
+            "copy_enhance",
             R.string.prefs_copy_enhance_title,
             R.string.prefs_copy_enhance_summary,
-            isSwitchOn = { sPrefs.getBoolean("copy_enhance", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("copy_enhance", enabled) }
-            }
         )?.let { add(it) }
 
         Setting.category(R.string.prefs_category_purify)
             ?.let { add(it) }
         Setting.switch(
+            "purify_splash",
             R.string.prefs_purify_splash_title,
             R.string.prefs_purify_splash_summary,
-            isSwitchOn = { sPrefs.getBoolean("purify_splash", false) },
-            onSwitchChanged = { enabled: Boolean ->
-                sPrefs.edit { putBoolean("purify_splash", enabled) }
-            }
         )?.let { add(it) }
         Setting.button(
             R.string.prefs_purify_home_top_tab_title,
@@ -88,12 +82,9 @@ class SettingPack {
             onPurifyHomeTopTabClicked()
         }?.let { add(it) }
         Setting.switch(
+            "purify_red_dots",
             R.string.prefs_purify_red_dots_title,
             R.string.prefs_purify_red_dots_summary,
-            isSwitchOn = { sPrefs.getBoolean("purify_red_dots", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("purify_red_dots", enabled) }
-            }
         )?.let { add(it) }
         Setting.button(
             R.string.prefs_purify_more_items_title,
@@ -102,72 +93,46 @@ class SettingPack {
             onPurifyMorePageClicked()
         }?.let { add(it) }
         Setting.switch(
+            "hide_music_world",
             R.string.prefs_hide_music_world_title,
             R.string.prefs_hide_music_world_summary,
-            isSwitchOn = { sPrefs.getBoolean("hide_music_world", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("hide_music_world", enabled) }
-            }
         )?.let { add(it) }
         Setting.switch(
+            "hide_vip_bubble",
             R.string.prefs_hide_vip_bubble_title,
             R.string.prefs_hide_vip_bubble_summary,
-            isSwitchOn = { sPrefs.getBoolean("hide_vip_bubble", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("hide_vip_bubble", enabled) }
-            }
         )?.let { add(it) }
         Setting.switch(
+            "purify_live_guide",
             R.string.prefs_purify_live_guide_title,
             R.string.prefs_purify_live_guide_summary,
-            isSwitchOn = { sPrefs.getBoolean("purify_live_guide", false) },
-            onSwitchChanged = { enabled: Boolean ->
-                sPrefs.edit { putBoolean("purify_live_guide", enabled) }
-            }
         )?.let { add(it) }
         Setting.switch(
+            "forbid_slide",
             R.string.prefs_forbid_slide_title,
             R.string.prefs_forbid_slide_summary,
-            isSwitchOn = { sPrefs.getBoolean("forbid_slide", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("forbid_slide", enabled) }
-            }
         )?.let { add(it) }
         Setting.switch(
+            "block_live",
             R.string.prefs_block_live_title,
-            isSwitchOn = { sPrefs.getBoolean("block_live", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("block_live", enabled) }
-            }
         )?.let { add(it) }
-        Setting.button(
-            R.string.prefs_purify_search_title,
-        ) {
+        Setting.button(R.string.prefs_purify_search_title) {
             onPurifySearchClicked()
         }?.let { add(it) }
         Setting.switch(
+            "hide_ad_bar",
             R.string.prefs_hide_ad_bar_title,
             R.string.prefs_hide_ad_bar_summary,
-            isSwitchOn = { sPrefs.getBoolean("hide_ad_bar", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("hide_ad_bar", enabled) }
-            }
         )?.let { add(it) }
         Setting.switch(
+            "forbid_music_world",
             R.string.prefs_forbid_music_world_title,
             R.string.prefs_forbid_music_world_summary,
-            isSwitchOn = { sPrefs.getBoolean("forbid_music_world", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("forbid_music_world", enabled) }
-            }
         )?.let { add(it) }
         Setting.switch(
+            "block_bottom_tips",
             R.string.prefs_block_bottom_tips_title,
             R.string.prefs_block_bottom_tips_summary,
-            isSwitchOn = { sPrefs.getBoolean("block_bottom_tips", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("block_bottom_tips", enabled) }
-            }
         )?.let { add(it) }
         Setting.button(
             R.string.prefs_block_cover_ads_title,
@@ -176,55 +141,37 @@ class SettingPack {
             onBlockCoverAdsClicked()
         }?.let { add(it) }
         Setting.switch(
+            "block_user_guide",
             R.string.prefs_block_user_guide_title,
             R.string.prefs_block_user_guide_summary,
-            isSwitchOn = { sPrefs.getBoolean("block_user_guide", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("block_user_guide", enabled) }
-            }
         )?.let { add(it) }
         Setting.switch(
+            "block_comment_banners",
             R.string.prefs_block_comment_banners_title,
             R.string.prefs_block_comment_banners_summary,
-            isSwitchOn = { sPrefs.getBoolean("block_comment_banners", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("block_comment_banners", enabled) }
-            }
         )?.let { add(it) }
         Setting.switch(
+            "remove_comment_recommend",
             R.string.prefs_remove_comment_recommend_title,
             R.string.prefs_remove_comment_recommend_summary,
-            isSwitchOn = { sPrefs.getBoolean("remove_comment_recommend", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("remove_comment_recommend", enabled) }
-            }
         )?.let { add(it) }
         Setting.switch(
+            "remove_mine_kol",
             R.string.prefs_remove_mine_kol_title,
             R.string.prefs_remove_mine_kol_summary,
-            isSwitchOn = { sPrefs.getBoolean("remove_mine_kol", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("remove_mine_kol", enabled) }
-            }
         )?.let { add(it) }
 
         Setting.category(R.string.prefs_category_misc)
             ?.let { add(it) }
         Setting.switch(
+            "fix_song_filename",
             R.string.prefs_fix_song_filename_title,
             R.string.prefs_fix_song_filename_summary,
-            isSwitchOn = { sPrefs.getBoolean("fix_song_filename", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("fix_song_filename", enabled) }
-            }
         )?.let { add(it) }
         Setting.switch(
+            "allow_save_to_sdcard_extern",
             R.string.prefs_allow_save_to_sdcard_extern_title,
             R.string.prefs_allow_save_to_sdcard_extern_summary,
-            isSwitchOn = { sPrefs.getBoolean("allow_save_to_sdcard_extern", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("allow_save_to_sdcard_extern", enabled) }
-            }
         )?.let { add(it) }
 
         if (sPrefs.getBoolean("hidden", false)) {
@@ -243,9 +190,7 @@ class SettingPack {
                     }
                 }
             )?.let { add(it) }
-            Setting.button(
-                R.string.prefs_decrypt_downloads_title
-            ) {
+            Setting.button(R.string.prefs_decrypt_downloads_title) {
                 onDecryptButtonClicked()
             }?.let { add(it) }
         }
@@ -253,12 +198,9 @@ class SettingPack {
         Setting.category(R.string.prefs_category_settings)
             ?.let { add(it) }
         Setting.switch(
+            "save_log",
             string(R.string.prefs_save_log_title),
             string(R.string.prefs_save_log_summary, logFile.absolutePath),
-            isSwitchOn = { sPrefs.getBoolean("save_log", false) },
-            onSwitchChanged = { enabled ->
-                sPrefs.edit { putBoolean("save_log", enabled) }
-            }
         )?.let { add(it) }
         Setting.button(R.string.prefs_share_log_title) {
             onShareLogClicked()
