@@ -33,7 +33,7 @@
     <string name="prefs_hide_music_world_title">隐藏音乐空间入口</string>
     <string name="prefs_hide_music_world_summary">我的页面隐藏音乐空间入口</string>
     <string name="prefs_hide_vip_bubble_title">隐藏会员购买横条</string>
-    <string name="prefs_hide_vip_bubble_summary">我的页面隐藏会员购买横条</string>
+    <string name="prefs_hide_vip_bubble_summary">日推及我的页面隐藏会员购买横条</string>
     <string name="prefs_purify_live_guide_title">屏蔽直播入口</string>
     <string name="prefs_purify_live_guide_summary">播放页右上角屏蔽直播入口</string>
     <string name="prefs_forbid_slide_title">禁止上划查看视频</string>

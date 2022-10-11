@@ -22,6 +22,9 @@ class HomePageHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             instance.userInfoHolderClass?.declaredMethods?.find {
                 it.name == instance.showBubble()
             }?.replaceMethod { null }
+            instance.vipAdBarDataClass?.declaredConstructors
+                ?.find { m -> m.parameterTypes.let { it.size == 10 && it[8] == Boolean::class.javaPrimitiveType } }
+                ?.hookBeforeMethod { it.args[8] = true }
         }
         if (sPrefs.getBoolean("purify_live_guide", false)) {
             instance.topAreaDelegateClass?.run {

@@ -291,4 +291,5 @@ message HookInfo {
   optional FileUtils file_utils = 40;
   optional Class storage_volume = 41;
   optional StorageUtils storage_utils = 42;
+  optional Class vip_ad_bar_data = 43;
 }

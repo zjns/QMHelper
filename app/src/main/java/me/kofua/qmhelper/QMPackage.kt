@@ -94,6 +94,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val fileUtilsClass by Weak { hookInfo.fileUtils.class_ from classLoader }
     val storageVolumeClass by Weak { hookInfo.storageVolume from classLoader }
     val storageUtilsClass by Weak { hookInfo.storageUtils.class_ from classLoader }
+    val vipAdBarDataClass by Weak { hookInfo.vipAdBarData from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -888,6 +889,10 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 )?.let { dexHelper.decodeMethodIndex(it) } ?: return@storageUtils
                 class_ = class_ { name = getVolumesMethod.declaringClass.name }
                 getVolumes = method { name = getVolumesMethod.name }
+            }
+            vipAdBarData = class_ {
+                name = dexHelper.findMethodUsingStringExtract("VipAdBarData(posId=")
+                    ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass?.name ?: return@class_
             }
 
             dexHelper.close()
