@@ -1,12 +1,8 @@
 import com.android.build.api.artifact.ArtifactTransformationRequest
 import com.android.build.api.artifact.SingleArtifact
-import com.android.build.api.dsl.AndroidSourceSet
 import com.android.build.api.variant.BuiltArtifact
-import com.google.protobuf.gradle.builtins
-import com.google.protobuf.gradle.generateProtoTasks
 import com.google.protobuf.gradle.id
-import com.google.protobuf.gradle.protobuf
-import com.google.protobuf.gradle.protoc
+import com.google.protobuf.gradle.proto
 import org.gradle.internal.os.OperatingSystem
 import java.nio.file.Paths
 import java.util.Properties
@@ -15,15 +11,6 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("com.google.protobuf")
-}
-
-// https://github.com/google/protobuf-gradle-plugin/issues/540#issuecomment-1001053066
-fun AndroidSourceSet.proto(action: SourceDirectorySet.() -> Unit) {
-    (this as? ExtensionAware)
-        ?.extensions
-        ?.getByName("proto")
-        ?.let { it as? SourceDirectorySet }
-        ?.apply(action)
 }
 
 fun findInPath(executable: String): String? {
