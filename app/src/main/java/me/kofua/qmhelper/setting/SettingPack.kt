@@ -160,6 +160,11 @@ class SettingPack {
             R.string.prefs_remove_mine_kol_title,
             R.string.prefs_remove_mine_kol_summary,
         )?.let { add(it) }
+        Setting.switch(
+            "purify_share_guide",
+            R.string.prefs_purify_share_guide_title,
+            R.string.prefs_purify_share_guide_summary
+        )?.let { add(it) }
 
         Setting.category(R.string.prefs_category_misc)
             ?.let { add(it) }

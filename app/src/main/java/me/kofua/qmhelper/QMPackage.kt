@@ -164,6 +164,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun setLastClickTime() = hookInfo.settingView.setLastClickTime.orNull
     fun toValidFilename() = hookInfo.fileUtils.toValidFilename.orNull
     fun getVolumes() = hookInfo.storageUtils.getVolumes.orNull
+    fun showShareGuide() = hookInfo.topAreaDelegate.showShareGuide.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -600,9 +601,26 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 val showCurListenMethod = dexHelper.findMethodUsingStringExtract(
                     "[showCurrentListen]--block by long audio ad recall entrance show"
                 )?.let { dexHelper.decodeMethodIndex(it) } ?: return@topAreaDelegate
-                class_ = class_ { name = initLiveGuideMethod.declaringClass.name }
+                val clazz = initLiveGuideMethod.declaringClass
+                val classIndex = dexHelper.encodeClassIndex(clazz)
+                val showShareGuideMethod = dexHelper.findMethodUsingString(
+                    "ACTION_QQFRIEND",
+                    false,
+                    -1,
+                    -1,
+                    null,
+                    classIndex,
+                    null,
+                    null,
+                    null,
+                    true
+                ).asSequence().firstNotNullOfOrNull {
+                    dexHelper.decodeMethodIndex(it)
+                } ?: return@topAreaDelegate
+                class_ = class_ { name = clazz.name }
                 initLiveGuide = method { name = initLiveGuideMethod.name }
                 showCurListen = method { name = showCurListenMethod.name }
+                showShareGuide = method { name = showShareGuideMethod.name }
             }
             playViewModel = playerViewModel {
                 val clazz = "com.tencent.qqmusic.business.playernew.viewmodel.PlayerViewModel"

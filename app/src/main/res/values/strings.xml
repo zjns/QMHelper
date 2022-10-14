@@ -109,4 +109,6 @@
     <string name="prefs_fix_song_filename_summary">歌曲下载文件名移除mqms后缀，长度限制增大到250</string>
     <string name="prefs_allow_save_to_sdcard_extern_title">强制允许音乐下载到扩展SD卡</string>
     <string name="prefs_allow_save_to_sdcard_extern_summary">强制允许音乐下载到\"扩展SD卡/qqmusic/song\"目录，而不是\"扩展SD卡/Android/data/包名/files/qqmusic/song\"。实验性功能，可能导致音乐下载失败，谨慎开启。</string>
+    <string name="prefs_purify_share_guide_title">屏蔽分享引导</string>
+    <string name="prefs_purify_share_guide_summary">隐藏播放页右上角分享引导动画图标</string>
 </resources>

@@ -34,6 +34,12 @@ class HomePageHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                     ?.replaceMethod { null }
             }
         }
+        if (sPrefs.getBoolean("purify_share_guide", false)) {
+            instance.topAreaDelegateClass?.replaceMethod(
+                instance.showShareGuide(),
+                Int::class.javaPrimitiveType
+            ) { null }
+        }
         if (sPrefs.getBoolean("forbid_slide", false)) {
             instance.playViewModelClass?.hookBeforeMethod(
                 instance.setCanSlide(),

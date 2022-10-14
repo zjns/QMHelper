@@ -130,6 +130,7 @@ message TopAreaDelegate {
   optional Class class = 1;
   optional Method init_live_guide = 2;
   optional Method show_cur_listen = 3;
+  optional Method show_share_guide = 4;
 }
 
 message PlayerViewModel {
