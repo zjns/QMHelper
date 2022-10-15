@@ -257,6 +257,15 @@ message SkinManager {
   optional Method get_skin_id = 2;
 }
 
+message AdResponseData {
+  repeated AdResponseDataItem item = 1;
+}
+
+message AdResponseDataItem {
+  optional Class class = 1;
+  repeated Method get_ads = 2;
+}
+
 message HookInfo {
   int64 last_update_time = 1;
   int32 client_version_code = 2;
@@ -301,4 +310,5 @@ message HookInfo {
   optional StorageUtils storage_utils = 42;
   optional Class vip_ad_bar_data = 43;
   optional SkinManager skin_manager = 44;
+  optional AdResponseData ad_response_data = 45;
 }

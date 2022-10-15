@@ -12,6 +12,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import me.kofua.qmhelper.hook.ABTesterHook
 import me.kofua.qmhelper.hook.BaseHook
 import me.kofua.qmhelper.hook.CgiHook
+import me.kofua.qmhelper.hook.CommonAdsHook
 import me.kofua.qmhelper.hook.CopyHook
 import me.kofua.qmhelper.hook.DebugHook
 import me.kofua.qmhelper.hook.HomePageHook
@@ -82,6 +83,7 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     startHook(CgiHook(lpparam.classLoader))
                     startHook(CopyHook(lpparam.classLoader))
                     startHook(MiscHook(lpparam.classLoader))
+                    startHook(CommonAdsHook(lpparam.classLoader))
                 }
             }
         }

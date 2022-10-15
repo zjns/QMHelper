@@ -119,6 +119,13 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
 
     val adBarMethods get() = hookInfo.adBar.methodsList.map { it.name }
 
+    fun adResponseData() = hookInfo.adResponseData.itemList
+        .mapNotNull { item ->
+            val c = item.class_ from classLoader
+            val ml = item.getAdsList.map { it.name }
+            Pair(c, ml)
+        }
+
     fun initTabFragment() = hookInfo.homePageFragment.initTabFragment.orNull
     fun addTabById() = hookInfo.mainDesktopHeader.addTabById.orNull
     fun addTabByName() = hookInfo.mainDesktopHeader.addTabByName.orNull
@@ -924,6 +931,31 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 )?.let { dexHelper.decodeMethodIndex(it) } ?: return@skinManager
                 class_ = class_ { name = getSkinIdMethod.declaringClass.name }
                 getSkinId = method { name = getSkinIdMethod.name }
+            }
+            adResponseData = adResponseData {
+                val classes = dexHelper.findMethodUsingString(
+                    "AdResponseData(retCode=",
+                    false,
+                    -1,
+                    -1,
+                    null,
+                    -1,
+                    null,
+                    null,
+                    null,
+                    false
+                ).map {
+                    dexHelper.decodeMethodIndex(it)?.declaringClass
+                }.filterNotNull().ifEmpty { return@adResponseData }
+                val getAdsMethods = classes.map { c ->
+                    c.declaredMethods.filter { it.returnType == List::class.java && it.parameterTypes.isEmpty() }
+                }
+                classes.zip(getAdsMethods) { c, ml ->
+                    adResponseDataItem {
+                        class_ = class_ { name = c.name }
+                        getAds.addAll(ml.map { method { name = it.name } })
+                    }
+                }.let { item.addAll(it) }
             }
 
             dexHelper.close()

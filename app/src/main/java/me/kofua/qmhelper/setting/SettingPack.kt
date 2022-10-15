@@ -166,6 +166,11 @@ class SettingPack {
             R.string.prefs_purify_share_guide_title,
             R.string.prefs_purify_share_guide_summary
         )?.let { add(it) }
+        Setting.switch(
+            "block_common_ads",
+            R.string.prefs_block_common_ads_title,
+            R.string.prefs_block_common_ads_summary
+        )?.let { add(it) }
 
         Setting.category(R.string.prefs_category_misc)
             ?.let { add(it) }
