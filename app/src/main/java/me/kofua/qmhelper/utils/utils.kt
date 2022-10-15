@@ -185,7 +185,7 @@ fun Uri.realDirPath() = when (scheme) {
     else -> null
 }
 
-fun CharSequence.copyToClipboard(label: String? = "") {
+fun CharSequence.copyToClipboard(label: CharSequence = "") {
     ClipData.newPlainText(label, this)?.let {
         currentContext.getSystemService(ClipboardManager::class.java)
             .setPrimaryClip(it)

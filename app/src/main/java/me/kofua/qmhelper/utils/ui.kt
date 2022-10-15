@@ -5,11 +5,22 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.view.View
 import androidx.annotation.StringRes
+import androidx.annotation.StyleRes
 import kotlinx.coroutines.suspendCancellableCoroutine
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import kotlin.coroutines.resume
 
 typealias ButtonClickListener = (v: View) -> Unit
+
+val isBlackSkinInUse: Boolean
+    get() = instance.skinManagerClass?.callStaticMethod(instance.getSkinId()) == "901"
+
+@get:StyleRes
+val themeIdForDialog: Int
+    get() = if (isBlackSkinInUse)
+        android.R.style.Theme_Material_Dialog_Alert
+    else
+        android.R.style.Theme_Material_Light_Dialog_Alert
 
 fun Activity.showMessageDialog(
     title: String,
@@ -32,7 +43,7 @@ fun Activity.showMessageDialog(
             false,
             false
         )
-    } ?: AlertDialog.Builder(this)
+    } ?: AlertDialog.Builder(this, themeIdForDialog)
         .setTitle(title)
         .setMessage(message)
         .setNegativeButton(negText, null)

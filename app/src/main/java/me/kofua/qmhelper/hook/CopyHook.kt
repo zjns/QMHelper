@@ -26,6 +26,7 @@ import me.kofua.qmhelper.utils.runCatchingOrNull
 import me.kofua.qmhelper.utils.sPrefs
 import me.kofua.qmhelper.utils.setBooleanField
 import me.kofua.qmhelper.utils.string
+import me.kofua.qmhelper.utils.themeIdForDialog
 import me.kofua.qmhelper.utils.toJSONObject
 
 typealias OnCopyAllListener = (text: CharSequence) -> Unit
@@ -108,7 +109,7 @@ class CopyHook(classLoader: ClassLoader) : BaseHook(classLoader) {
         param: MethodHookParam?,
         onCopyAll: OnCopyAllListener? = null
     ) {
-        AlertDialog.Builder(context).run {
+        AlertDialog.Builder(context, themeIdForDialog).run {
             setTitle(string(R.string.copy_enhance))
             setMessage(text)
             setPositiveButton(string(R.string.share)) { _, _ ->

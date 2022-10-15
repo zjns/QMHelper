@@ -95,6 +95,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val storageVolumeClass by Weak { hookInfo.storageVolume from classLoader }
     val storageUtilsClass by Weak { hookInfo.storageUtils.class_ from classLoader }
     val vipAdBarDataClass by Weak { hookInfo.vipAdBarData from classLoader }
+    val skinManagerClass by Weak { hookInfo.skinManager.class_ from classLoader }
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
@@ -165,6 +166,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun toValidFilename() = hookInfo.fileUtils.toValidFilename.orNull
     fun getVolumes() = hookInfo.storageUtils.getVolumes.orNull
     fun showShareGuide() = hookInfo.topAreaDelegate.showShareGuide.orNull
+    fun getSkinId() = hookInfo.skinManager.getSkinId.orNull
 
     private fun readHookInfo(context: Context): Configs.HookInfo {
         try {
@@ -911,6 +913,13 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
             vipAdBarData = class_ {
                 name = dexHelper.findMethodUsingStringExtract("VipAdBarData(posId=")
                     ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass?.name ?: return@class_
+            }
+            skinManager = skinManager {
+                val getSkinIdMethod = dexHelper.findMethodUsingStringExtract(
+                    "[getSyncSkinIdInUse][event:has not update skinIdInUse,use SkinIdToSwitch = %s]"
+                )?.let { dexHelper.decodeMethodIndex(it) } ?: return@skinManager
+                class_ = class_ { name = getSkinIdMethod.declaringClass.name }
+                getSkinId = method { name = getSkinIdMethod.name }
             }
 
             dexHelper.close()

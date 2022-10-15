@@ -32,6 +32,7 @@ import me.kofua.qmhelper.utils.showMessageDialog
 import me.kofua.qmhelper.utils.showMessageDialogX
 import me.kofua.qmhelper.utils.string
 import me.kofua.qmhelper.utils.stringArray
+import me.kofua.qmhelper.utils.themeIdForDialog
 import me.kofua.qmhelper.utils.toUri
 import org.json.JSONArray
 import java.io.File
@@ -354,7 +355,7 @@ class SettingPack {
             .toBooleanArray()
         val newCheckedValues = mutableSetOf<String>()
             .apply { addAll(checkedValues) }
-        AlertDialog.Builder(activity)
+        AlertDialog.Builder(activity, themeIdForDialog)
             .setMultiChoiceItems(entries, checkedStates) { _, which, isChecked ->
                 if (isChecked) newCheckedValues.add(values[which])
                 else newCheckedValues.remove(values[which])
@@ -405,7 +406,7 @@ class SettingPack {
             BannerTips.failed(R.string.not_found_log_file)
             return
         }
-        AlertDialog.Builder(activity)
+        AlertDialog.Builder(activity, themeIdForDialog)
             .setTitle(string(R.string.prefs_share_log_title))
             .setItems(
                 arrayOf(

@@ -95,60 +95,34 @@ class DebugHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                     val message = param.args[1] as? String ?: ""
                     val other = param.args.getOrNull(2)
                     when (methodName) {
-                        "d" -> {
-                            when (other) {
-                                null -> android.util.Log.d(tag, message)
-                                is Throwable -> android.util.Log.d(tag, message, other)
-                                is Array<*> -> android.util.Log.d(
-                                    tag,
-                                    message + "\n" + other.contentToString()
-                                )
-                            }
+                        "d" -> when (other) {
+                            null -> android.util.Log.d(tag, message)
+                            is Throwable -> android.util.Log.d(tag, message, other)
+                            is Array<*> -> android.util.Log.d(tag, message.format(*other))
                         }
 
-                        "e" -> {
-                            when (other) {
-                                null -> android.util.Log.e(tag, message)
-                                is Throwable -> android.util.Log.e(tag, message, other)
-                                is Array<*> -> android.util.Log.e(
-                                    tag,
-                                    message + "\n" + other.contentToString()
-                                )
-                            }
+                        "e" -> when (other) {
+                            null -> android.util.Log.e(tag, message)
+                            is Throwable -> android.util.Log.e(tag, message, other)
+                            is Array<*> -> android.util.Log.e(tag, message.format(*other))
                         }
 
-                        "i" -> {
-                            when (other) {
-                                null -> android.util.Log.i(tag, message)
-
-                                is Throwable -> android.util.Log.i(tag, message, other)
-                                is Array<*> -> android.util.Log.i(
-                                    tag,
-                                    message + "\n" + other.contentToString()
-                                )
-                            }
+                        "i" -> when (other) {
+                            null -> android.util.Log.i(tag, message)
+                            is Throwable -> android.util.Log.i(tag, message, other)
+                            is Array<*> -> android.util.Log.i(tag, message.format(*other))
                         }
 
-                        "v" -> {
-                            when (other) {
-                                null -> android.util.Log.v(tag, message)
-                                is Throwable -> android.util.Log.v(tag, message, other)
-                                is Array<*> -> android.util.Log.v(
-                                    tag,
-                                    message + "\n" + other.contentToString()
-                                )
-                            }
+                        "v" -> when (other) {
+                            null -> android.util.Log.v(tag, message)
+                            is Throwable -> android.util.Log.v(tag, message, other)
+                            is Array<*> -> android.util.Log.v(tag, message.format(*other))
                         }
 
-                        "w" -> {
-                            when (other) {
-                                null -> android.util.Log.w(tag, message)
-                                is Throwable -> android.util.Log.w(tag, message, other)
-                                is Array<*> -> android.util.Log.w(
-                                    tag,
-                                    message + "\n" + other.contentToString()
-                                )
-                            }
+                        "w" -> when (other) {
+                            null -> android.util.Log.w(tag, message)
+                            is Throwable -> android.util.Log.w(tag, message, other)
+                            is Array<*> -> android.util.Log.w(tag, message.format(*other))
                         }
                     }
                     param.result = null
