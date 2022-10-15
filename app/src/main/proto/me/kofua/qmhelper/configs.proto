@@ -47,6 +47,7 @@ message Setting {
   optional BaseSettingFragment base_setting_fragment = 9;
   optional BaseSettingPack base_setting_pack = 10;
   optional BaseSettingProvider base_setting_provider = 11;
+  optional DrawerSettingPackage drawer_setting_pack = 12;
 }
 
 message SettingBuilder {
@@ -80,11 +81,18 @@ message BaseSettingFragment {
 message BaseSettingPack {
   optional Class class = 1;
   optional Method create_setting_provider = 2;
+  optional Field host = 3;
 }
 
 message BaseSettingProvider {
   optional Class class = 1;
   optional Method create = 2;
+  optional Method get_setting = 3;
+}
+
+message DrawerSettingPackage {
+  optional Class class = 1;
+  optional Method init_kol_enter = 2;
 }
 
 message PersonalEntryView {
@@ -92,11 +100,6 @@ message PersonalEntryView {
   optional Method update = 2;
   optional Field right_desc_view = 3;
   optional Field red_dot_view = 4;
-}
-
-message MoreFragment {
-  optional Class class = 1;
-  optional Field more_list = 2;
 }
 
 message BannerTips {
@@ -266,7 +269,6 @@ message HookInfo {
   optional AdManager ad_manager = 9;
   optional Setting setting = 10;
   optional PersonalEntryView personal_entry_view = 11;
-  optional MoreFragment more_fragment = 12;
   optional BannerTips banner_tips = 13;
   optional SettingFragment setting_fragment = 14;
   optional UserInfoHolder user_info_holder = 15;

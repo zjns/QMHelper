@@ -123,10 +123,12 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                 m, instance.settingViewClass, Long::class.javaPrimitiveType
             ) { it.args[1] = 0L }
         }
-        instance.moreFragmentClass?.hookAfterMethod(instance.resume()) { param ->
-            val settings = param.thisObject
-                .getObjectFieldAs<MutableList<Any?>>(instance.moreListField)
-            settings.forEach { s ->
+        @Suppress("UNCHECKED_CAST")
+        instance.drawerSettingPackClass?.hookAfterMethod(instance.createSettingProvider()) { param ->
+            val settingProviders = param.result as CopyOnWriteArrayList<Any?>
+            val fragment = param.thisObject.getObjectField(instance.hostField)
+                ?: return@hookAfterMethod
+            settingProviders.map { it?.callMethod(instance.getSetting()) }.forEach { s ->
                 if (purifyRedDots) {
                     s?.getObjectField(instance.rightDescField)?.takeIf {
                         it != "未开启"
@@ -134,18 +136,24 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                     s.setObjectField(instance.redDotListenerField, null)
                 }
             }
-            for (i in settings.size - 1 downTo 0) {
-                settings[i]?.getObjectFieldAs<String>(instance.titleField)?.takeIf {
-                    purifyMoreItems.contains(it)
-                }?.run { settings.removeAt(i) }
+            for (i in settingProviders.size - 1 downTo 0) {
+                settingProviders[i]?.callMethod(instance.getSetting())
+                    ?.getObjectFieldAs<String>(instance.titleField)?.takeIf {
+                        purifyMoreItems.contains(it)
+                    }?.run { settingProviders.removeAt(i) }
             }
-            if (settings.last()?.getObjectField(instance.titleField) == Setting.TITLE_DIVIDER) {
-                settings.removeAt(settings.lastIndex)
-            }
-            settings.add(1, Setting.button(R.string.app_name) {
+            if (settingProviders.last()?.callMethod(instance.getSetting())
+                    ?.getObjectField(instance.titleField) == Setting.TITLE_DIVIDER
+            ) settingProviders.removeAt(settingProviders.lastIndex)
+
+            val moduleSetting = Setting.button(R.string.app_name) {
                 onQMHelperSettingClicked(it.context)
-            })
+            }
+            settingProviders.add(1, settingProvider(fragment, moduleSetting))
         }
+        if (purifyMoreItems.contains("创作者中心"))
+            instance.drawerSettingPackClass?.replaceMethod(instance.initKolEnter()) { null }
+
         if (!purifyRedDots) return
         instance.personalEntryViewClass?.declaredMethods?.find { it.name == instance.update() }
             ?.hookAfterMethod { param ->

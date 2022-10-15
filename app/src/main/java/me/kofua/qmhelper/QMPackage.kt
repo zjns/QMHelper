@@ -55,7 +55,6 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val mainDesktopHeaderClass by Weak { hookInfo.mainDesktopHeader.class_ from classLoader }
     val adManagerClass by Weak { hookInfo.adManager.class_ from classLoader }
     val personalEntryViewClass by Weak { hookInfo.personalEntryView.class_ from classLoader }
-    val moreFragmentClass by Weak { hookInfo.moreFragment.class_ from classLoader }
     val bannerTipsClass by Weak { hookInfo.bannerTips.class_ from classLoader }
     val settingFragmentClass by Weak { hookInfo.settingFragment.class_ from classLoader }
     val userInfoHolderClass by Weak { hookInfo.userInfoHolder.class_ from classLoader }
@@ -71,6 +70,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val baseSettingFragmentClass by Weak { hookInfo.setting.baseSettingFragment.class_ from classLoader }
     val baseSettingPackClass by Weak { hookInfo.setting.baseSettingPack.class_ from classLoader }
     val baseSettingProviderClass by Weak { hookInfo.setting.baseSettingProvider.class_ from classLoader }
+    val drawerSettingPackClass by Weak { hookInfo.setting.drawerSettingPack.class_ from classLoader }
     val authAgentClass by Weak { hookInfo.authAgent.class_ from classLoader }
     val jsonRespParserClass by Weak { hookInfo.jsonRespParser.class_ from classLoader }
     val gsonClass by Weak { hookInfo.gson.class_ from classLoader }
@@ -99,7 +99,6 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
 
     val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
     val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
-    val moreListField get() = hookInfo.moreFragment.moreList.orNull
     val settingListField get() = hookInfo.settingFragment.settingList.orNull
     val typeField get() = hookInfo.setting.type.orNull
     val titleField get() = hookInfo.setting.title.orNull
@@ -111,6 +110,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     val builderSummaryField get() = hookInfo.setting.builder.summary.orNull
     val builderSwitchListenerField get() = hookInfo.setting.builder.switchListener.orNull
     val builderClickListenerField get() = hookInfo.setting.builder.clickListener.orNull
+    val hostField get() = hookInfo.setting.baseSettingPack.host.orNull
     val eKeyDecryptorInstanceField get() = hookInfo.eKeyDecryptor.instance.orNull
     val eKeyManagerInstanceField get() = hookInfo.eKeyManager.instance.orNull
     val runtimeField get() = hookInfo.dataPlugin.runtime.orNull
@@ -145,6 +145,8 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     fun title() = hookInfo.setting.baseSettingFragment.title.orNull
     fun createSettingProvider() = hookInfo.setting.baseSettingPack.createSettingProvider.orNull
     fun create() = hookInfo.setting.baseSettingProvider.create.orNull
+    fun getSetting() = hookInfo.setting.baseSettingProvider.getSetting.orNull
+    fun initKolEnter() = hookInfo.setting.drawerSettingPack.initKolEnter.orNull
     fun startActionActivity() = hookInfo.authAgent.startActionActivity.orNull
     fun parseModuleItem() = hookInfo.jsonRespParser.parseModuleItem.orNull
     fun fromJson() = hookInfo.gson.fromJson.orNull
@@ -453,12 +455,21 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 val createSettingProviderMethod = baseSettingPackClass.methods.find {
                     it.returnType == CopyOnWriteArrayList::class.java && it.isAbstract
                 } ?: return@setting
+                val hostField = baseSettingPackClass.declaredFields.find {
+                    it.type.isInterface && baseSettingPackClass.interfaces.contains(it.type)
+                } ?: return@setting
                 val baseSettingProviderClass =
                     dexHelper.findMethodUsingStringExtract("setting is null")
                         ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@setting
                 val createMethod = baseSettingProviderClass.methods.find {
                     it.returnType == settingClass && it.isAbstract
                 } ?: return@setting
+                val getSettingMethod = baseSettingProviderClass.declaredMethods.find {
+                    it.returnType == settingClass
+                } ?: return@setting
+                val initKolEnterMethod = dexHelper.findMethodUsingStringExtract(
+                    "initMusicAccoutEnter: start"
+                )?.let { dexHelper.decodeMethodIndex(it) } ?: return@setting
                 baseSettingFragment = baseSettingFragment {
                     class_ = class_ { name = baseSettingFragmentClass.name }
                     settingPackage = method { name = settingPackMethod.name }
@@ -467,10 +478,16 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 baseSettingPack = baseSettingPack {
                     class_ = class_ { name = baseSettingPackClass.name }
                     createSettingProvider = method { name = createSettingProviderMethod.name }
+                    host = field { name = hostField.name }
                 }
                 baseSettingProvider = baseSettingProvider {
                     class_ = class_ { name = baseSettingProviderClass.name }
                     create = method { name = createMethod.name }
+                    getSetting = method { name = getSettingMethod.name }
+                }
+                drawerSettingPack = drawerSettingPackage {
+                    class_ = class_ { name = initKolEnterMethod.declaringClass.name }
+                    initKolEnter = method { name = initKolEnterMethod.name }
                 }
             }
             personalEntryView = personalEntryView {
@@ -494,19 +511,6 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                 update = method { name = updateMethod.name }
                 rightDescView = field { name = rightDescViewField.name }
                 redDotView = field { name = redDotViewField.name }
-            }
-            moreFragment = moreFragment {
-                val moreFragmentClass =
-                    "com.tencent.qqmusic.fragment.morefeatures.MoreFeaturesFragment"
-                        .from(classLoader) ?: dexHelper.findMethodUsingStringExtract(
-                        "AutoClose#MoreFeaturesFragment",
-                    )?.let {
-                        dexHelper.decodeMethodIndex(it)
-                    }?.declaringClass ?: return@moreFragment
-                val moreListField = moreFragmentClass
-                    .findFieldByExactType(List::class.java) ?: return@moreFragment
-                class_ = class_ { name = moreFragmentClass.name }
-                moreList = field { name = moreListField.name }
             }
             bannerTips = bannerTips {
                 val showStyledToastMethod = dexHelper.findMethodUsingString(
