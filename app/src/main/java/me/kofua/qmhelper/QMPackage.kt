@@ -741,7 +741,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     .from(classLoader) ?: dexHelper.findMethodUsingStringExtract("ApkDownloadAdBar")
                     ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
                 ?: return@apkDownloadAdBar
-                val methods = clazz.interfaces.getOrNull(0)?.methods?.filter {
+                val methods = clazz.interfaces.firstOrNull()?.methods?.filter {
                     it.returnType == Void::class.javaPrimitiveType && it.parameterTypes.isEmpty()
                 } ?: return@apkDownloadAdBar
                 class_ = class_ { name = clazz.name }

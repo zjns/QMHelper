@@ -49,7 +49,7 @@ class CopyHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             val method = param.args[2] as String
             val params = param.args[3] as Array<String>
             if (method == "setClipboard") {
-                val text = params.getOrNull(0)?.runCatchingOrNull { toJSONObject() }
+                val text = params.firstOrNull()?.runCatchingOrNull { toJSONObject() }
                     ?.optString("text")?.replace("\\n", "\n")
                     ?: return@hookBeforeMethod
                 val activity = dataPlugin.getObjectField(instance.runtimeField)
