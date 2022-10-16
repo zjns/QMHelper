@@ -1,97 +1,96 @@
-package me.kofua.qmhelper.utils;
+package me.kofua.qmhelper.utils
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import java.lang.reflect.Field
+import java.lang.reflect.Member
 
-import java.io.Closeable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
+class DexHelper(private val classLoader: ClassLoader) : AutoCloseable {
 
-public class DexHelper implements AutoCloseable, Closeable {
-    public static final int NO_CLASS_INDEX = -1;
-    private final ClassLoader classLoader;
-    private final long token;
+    private val token = load(classLoader)
 
-    public DexHelper(@NonNull ClassLoader classLoader) {
-        this.classLoader = classLoader;
-        token = load(classLoader);
-    }
+    external fun findMethodUsingString(
+        str: String,
+        matchPrefix: Boolean = false,
+        returnType: Long = -1,
+        parameterCount: Short = -1,
+        parameterShorty: String? = null,
+        declaringClass: Long = -1,
+        parameterTypes: LongArray? = null,
+        containsParameterTypes: LongArray? = null,
+        dexPriority: IntArray? = null,
+        findFirst: Boolean = true
+    ): LongArray
 
-    @NonNull
-    public native long[] findMethodUsingString(
-            @NonNull String str, boolean matchPrefix, long returnType, short parameterCount,
-            @Nullable String parameterShorty, long declaringClass, @Nullable long[] parameterTypes,
-            @Nullable long[] containsParameterTypes, @Nullable int[] dexPriority, boolean findFirst);
+    external fun findMethodInvoking(
+        methodIndex: Long,
+        returnType: Long = -1,
+        parameterCount: Short = -1,
+        parameterShorty: String? = null,
+        declaringClass: Long = -1,
+        parameterTypes: LongArray? = null,
+        containsParameterTypes: LongArray? = null,
+        dexPriority: IntArray? = null,
+        findFirst: Boolean = true
+    ): LongArray
 
-    @NonNull
-    public native long[] findMethodInvoking(long methodIndex, long returnType,
-                                            short parameterCount, @Nullable String parameterShorty,
-                                            long declaringClass, @Nullable long[] parameterTypes,
-                                            @Nullable long[] containsParameterTypes,
-                                            @Nullable int[] dexPriority, boolean findFirst);
+    external fun findMethodInvoked(
+        methodIndex: Long,
+        returnType: Long = -1,
+        parameterCount: Short = -1,
+        parameterShorty: String? = null,
+        declaringClass: Long = -1,
+        parameterTypes: LongArray? = null,
+        containsParameterTypes: LongArray? = null,
+        dexPriority: IntArray? = null,
+        findFirst: Boolean = true
+    ): LongArray
 
-    @NonNull
-    public native long[] findMethodInvoked(long methodIndex, long returnType,
-                                           short parameterCount, @Nullable String parameterShorty,
-                                           long declaringClass, @Nullable long[] parameterTypes,
-                                           @Nullable long[] containsParameterTypes,
-                                           @Nullable int[] dexPriority, boolean findFirst);
+    external fun findMethodSettingField(
+        fieldIndex: Long,
+        returnType: Long = -1,
+        parameterCount: Short = -1,
+        parameterShorty: String? = null,
+        declaringClass: Long = -1,
+        parameterTypes: LongArray? = null,
+        containsParameterTypes: LongArray? = null,
+        dexPriority: IntArray? = null,
+        findFirst: Boolean = true
+    ): LongArray
 
-    @NonNull
-    public native long[] findMethodSettingField(
-            long fieldIndex, long returnType, short parameterCount,
-            @Nullable String parameterShorty, long declaringClass, @Nullable long[] parameterTypes,
-            @Nullable long[] containsParameterTypes, @Nullable int[] dexPriority, boolean findFirst);
+    external fun findMethodGettingField(
+        fieldIndex: Long,
+        returnType: Long = -1,
+        parameterCount: Short = -1,
+        parameterShorty: String? = null,
+        declaringClass: Long = -1,
+        parameterTypes: LongArray? = null,
+        containsParameterTypes: LongArray? = null,
+        dexPriority: IntArray? = null,
+        findFirst: Boolean = true
+    ): LongArray
 
-    @NonNull
-    public native long[] findMethodGettingField(
-            long fieldIndex, long returnType, short parameterCount,
-            @Nullable String parameterShorty, long declaringClass, @Nullable long[] parameterTypes,
-            @Nullable long[] containsParameterTypes, @Nullable int[] dexPriority, boolean findFirst);
+    external fun findField(
+        type: Long,
+        dexPriority: IntArray? = null,
+        findFirst: Boolean = true
+    ): LongArray
 
-    @NonNull
-    public native long[] findField(long type, @Nullable int[] dexPriority, boolean findFirst);
+    external fun decodeMethodIndex(methodIndex: Long): Member?
 
-    @Nullable
-    public native Member decodeMethodIndex(long methodIndex);
+    external fun encodeMethodIndex(method: Member): Long
 
-    public native long encodeMethodIndex(@NonNull Member method);
+    external fun decodeFieldIndex(fieldIndex: Long): Field?
 
-    @Nullable
-    public native Field decodeFieldIndex(long fieldIndex);
+    external fun encodeFieldIndex(field: Field): Long
 
-    public native long encodeFieldIndex(@NonNull Field field);
+    external fun encodeClassIndex(clazz: Class<*>): Long
 
-    public native long encodeClassIndex(@NonNull Class<?> clazz);
+    external fun decodeClassIndex(classIndex: Long): Class<*>?
 
-    @Nullable
-    public native Class<?> decodeClassIndex(long classIndex);
+    external fun createFullCache()
 
-    public native void createFullCache();
+    external override fun close()
 
-    @Override
-    public native void close();
+    protected fun finalize() = close()
 
-    @Override
-    protected void finalize() {
-        close();
-    }
-
-    private native long load(@NonNull ClassLoader classLoader);
-
-    public Long findMethodUsingStringExtract(String str) {
-        long[] indexes = findMethodUsingString(
-                str,
-                false,
-                -1L,
-                (short) -1,
-                null,
-                -1,
-                null,
-                null,
-                null,
-                true
-        );
-        return indexes.length > 0 ? indexes[0] : null;
-    }
+    private external fun load(classLoader: ClassLoader): Long
 }
