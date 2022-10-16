@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Q音助手</string>
-    <string name="xposed_description">适用于Q音</string>
+    <string name="xposed_description">还你一个干净的Q音 Android 客户端</string>
     <string name="settings_title">Q音助手设置</string>
     <string name="back">返回</string>
     <string name="reboot_host">重启客户端</string>
