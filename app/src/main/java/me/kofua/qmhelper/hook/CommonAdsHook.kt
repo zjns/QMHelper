@@ -5,6 +5,7 @@ import me.kofua.qmhelper.utils.getObjectField
 import me.kofua.qmhelper.utils.getObjectFieldAs
 import me.kofua.qmhelper.utils.hookAfterMethod
 import me.kofua.qmhelper.utils.sPrefs
+import me.kofua.qmhelper.utils.yes
 
 class CommonAdsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
     override fun startHook() {
@@ -19,9 +20,7 @@ class CommonAdsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                         ads[i]?.getObjectField("creative")
                             ?.getObjectField("option")
                             ?.getObjectFieldAs<Boolean>("isShowAdMark")
-                            ?.takeIf { it }?.run {
-                                ads.removeAt(i)
-                            }
+                            ?.yes { ads.removeAt(i) }
                     }
                 }
             }

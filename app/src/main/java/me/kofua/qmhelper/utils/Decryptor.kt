@@ -53,7 +53,7 @@ object Decryptor {
         val success = encSongs.count { f ->
             decrypt(f, saveDir).also {
                 listener?.invoke(f, current++, total, it)
-                it.takeIf { true }?.run { successOrigSongs.add(f) }
+                it.yes { successOrigSongs.add(f) }
             }
         }
         return Triple(total, success, successOrigSongs)

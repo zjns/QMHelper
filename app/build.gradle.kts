@@ -173,6 +173,7 @@ android {
             "-opt-in=kotlin.RequiresOptIn",
             "-Xcontext-receivers",
             "-opt-in=kotlin.time.ExperimentalTime",
+            "-opt-in=kotlin.contracts.ExperimentalContracts",
         )
     }
 
