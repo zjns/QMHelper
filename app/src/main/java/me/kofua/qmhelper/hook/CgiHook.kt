@@ -1,27 +1,23 @@
 package me.kofua.qmhelper.hook
 
 import me.kofua.qmhelper.QMPackage.Companion.instance
-import me.kofua.qmhelper.utils.asSequence
-import me.kofua.qmhelper.utils.fromJson
-import me.kofua.qmhelper.utils.hookBeforeMethod
-import me.kofua.qmhelper.utils.isNotEmpty
-import me.kofua.qmhelper.utils.runCatchingOrNull
-import me.kofua.qmhelper.utils.sPrefs
-import me.kofua.qmhelper.utils.toJSONObject
+import me.kofua.qmhelper.from
+import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.utils.*
 import org.json.JSONObject
 
-class CgiHook(classLoader: ClassLoader) : BaseHook(classLoader) {
-    override fun startHook() {
+object CgiHook : BaseHook {
+    override fun hook() {
         val blockLive = sPrefs.getBoolean("block_live", false)
         val purifySearch = sPrefs.getStringSet("purify_search", null) ?: setOf()
         val blockCommentBanners = sPrefs.getBoolean("block_comment_banners", false)
         val removeCommentRecommend = sPrefs.getBoolean("remove_comment_recommend", false)
         val removeMineKol = sPrefs.getBoolean("remove_mine_kol", false)
 
-        if (!blockLive && purifySearch.isEmpty()) return
-        instance.jsonRespParserClass?.declaredMethods?.find {
-            it.name == instance.parseModuleItem() && it.parameterTypes.size == 4
-        }?.hookBeforeMethod { param ->
+        hookInfo.jsonRespParser.clazz.from(classLoader)?.hookBeforeMethod(
+            hookInfo.jsonRespParser.parseModuleItem.name,
+            *hookInfo.jsonRespParser.parseModuleItem.paramTypes,
+        ) { param ->
             val path = param.args[1] as? String
             if (path == "music.recommend.RecommendFeed.get_recommend_feed" && blockLive) {
                 val json = param.args[2]?.toString() ?: return@hookBeforeMethod

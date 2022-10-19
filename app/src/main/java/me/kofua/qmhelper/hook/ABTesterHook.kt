@@ -1,14 +1,11 @@
 package me.kofua.qmhelper.hook
 
-import me.kofua.qmhelper.QMPackage.Companion.instance
+import me.kofua.qmhelper.from
+import me.kofua.qmhelper.hookInfo
 import me.kofua.qmhelper.utils.Log
-import me.kofua.qmhelper.utils.Weak
-import me.kofua.qmhelper.utils.from
 import me.kofua.qmhelper.utils.hookBeforeMethod
 
-class ABTesterHook(classLoader: ClassLoader) : BaseHook(classLoader) {
-    private val abTestTypeClass by Weak { "com.tencent.qqmusic.abtest.update.ABTestUpdateType" from classLoader }
-
+object ABTesterHook : BaseHook {
     private interface ITester {
         val testId: String
         val strategy: IStrategy
@@ -37,19 +34,18 @@ class ABTesterHook(classLoader: ClassLoader) : BaseHook(classLoader) {
         }
     }
 
-    override fun startHook() {
-        instance.baseAbTesterClass?.hookBeforeMethod(
-            instance.getProperty(),
+    override fun hook() {
+        hookInfo.abTester.clazz.from(classLoader)?.hookBeforeMethod(
+            hookInfo.abTester.getProperty.name,
             String::class.java
         ) { param ->
             val property = param.args[0] as String
             Log.d("kofua, ab tester property: $property")
             //if (property == KEY_LISTEN_ENTRANCE) param.result = null
         }
-        instance.strategyModuleClass?.hookBeforeMethod(
-            instance.getStrategyId(),
-            String::class.java,
-            abTestTypeClass
+        hookInfo.abTester.strategyModule.from(classLoader)?.hookBeforeMethod(
+            hookInfo.abTester.getStrategyId.name,
+            *hookInfo.abTester.getStrategyId.paramTypes
         ) { param ->
             val testId = param.args[0] as? String
             Log.d("kofua, get strategy, testId: $testId")

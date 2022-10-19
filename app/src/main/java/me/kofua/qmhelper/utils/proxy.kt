@@ -5,6 +5,7 @@ import com.android.dx.stock.ProxyBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.kofua.qmhelper.QMPackage.Companion.instance
+import me.kofua.qmhelper.hookInfo
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 
@@ -27,12 +28,14 @@ fun Any.callSuper(m: Method, vararg args: Any?): Any? = ProxyBuilder.callSuper(t
 
 fun preloadProxyClasses() = mainScope.launch(Dispatchers.IO) {
     val baseSettingFragmentClass = instance.baseSettingFragmentClass ?: return@launch
+    val settingPackage =
+        hookInfo.setting.baseSettingFragment.settingPackage.name.ifEmpty { return@launch }
+    val title = hookInfo.setting.baseSettingFragment.title.name.ifEmpty { return@launch }
     val baseSettingPackClass = instance.baseSettingPackClass ?: return@launch
-    val settingPackage = instance.settingPackage() ?: return@launch
-    val title = instance.title() ?: return@launch
-    val createSettingProvider = instance.createSettingProvider() ?: return@launch
+    val createSettingProvider =
+        hookInfo.setting.baseSettingPack.createSettingProvider.name.ifEmpty { return@launch }
     val baseSettingProviderClass = instance.baseSettingProviderClass ?: return@launch
-    val create = instance.create() ?: return@launch
+    val create = hookInfo.setting.baseSettingProvider.create.name.ifEmpty { return@launch }
 
     baseSettingFragmentClass.proxy(settingPackage, title)
     baseSettingPackClass.proxy(createSettingProvider)

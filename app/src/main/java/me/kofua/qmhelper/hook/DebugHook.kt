@@ -5,21 +5,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import me.kofua.qmhelper.QMPackage.Companion.instance
-import me.kofua.qmhelper.utils.Log
-import me.kofua.qmhelper.utils.from
-import me.kofua.qmhelper.utils.getObjectField
-import me.kofua.qmhelper.utils.getResId
-import me.kofua.qmhelper.utils.hookAfterMethod
-import me.kofua.qmhelper.utils.hookBeforeMethod
-import me.kofua.qmhelper.utils.isPublic
-import me.kofua.qmhelper.utils.isStatic
+import me.kofua.qmhelper.from
+import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.utils.*
 import org.json.JSONObject
 import java.lang.reflect.Proxy
 
-class DebugHook(classLoader: ClassLoader) : BaseHook(classLoader) {
+object DebugHook : BaseHook {
 
-    override fun startHook() {
+    override fun hook() {
         /*"com.tencent.qqmusiccommon.appconfig.ChannelConfig".hookBeforeMethod(
             classLoader, "a"
         ) { param ->
@@ -76,7 +70,7 @@ class DebugHook(classLoader: ClassLoader) : BaseHook(classLoader) {
         Activity::class.java.hookBeforeMethod("onCreate", Bundle::class.java) { param ->
             Log.d("kofua, creating activity: ${param.thisObject}")
         }
-        instance.baseFragmentClass?.hookAfterMethod(
+        hookInfo.baseFragment.clazz.from(classLoader)?.hookAfterMethod(
             "onCreateView",
             LayoutInflater::class.java,
             ViewGroup::class.java,

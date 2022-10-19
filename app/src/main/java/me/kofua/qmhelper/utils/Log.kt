@@ -3,11 +3,11 @@
 package me.kofua.qmhelper.utils
 
 import de.robv.android.xposed.XposedBridge
-import me.kofua.qmhelper.Constant.TAG
 import android.util.Log as ALog
 
 object Log {
     private const val maxLength = 3000
+    private const val TAG = "QMHelper"
 
     @JvmStatic
     private fun doLog(f: (String, String) -> Int, obj: Any?, toXposed: Boolean = false) {

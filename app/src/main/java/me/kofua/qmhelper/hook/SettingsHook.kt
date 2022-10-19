@@ -10,53 +10,34 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.R
-import me.kofua.qmhelper.XposedInit.Companion.modulePath
+import me.kofua.qmhelper.from
+import me.kofua.qmhelper.hookInfo
 import me.kofua.qmhelper.setting.Setting
 import me.kofua.qmhelper.setting.SettingPack
-import me.kofua.qmhelper.utils.BannerTips
-import me.kofua.qmhelper.utils.UiMode
-import me.kofua.qmhelper.utils.callMethod
-import me.kofua.qmhelper.utils.callSuper
-import me.kofua.qmhelper.utils.currentContext
-import me.kofua.qmhelper.utils.dp
-import me.kofua.qmhelper.utils.edit
-import me.kofua.qmhelper.utils.getIntField
-import me.kofua.qmhelper.utils.getObjectField
-import me.kofua.qmhelper.utils.getObjectFieldAs
-import me.kofua.qmhelper.utils.handler
-import me.kofua.qmhelper.utils.hookAfterMethod
-import me.kofua.qmhelper.utils.hookBeforeConstructor
-import me.kofua.qmhelper.utils.hookBeforeMethod
-import me.kofua.qmhelper.utils.invocationHandler
-import me.kofua.qmhelper.utils.new
-import me.kofua.qmhelper.utils.proxy
-import me.kofua.qmhelper.utils.replaceMethod
-import me.kofua.qmhelper.utils.sPrefs
-import me.kofua.qmhelper.utils.setObjectField
-import me.kofua.qmhelper.utils.showMessageDialog
-import me.kofua.qmhelper.utils.string
-import me.kofua.qmhelper.utils.uiMode
+import me.kofua.qmhelper.utils.*
 import java.lang.reflect.InvocationHandler
 import java.util.concurrent.CopyOnWriteArrayList
 
-class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
+object SettingsHook : BaseHook {
     private val purifyRedDots by lazy { sPrefs.getBoolean("purify_red_dots", false) }
     private val purifyMoreItems by lazy {
         sPrefs.getStringSet("purify_more_items", null) ?: setOf()
     }
     private val settingPack = SettingPack()
     private val settingViewTextFields by lazy {
-        instance.settingViewClass?.declaredFields?.filter { it.type == TextView::class.java }
+        hookInfo.settingView.clazz.from(classLoader)
+            ?.declaredFields?.filter { it.type == TextView::class.java }
             ?.map { it.name } ?: listOf()
     }
 
-    override fun startHook() {
+    override fun hook() {
         instance.appStarterActivityClass?.hookAfterMethod(
-            instance.doOnCreate(), Bundle::class.java
+            hookInfo.appStarterActivity.doOnCreate.name,
+            Bundle::class.java
         ) { param ->
             val activity = param.thisObject as Activity
             settingPack.activity = activity
-            activity.assets.callMethod("addAssetPath", modulePath)
+            activity.addModuleAssets()
             settingPack.checkUpdate(dialog = false)
             if (uiMode == UiMode.NORMAL && !sPrefs.getBoolean("ui_mode_hint", false)) {
                 handler.postDelayed({
@@ -68,8 +49,11 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                         { sPrefs.edit { putBoolean("ui_mode_hint", true) } },
                     ) {
                         sPrefs.edit { putBoolean("ui_mode_hint", true) }
-                        instance.modeFragmentClass?.let {
-                            activity.callMethod(instance.addSecondFragment(), it, null)
+                        hookInfo.modeFragment.from(classLoader)?.let {
+                            activity.callMethod(
+                                hookInfo.appStarterActivity.addSecondFragment.name,
+                                it, null
+                            )
                         } ?: BannerTips.error(R.string.jump_failed)
                     }
                 }, 2000L)
@@ -98,19 +82,20 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             val grantResults = param.args[2] as IntArray
             settingPack.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
-        instance.uiModeManagerClass?.replaceMethod(
-            instance.isThemeForbid(),
+        hookInfo.uiModeManager.clazz.from(classLoader)?.replaceMethod(
+            hookInfo.uiModeManager.isThemeForbid.name,
             String::class.java
         ) { false }
-        instance.settingViewClass?.hookAfterMethod(
-            instance.setSetting(), instance.settingClass
+        hookInfo.settingView.clazz.from(classLoader)?.hookAfterMethod(
+            hookInfo.settingView.setSetting.name, instance.settingClass
         ) { param ->
             val viewGroup = param.thisObject as ViewGroup
             val setting = param.args[0] ?: return@hookAfterMethod
             settingViewTextFields.forEach {
                 viewGroup.getObjectFieldAs<TextView?>(it)?.isSingleLine = false
             }
-            if (setting.getIntField(instance.typeField) != Setting.Type.DIVIDER.key) {
+            val typeField = hookInfo.setting.type.name
+            if (setting.getIntField(typeField) != Setting.Type.DIVIDER.key) {
                 (viewGroup.layoutParams as? RelativeLayout.LayoutParams)?.apply {
                     height = RelativeLayout.LayoutParams.WRAP_CONTENT
                 }?.let { viewGroup.layoutParams = it }
@@ -118,32 +103,42 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                     viewGroup.setPadding(0, 6.dp, 0, 6.dp)
             }
         }
-        instance.setLastClickTime()?.let { m ->
-            instance.settingViewClass?.hookBeforeMethod(
-                m, instance.settingViewClass, Long::class.javaPrimitiveType
+        hookInfo.settingView.setLastClickTime.name.ifNotEmpty { m ->
+            val settingViewClass = hookInfo.settingView.clazz.from(classLoader)
+            settingViewClass?.hookBeforeMethod(
+                m, settingViewClass, Long::class.javaPrimitiveType
             ) { it.args[1] = 0L }
         }
+        val drawerSettingPackClass =
+            hookInfo.setting.drawerSettingPack.clazz.from(classLoader)
+        val createSettingProvider =
+            hookInfo.setting.baseSettingPack.createSettingProvider.name
         @Suppress("UNCHECKED_CAST")
-        instance.drawerSettingPackClass?.hookAfterMethod(instance.createSettingProvider()) { param ->
+        drawerSettingPackClass?.hookAfterMethod(createSettingProvider) { param ->
             val settingProviders = param.result as CopyOnWriteArrayList<Any?>
-            val fragment = param.thisObject.getObjectField(instance.hostField)
+            val hostField = hookInfo.setting.baseSettingPack.host.name
+            val fragment = param.thisObject.getObjectField(hostField)
                 ?: return@hookAfterMethod
-            settingProviders.map { it?.callMethod(instance.getSetting()) }.forEach { s ->
+            val getSetting = hookInfo.setting.baseSettingProvider.getSetting.name
+            val rightDescField = hookInfo.setting.rightDesc.name
+            val redDotListenerField = hookInfo.setting.redDotListener.name
+            settingProviders.map { it?.callMethod(getSetting) }.forEach { s ->
                 if (purifyRedDots) {
-                    s?.getObjectField(instance.rightDescField)?.takeIf {
+                    s?.getObjectField(rightDescField)?.takeIf {
                         it != "未开启"
-                    }?.run { s.setObjectField(instance.rightDescField, null) }
-                    s.setObjectField(instance.redDotListenerField, null)
+                    }?.run { s.setObjectField(rightDescField, null) }
+                    s.setObjectField(redDotListenerField, null)
                 }
             }
+            val titleField = hookInfo.setting.title.name
             for (i in settingProviders.size - 1 downTo 0) {
-                settingProviders[i]?.callMethod(instance.getSetting())
-                    ?.getObjectFieldAs<String>(instance.titleField)?.takeIf {
+                settingProviders[i]?.callMethod(getSetting)
+                    ?.getObjectFieldAs<String>(titleField)?.takeIf {
                         purifyMoreItems.contains(it)
                     }?.run { settingProviders.removeAt(i) }
             }
-            if (settingProviders.last()?.callMethod(instance.getSetting())
-                    ?.getObjectField(instance.titleField) == Setting.TITLE_DIVIDER
+            if (settingProviders.last()?.callMethod(getSetting)
+                    ?.getObjectField(titleField) == Setting.TITLE_DIVIDER
             ) settingProviders.removeAt(settingProviders.lastIndex)
 
             val moduleSetting = Setting.button(R.string.app_name) {
@@ -152,26 +147,34 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             settingProviders.add(1, settingProvider(fragment, moduleSetting))
         }
         if (purifyMoreItems.contains("创作者中心"))
-            instance.drawerSettingPackClass?.replaceMethod(instance.initKolEnter()) { null }
+            drawerSettingPackClass?.replaceMethod(
+                hookInfo.setting.drawerSettingPack.initKolEnter.name
+            ) { null }
 
         if (!purifyRedDots) return
-        instance.personalEntryViewClass?.declaredMethods?.find { it.name == instance.update() }
-            ?.hookAfterMethod { param ->
-                param.thisObject.getObjectFieldAs<TextView>(instance.rightDescViewField)
+        hookInfo.personalEntryView.clazz.from(classLoader)
+            ?.hookAfterMethod(
+                hookInfo.personalEntryView.update.name,
+                *hookInfo.personalEntryView.update.paramTypes
+            ) { param ->
+                param.thisObject.getObjectFieldAs<TextView>(hookInfo.personalEntryView.rightDescView.name)
                     .run { text = "" }
-                param.thisObject.getObjectFieldAs<View>(instance.redDotViewField)
+                param.thisObject.getObjectFieldAs<View>(hookInfo.personalEntryView.redDotView.name)
                     .run { visibility = View.GONE }
             }
-        instance.settingFragmentClass?.hookBeforeMethod(instance.resume()) { param ->
-            param.thisObject.getObjectFieldAs<List<*>>(instance.settingListField).forEach {
-                it?.setObjectField(instance.redDotListenerField, null)
-            }
+        hookInfo.settingFragment.clazz.from(classLoader)?.hookBeforeMethod(
+            hookInfo.baseFragment.resume.name
+        ) { param ->
+            param.thisObject.getObjectFieldAs<List<*>>(hookInfo.settingFragment.settingList.name)
+                .forEach {
+                    it?.setObjectField(hookInfo.setting.redDotListener.name, null)
+                }
         }
     }
 
     private fun settingProvider(fragment: Any, setting: Any?): Any? {
         val baseSettingProviderClass = instance.baseSettingProviderClass ?: return null
-        val create = instance.create() ?: return null
+        val create = hookInfo.setting.baseSettingProvider.create.name
         val handler = InvocationHandler { _, _, _ -> setting }
         val settingProviderClass = baseSettingProviderClass.proxy(create)
         val unhook = settingProviderClass.constructors.first().hookBeforeMethod {
@@ -183,9 +186,9 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
     private fun onQMHelperSettingClicked(context: Context) {
         val baseSettingFragmentClass = instance.baseSettingFragmentClass ?: return
         val baseSettingPackClass = instance.baseSettingPackClass ?: return
-        val settingPackage = instance.settingPackage() ?: return
-        val title = instance.title() ?: return
-        val createSettingProvider = instance.createSettingProvider() ?: return
+        val settingPackage = hookInfo.setting.baseSettingFragment.settingPackage.name
+        val title = hookInfo.setting.baseSettingFragment.title.name
+        val createSettingProvider = hookInfo.setting.baseSettingPack.createSettingProvider.name
         val handler = InvocationHandler { fp, fm, fArgs ->
             if (fm.name == settingPackage) {
                 val packSettingHandler = InvocationHandler { _, _, _ ->
@@ -210,7 +213,10 @@ class SettingsHook(classLoader: ClassLoader) : BaseHook(classLoader) {
         val unhook = moduleSettingFragmentClass.hookBeforeConstructor {
             it.thisObject.invocationHandler(handler)
         }
-        context.callMethod(instance.addSecondFragment(), moduleSettingFragmentClass, null)
+        context.callMethod(
+            hookInfo.appStarterActivity.addSecondFragment.name,
+            moduleSettingFragmentClass, null
+        )
         unhook?.unhook()
     }
 }

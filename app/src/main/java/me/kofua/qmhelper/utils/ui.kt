@@ -8,12 +8,13 @@ import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import kotlinx.coroutines.suspendCancellableCoroutine
 import me.kofua.qmhelper.QMPackage.Companion.instance
+import me.kofua.qmhelper.hookInfo
 import kotlin.coroutines.resume
 
 typealias ButtonClickListener = (v: View) -> Unit
 
 val isBlackSkinInUse: Boolean
-    get() = instance.skinManagerClass?.callStaticMethod(instance.getSkinId()) == "901"
+    get() = instance.skinManagerClass?.callStaticMethod(hookInfo.skinManager.getSkinId.name) == "901"
 
 @get:StyleRes
 val themeIdForDialog: Int
@@ -31,7 +32,7 @@ fun Activity.showMessageDialog(
     posClick: ButtonClickListener? = null,
 ): Dialog? {
     if (isDestroyed || isFinishing) return null
-    return instance.showMessageDialog()?.let { showMethod ->
+    return hookInfo.appStarterActivity.showMessageDialog.name.ifNotEmpty { showMethod ->
         callMethodOrNullAs<Dialog?>(
             showMethod,
             title,

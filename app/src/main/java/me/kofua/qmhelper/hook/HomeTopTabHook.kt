@@ -1,14 +1,11 @@
 package me.kofua.qmhelper.hook
 
-import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.R
-import me.kofua.qmhelper.utils.hookBeforeMethod
-import me.kofua.qmhelper.utils.runCatchingOrNull
-import me.kofua.qmhelper.utils.sPrefs
-import me.kofua.qmhelper.utils.string
-import me.kofua.qmhelper.utils.stringArray
+import me.kofua.qmhelper.from
+import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.utils.*
 
-class HomeTopTabHook(classLoader: ClassLoader) : BaseHook(classLoader) {
+object HomeTopTabHook : BaseHook {
     private val purifyHomeTopTabIds by lazy {
         sPrefs.getStringSet("purify_home_top_tab", null)
             ?.sorted()?.map { it.toInt() } ?: listOf()
@@ -20,25 +17,25 @@ class HomeTopTabHook(classLoader: ClassLoader) : BaseHook(classLoader) {
             .map { it.second }
     }
 
-    override fun startHook() {
+    override fun hook() {
         if (purifyHomeTopTabIds.isEmpty()) return
 
-        instance.homePageFragmentClass?.hookBeforeMethod(
-            instance.initTabFragment(),
+        hookInfo.homePageFragment.clazz.from(classLoader)?.hookBeforeMethod(
+            hookInfo.homePageFragment.initTabFragment.name,
             Int::class.javaPrimitiveType
         ) { param ->
             if (purifyHomeTopTabIds.contains(param.args[0] as Int))
                 param.result = null
         }
-        instance.mainDesktopHeaderClass?.hookBeforeMethod(
-            instance.addTabByName(),
+        hookInfo.mainDesktopHeader.clazz.from(classLoader)?.hookBeforeMethod(
+            hookInfo.mainDesktopHeader.addTabByName.name,
             String::class.java
         ) { param ->
             if (purifyHomeTobTabNames.contains(param.args[0] as String))
                 param.result = null
         }
-        instance.mainDesktopHeaderClass?.hookBeforeMethod(
-            instance.addTabById(),
+        hookInfo.mainDesktopHeader.clazz.from(classLoader)?.hookBeforeMethod(
+            hookInfo.mainDesktopHeader.addTabById.name,
             Int::class.javaPrimitiveType,
             String::class.java
         ) { param ->

@@ -1,6 +1,7 @@
-package me.kofua.qmhelper.utils
+package me.kofua.qmhelper.data
 
 import me.kofua.qmhelper.QMPackage.Companion.instance
+import me.kofua.qmhelper.utils.new
 
 data class StorageVolume(
     val storageId: Int,

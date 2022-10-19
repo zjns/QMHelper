@@ -2,11 +2,7 @@ package me.kofua.qmhelper.utils
 
 import android.annotation.SuppressLint
 import android.app.AndroidAppHelper
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.ContentResolver
-import android.content.Context
-import android.content.SharedPreferences
+import android.content.*
 import android.net.Uri
 import android.os.Environment
 import android.os.Handler
@@ -14,11 +10,12 @@ import android.os.Looper
 import android.provider.DocumentsContract
 import androidx.annotation.ArrayRes
 import androidx.annotation.StringRes
-import com.google.protobuf.GeneratedMessageLite
 import kotlinx.coroutines.MainScope
-import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.XposedInit.Companion.modulePath
 import me.kofua.qmhelper.XposedInit.Companion.moduleRes
+import me.kofua.qmhelper.classLoader
+import me.kofua.qmhelper.from
+import me.kofua.qmhelper.hookInfo
 import java.io.File
 import java.lang.ref.WeakReference
 import kotlin.reflect.KProperty
@@ -87,45 +84,6 @@ fun getResId(name: String, type: String) =
 
 val shouldSaveLog get() = sPrefs.getBoolean("save_log", true)
 
-fun GeneratedMessageLite<*, *>.print(indent: Int = 0): String {
-    val sb = StringBuilder()
-    for (f in javaClass.declaredFields) {
-        if (f.name.startsWith("bitField")) continue
-        if (f.isStatic) continue
-        f.isAccessible = true
-        val v = f.get(this)
-        val name = buildString {
-            for (i in 0 until indent) append('\t')
-            append(f.name.substringBeforeLast("_"), ": ")
-        }
-        when (v) {
-            is GeneratedMessageLite<*, *> -> {
-                sb.appendLine(name).append(v.print(indent + 1))
-            }
-
-            is List<*> -> {
-                for (vv in v) {
-                    sb.append(name)
-                    when (vv) {
-                        is GeneratedMessageLite<*, *> -> {
-                            sb.appendLine().append(vv.print(indent + 1))
-                        }
-
-                        else -> {
-                            sb.appendLine(vv?.toString() ?: "null")
-                        }
-                    }
-                }
-            }
-
-            else -> {
-                sb.append(name).appendLine(v?.toString() ?: "null")
-            }
-        }
-    }
-    return sb.toString()
-}
-
 fun Any?.reflexToString() = this?.javaClass?.declaredFields?.joinToString {
     "${it.name}: ${
         it.run { isAccessible = true;get(this@reflexToString) }
@@ -145,7 +103,8 @@ fun stringArray(@ArrayRes resId: Int): Array<String> = currentContext.resources.
 } ?: moduleRes.getStringArray(resId)
 
 val qmSp by lazy {
-    instance.spManagerClass?.callStaticMethodAs<SharedPreferences>(instance.getSp()) ?: sPrefs
+    hookInfo.spManager.clazz.from(classLoader)
+        ?.callStaticMethodAs<SharedPreferences>(hookInfo.spManager.get.name) ?: sPrefs
 }
 
 val handler = Handler(Looper.getMainLooper())
@@ -192,7 +151,9 @@ fun CharSequence.copyToClipboard(label: CharSequence = "") {
     }
 }
 
-inline fun <C : CharSequence> C?.ifNotEmpty(action: (text: C) -> Unit) =
-    if (!isNullOrEmpty()) action(this) else Unit
+inline fun <C : CharSequence, R> C?.ifNotEmpty(action: (text: C) -> R) =
+    if (!isNullOrEmpty()) action(this) else null
 
 fun String.toUri(): Uri = Uri.parse(this)
+
+fun Context.addModuleAssets() = assets.callMethod("addAssetPath", modulePath)

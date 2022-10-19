@@ -7,43 +7,25 @@ import android.content.Intent
 import android.util.AttributeSet
 import android.view.View
 import android.widget.TextView
-import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.R
-import me.kofua.qmhelper.utils.BannerTips
-import me.kofua.qmhelper.utils.MethodHookParam
-import me.kofua.qmhelper.utils.callMethodAs
-import me.kofua.qmhelper.utils.copyToClipboard
-import me.kofua.qmhelper.utils.getBooleanField
-import me.kofua.qmhelper.utils.getObjectField
-import me.kofua.qmhelper.utils.getObjectFieldAs
-import me.kofua.qmhelper.utils.hookAfterConstructor
-import me.kofua.qmhelper.utils.hookAfterMethod
-import me.kofua.qmhelper.utils.hookBeforeMethod
-import me.kofua.qmhelper.utils.ifNotEmpty
-import me.kofua.qmhelper.utils.invokeOriginalMethod
-import me.kofua.qmhelper.utils.longClick
-import me.kofua.qmhelper.utils.runCatchingOrNull
-import me.kofua.qmhelper.utils.sPrefs
-import me.kofua.qmhelper.utils.setBooleanField
-import me.kofua.qmhelper.utils.string
-import me.kofua.qmhelper.utils.themeIdForDialog
-import me.kofua.qmhelper.utils.toJSONObject
+import me.kofua.qmhelper.from
+import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.utils.*
 
 typealias OnCopyAllListener = (text: CharSequence) -> Unit
 
-class CopyHook(classLoader: ClassLoader) : BaseHook(classLoader) {
+object CopyHook : BaseHook {
     private var forceInterceptTouchField = ""
 
-    override fun startHook() {
+    private val expandableTextViewClass by Weak { "com.tencent.expandabletextview.ExpandableTextView" from classLoader }
+
+    override fun hook() {
         if (!sPrefs.getBoolean("copy_enhance", false)) return
 
         @Suppress("UNCHECKED_CAST")
-        instance.dataPluginClass?.hookBeforeMethod(
-            instance.handleJsRequest(),
-            String::class.java,
-            String::class.java,
-            String::class.java,
-            Array<String>::class.java
+        hookInfo.dataPlugin.clazz.from(classLoader)?.hookBeforeMethod(
+            hookInfo.dataPlugin.handleJsRequest.name,
+            *hookInfo.dataPlugin.handleJsRequest.paramTypes
         ) { param ->
             val dataPlugin = param.thisObject
             val method = param.args[2] as String
@@ -52,17 +34,20 @@ class CopyHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                 val text = params.firstOrNull()?.runCatchingOrNull { toJSONObject() }
                     ?.optString("text")?.replace("\\n", "\n")
                     ?: return@hookBeforeMethod
-                val activity = dataPlugin.getObjectField(instance.runtimeField)
-                    ?.callMethodAs<Activity?>(instance.activity()) ?: return@hookBeforeMethod
+                val activity = dataPlugin.getObjectField(
+                    hookInfo.dataPlugin.runtime.name
+                )?.callMethodAs<Activity?>(
+                    hookInfo.dataPlugin.activity.name
+                ) ?: return@hookBeforeMethod
                 showCopyDialog(activity, text, param)
                 param.result = null
             }
         }
-        instance.expandableTextViewClass?.hookAfterConstructor(
+        expandableTextViewClass?.hookAfterConstructor(
             Context::class.java, AttributeSet::class.java, Int::class.javaPrimitiveType
         ) { param ->
             forceInterceptTouchField.ifEmpty {
-                instance.expandableTextViewClass?.declaredFields?.find {
+                expandableTextViewClass?.declaredFields?.find {
                     it.type == Boolean::class.javaPrimitiveType && it.modifiers == 0
                             && param.thisObject.getBooleanField(it.name)
                 }?.name?.also { forceInterceptTouchField = it }
@@ -70,13 +55,17 @@ class CopyHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                 param.thisObject.setBooleanField(it, false)
             }
         }
-        instance.albumIntroViewHolderClass?.hookAfterMethod(
-            instance.onHolderCreated(),
+        hookInfo.albumIntroViewHolder.clazz.from(classLoader)?.hookAfterMethod(
+            hookInfo.albumIntroViewHolder.onHolderCreated.name,
             View::class.java
         ) { param ->
             val holder = param.thisObject
-            holder.getObjectFieldAs<View?>(instance.tvAlbumDetailField)?.longClick { v ->
-                val text = holder.getObjectFieldAs(instance.lastTextContentField) ?: ""
+            holder.getObjectFieldAs<View?>(
+                hookInfo.albumIntroViewHolder.tvAlbumDetail.name
+            )?.longClick { v ->
+                val text = holder.getObjectFieldAs(
+                    hookInfo.albumIntroViewHolder.lastTextContent.name
+                ) ?: ""
                 showCopyDialog(v.context, text, null) {
                     it.copyToClipboard()
                     BannerTips.success(R.string.copy_success)
@@ -84,8 +73,8 @@ class CopyHook(classLoader: ClassLoader) : BaseHook(classLoader) {
                 true
             }
         }
-        instance.albumTagViewHolderClass?.hookAfterMethod(
-            instance.onHolderCreated(),
+        hookInfo.albumTagViewHolder.from(classLoader)?.hookAfterMethod(
+            hookInfo.albumIntroViewHolder.onHolderCreated.name,
             View::class.java
         ) { param ->
             val holder = param.thisObject

@@ -1,6 +1,8 @@
 package me.kofua.qmhelper.utils
 
-import me.kofua.qmhelper.QMPackage.Companion.instance
+import me.kofua.qmhelper.classLoader
+import me.kofua.qmhelper.from
+import me.kofua.qmhelper.hookInfo
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -16,16 +18,16 @@ fun JSONArray?.orEmpty() = this ?: JSONArray()
 fun JSONArray?.isEmpty() = this == null || this.length() == 0
 fun JSONArray?.isNotEmpty() = !isEmpty()
 
-val gson by lazy { instance.gsonClass?.new() }
+val gson by lazy { hookInfo.gson.clazz.from(classLoader)?.new() }
 
 inline fun <reified T> String.fromJson(): T? {
-    return gson?.callMethodAs(instance.fromJson(), this, T::class.java)
+    return gson?.callMethodAs(hookInfo.gson.fromJson.name, this, T::class.java)
 }
 
 fun String.fromJson(type: Class<*>?): Any? {
-    return gson?.callMethod(instance.fromJson(), this, type)
+    return gson?.callMethod(hookInfo.gson.fromJson.name, this, type)
 }
 
 fun Any.toJson(): String? {
-    return gson?.callMethodAs(instance.toJson(), this)
+    return gson?.callMethodAs(hookInfo.gson.toJson.name, this)
 }

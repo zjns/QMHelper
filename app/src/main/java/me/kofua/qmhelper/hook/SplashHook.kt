@@ -1,28 +1,25 @@
 package me.kofua.qmhelper.hook
 
-import me.kofua.qmhelper.QMPackage.Companion.instance
-import me.kofua.qmhelper.utils.Weak
-import me.kofua.qmhelper.utils.from
-import me.kofua.qmhelper.utils.getStaticObjectField
-import me.kofua.qmhelper.utils.hookBeforeMethod
-import me.kofua.qmhelper.utils.replaceMethod
-import me.kofua.qmhelper.utils.sPrefs
+import me.kofua.qmhelper.from
+import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.utils.*
 
-class SplashHook(classLoader: ClassLoader) : BaseHook(classLoader) {
+object SplashHook : BaseHook {
 
     private val splashShowTypeClass by Weak { "com.tencentmusic.ad.core.constant.SplashShowType" from classLoader }
     private val noAdSplashType by lazy { splashShowTypeClass?.getStaticObjectField("NO_AD") }
 
-    override fun startHook() {
+    override fun hook() {
         if (!sPrefs.getBoolean("purify_splash", false)) return
 
-        instance.splashAdapterClass?.declaredMethods
+        hookInfo.splashAdapter.from(classLoader)?.declaredMethods
             ?.filter { it.returnType == splashShowTypeClass }
             ?.forEach { m ->
                 m.hookBeforeMethod { param ->
                     noAdSplashType?.let { param.result = it }
                 }
             }
-        instance.adManagerClass?.replaceMethod(instance.get()) { null }
+        hookInfo.adManager.clazz.from(classLoader)
+            ?.replaceMethod(hookInfo.adManager.get.name) { null }
     }
 }

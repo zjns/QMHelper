@@ -1,5 +1,10 @@
 package me.kofua.qmhelper.hook
 
-abstract class BaseHook(val classLoader: ClassLoader) {
-    abstract fun startHook()
+import me.kofua.qmhelper.XposedInit
+
+interface BaseHook {
+    val classLoader: ClassLoader
+        get() = XposedInit.classLoader
+
+    fun hook()
 }

@@ -4,14 +4,8 @@ import android.content.SharedPreferences
 import android.view.View
 import androidx.annotation.StringRes
 import me.kofua.qmhelper.QMPackage.Companion.instance
-import me.kofua.qmhelper.utils.callMethod
-import me.kofua.qmhelper.utils.callStaticMethod
-import me.kofua.qmhelper.utils.currentContext
-import me.kofua.qmhelper.utils.edit
-import me.kofua.qmhelper.utils.sPrefs
-import me.kofua.qmhelper.utils.setIntField
-import me.kofua.qmhelper.utils.setObjectField
-import me.kofua.qmhelper.utils.string
+import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.utils.*
 import java.lang.reflect.Proxy
 
 typealias IsSwitchOn = () -> Boolean
@@ -116,29 +110,36 @@ class Setting {
     var summary: String? = null
     var isSwitchOn: IsSwitchOn? = null
     var onSwitchChanged: OnSwitchChanged? = null
-    var settingProvider: Class<*>? = null
+    var tag: Any? = null
     var redDot: Boolean = false
     var enabled: Boolean = true
     var clickListener: View.OnClickListener? = null
     var touchListener: View.OnTouchListener? = null
 
     private fun build() = instance.settingClass
-        ?.callStaticMethod(instance.with(), currentContext)
+        ?.callStaticMethod(hookInfo.setting.with.name, currentContext)
         ?.apply {
-            setIntField(instance.builderTypeField, type.key)
-            setObjectField(instance.builderTitleField, title)
-            setObjectField(instance.builderRightDescField, rightDesc)
-            setObjectField(instance.builderSummaryField, summary)
-            setObjectField(instance.builderSwitchListenerField, Proxy.newProxyInstance(
+            setIntField(hookInfo.setting.builder.type.name, type.key)
+            setObjectField(hookInfo.setting.builder.title.name, title)
+            setObjectField(hookInfo.setting.builder.rightDesc.name, rightDesc)
+            setObjectField(hookInfo.setting.builder.summary.name, summary)
+            setObjectField(hookInfo.setting.builder.switchListener.name, Proxy.newProxyInstance(
                 currentContext.classLoader,
                 arrayOf(instance.switchListenerClass)
             ) { _, m, args ->
                 when (m.name) {
-                    instance.isSwitchOn() -> isSwitchOn?.invoke() ?: false
-                    instance.onSwitchStatusChange() -> onSwitchChanged?.invoke(args[0] as Boolean)
+                    hookInfo.setting.switchListener.isSwitchOn.name -> isSwitchOn?.invoke() ?: false
+
+                    hookInfo.setting.switchListener.onSwitchStatusChange.name -> {
+                        onSwitchChanged?.invoke(args[0] as Boolean)
+                    }
+
                     else -> null
                 }
             })
-            setObjectField(instance.builderClickListenerField, clickListener ?: emptyClickListener)
-        }?.callMethod(instance.build())
+            setObjectField(
+                hookInfo.setting.builder.clickListener.name,
+                clickListener ?: emptyClickListener
+            )
+        }?.callMethod(hookInfo.setting.builder.build.name)
 }

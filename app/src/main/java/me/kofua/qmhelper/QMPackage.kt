@@ -4,213 +4,92 @@ package me.kofua.qmhelper
 
 import android.app.Activity
 import android.app.Dialog
-import android.content.Context
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import me.kofua.qmhelper.data.*
+import me.kofua.qmhelper.utils.*
 import me.kofua.qmhelper.utils.BannerTips
-import me.kofua.qmhelper.utils.DexHelper
-import me.kofua.qmhelper.utils.Log
-import me.kofua.qmhelper.utils.Weak
-import me.kofua.qmhelper.utils.findDexClassLoader
-import me.kofua.qmhelper.utils.findFieldByExactType
-import me.kofua.qmhelper.utils.from
-import me.kofua.qmhelper.utils.getVersionCode
-import me.kofua.qmhelper.utils.hostPackageName
-import me.kofua.qmhelper.utils.isAbstract
-import me.kofua.qmhelper.utils.isFinal
-import me.kofua.qmhelper.utils.isNotStatic
-import me.kofua.qmhelper.utils.isPublic
-import me.kofua.qmhelper.utils.isStatic
-import me.kofua.qmhelper.utils.print
-import me.kofua.qmhelper.utils.runCatchingOrNull
 import java.io.File
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.lang.reflect.Constructor
+import java.lang.reflect.Member
 import java.lang.reflect.Method
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.max
-import kotlin.system.measureTimeMillis
-import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
-infix fun Configs.Class.from(cl: ClassLoader) = if (hasName()) name.from(cl) else null
-val Configs.Method.orNull get() = if (hasName()) name else null
-val Configs.Field.orNull get() = if (hasName()) name else null
+infix fun Class.from(classLoader: ClassLoader) =
+    if (name.isNotEmpty()) name.from(classLoader) else null
 
-class QMPackage(private val classLoader: ClassLoader, context: Context) {
-    init {
-        instance = this
+val Member.paramTypes: Array<String>
+    get() = when (this) {
+        is Method -> parameterTypes.map { it.name }.toTypedArray()
+        is Constructor<*> -> parameterTypes.map { it.name }.toTypedArray()
+        else -> arrayOf()
     }
 
-    @OptIn(ExperimentalTime::class)
-    private val hookInfo: Configs.HookInfo = run {
-        val (result, time) = measureTimedValue { readHookInfo(context) }
-        Log.d("load hookinfo $time")
-        Log.d(result.print())
+val hookInfo get() = QMPackage.instance.hookInfo
+
+class QMPackage private constructor() {
+
+    val bannerTipsClass by Weak { hookInfo.bannerTips.clazz from classLoader }
+    val storageUtilsClass by Weak { hookInfo.storageUtils.clazz from classLoader }
+    val eKeyManagerClass by Weak { hookInfo.eKeyManager.clazz from classLoader }
+    val eKeyDecryptorClass by Weak { hookInfo.eKeyDecryptor.clazz from classLoader }
+    val vipDownloadHelperClass by Weak { hookInfo.vipDownloadHelper.clazz from classLoader }
+    val skinManagerClass by Weak { hookInfo.skinManager.clazz from classLoader }
+    val baseSettingFragmentClass by Weak { hookInfo.setting.baseSettingFragment.clazz from classLoader }
+    val baseSettingPackClass by Weak { hookInfo.setting.baseSettingPack.clazz from classLoader }
+    val baseSettingProviderClass by Weak { hookInfo.setting.baseSettingProvider.clazz from classLoader }
+    val settingClass by Weak { hookInfo.setting.clazz from classLoader }
+    val switchListenerClass by Weak { hookInfo.setting.switchListener.clazz from classLoader }
+    val jsonObjectClass by Weak { hookInfo.gson.jsonObject from classLoader }
+    val appStarterActivityClass by Weak { hookInfo.appStarterActivity.clazz from classLoader }
+    val storageVolumeClass by Weak { hookInfo.storageVolume from classLoader }
+
+    val hookInfo = run {
+        val (result, time) = measureTimedValue { readHookInfo() }
+        Log.d("Load hook info took $time")
         result
     }
 
-    val baseFragmentClass by Weak { hookInfo.baseFragment.class_ from classLoader }
-    val splashAdapterClass by Weak { hookInfo.splashAdapter from classLoader }
-    val homePageFragmentClass by Weak { hookInfo.homePageFragment.class_ from classLoader }
-    val mainDesktopHeaderClass by Weak { hookInfo.mainDesktopHeader.class_ from classLoader }
-    val adManagerClass by Weak { hookInfo.adManager.class_ from classLoader }
-    val personalEntryViewClass by Weak { hookInfo.personalEntryView.class_ from classLoader }
-    val bannerTipsClass by Weak { hookInfo.bannerTips.class_ from classLoader }
-    val settingFragmentClass by Weak { hookInfo.settingFragment.class_ from classLoader }
-    val userInfoHolderClass by Weak { hookInfo.userInfoHolder.class_ from classLoader }
-    val baseAbTesterClass by Weak { hookInfo.abTester.class_ from classLoader }
-    val topAreaDelegateClass by Weak { hookInfo.topAreaDelegate.class_ from classLoader }
-    val strategyModuleClass by Weak { hookInfo.abTester.strategyModule from classLoader }
-    val playViewModelClass by Weak { hookInfo.playViewModel.class_ from classLoader }
-    val spManagerClass by Weak { hookInfo.spManager.class_ from classLoader }
-    val appStarterActivityClass by Weak { hookInfo.appStarterActivity.class_ from classLoader }
-    val modeFragmentClass by Weak { hookInfo.modeFragment from classLoader }
-    val settingClass by Weak { hookInfo.setting.class_ from classLoader }
-    val switchListenerClass by Weak { hookInfo.setting.switchListener.class_ from classLoader }
-    val baseSettingFragmentClass by Weak { hookInfo.setting.baseSettingFragment.class_ from classLoader }
-    val baseSettingPackClass by Weak { hookInfo.setting.baseSettingPack.class_ from classLoader }
-    val baseSettingProviderClass by Weak { hookInfo.setting.baseSettingProvider.class_ from classLoader }
-    val drawerSettingPackClass by Weak { hookInfo.setting.drawerSettingPack.class_ from classLoader }
-    val authAgentClass by Weak { hookInfo.authAgent.class_ from classLoader }
-    val jsonRespParserClass by Weak { hookInfo.jsonRespParser.class_ from classLoader }
-    val gsonClass by Weak { hookInfo.gson.class_ from classLoader }
-    val jsonObjectClass by Weak { hookInfo.gson.jsonObject from classLoader }
-    val uiModeManagerClass by Weak { hookInfo.uiModeManager.class_ from classLoader }
-    val adBarClass by Weak { hookInfo.adBar.class_ from classLoader }
-    val musicWorldTouchListenerClass by Weak { hookInfo.musicWorldTouchListener from classLoader }
-    val eKeyManagerClass by Weak { hookInfo.eKeyManager.class_ from classLoader }
-    val eKeyDecryptorClass by Weak { hookInfo.eKeyDecryptor.class_ from classLoader }
-    val vipDownloadHelperClass by Weak { hookInfo.vipDownloadHelper.class_ from classLoader }
-    val bottomTipControllerClass by Weak { hookInfo.bottomTipController.class_ from classLoader }
-    val videoViewDelegateClass by Weak { hookInfo.videoViewDelegate.class_ from classLoader }
-    val genreViewDelegateClass by Weak { hookInfo.genreViewDelegate.class_ from classLoader }
-    val userGuideViewDelegateClass by Weak { hookInfo.userGuideViewDelegate.class_ from classLoader }
-    val topSongViewDelegateClass by Weak { hookInfo.topSongViewDelegate.class_ from classLoader }
-    val dataPluginClass by Weak { hookInfo.dataPlugin.class_ from classLoader }
-    val expandableTextViewClass by Weak { "com.tencent.expandabletextview.ExpandableTextView" from classLoader }
-    val albumIntroViewHolderClass by Weak { hookInfo.albumIntroViewHolder.class_ from classLoader }
-    val albumTagViewHolderClass by Weak { hookInfo.albumTagViewHolder from classLoader }
-    val settingViewClass by Weak { hookInfo.settingView.class_ from classLoader }
-    val fileUtilsClass by Weak { hookInfo.fileUtils.class_ from classLoader }
-    val storageVolumeClass by Weak { hookInfo.storageVolume from classLoader }
-    val storageUtilsClass by Weak { hookInfo.storageUtils.class_ from classLoader }
-    val vipAdBarDataClass by Weak { hookInfo.vipAdBarData from classLoader }
-    val skinManagerClass by Weak { hookInfo.skinManager.class_ from classLoader }
-
-    val rightDescViewField get() = hookInfo.personalEntryView.rightDescView.orNull
-    val redDotViewField get() = hookInfo.personalEntryView.redDotView.orNull
-    val settingListField get() = hookInfo.settingFragment.settingList.orNull
-    val typeField get() = hookInfo.setting.type.orNull
-    val titleField get() = hookInfo.setting.title.orNull
-    val rightDescField get() = hookInfo.setting.rightDesc.orNull
-    val redDotListenerField get() = hookInfo.setting.redDotListener.orNull
-    val builderTypeField get() = hookInfo.setting.builder.type.orNull
-    val builderTitleField get() = hookInfo.setting.builder.title.orNull
-    val builderRightDescField get() = hookInfo.setting.builder.rightDesc.orNull
-    val builderSummaryField get() = hookInfo.setting.builder.summary.orNull
-    val builderSwitchListenerField get() = hookInfo.setting.builder.switchListener.orNull
-    val builderClickListenerField get() = hookInfo.setting.builder.clickListener.orNull
-    val hostField get() = hookInfo.setting.baseSettingPack.host.orNull
-    val eKeyDecryptorInstanceField get() = hookInfo.eKeyDecryptor.instance.orNull
-    val eKeyManagerInstanceField get() = hookInfo.eKeyManager.instance.orNull
-    val runtimeField get() = hookInfo.dataPlugin.runtime.orNull
-    val tvAlbumDetailField get() = hookInfo.albumIntroViewHolder.tvAlbumDetail.orNull
-    val lastTextContentField get() = hookInfo.albumIntroViewHolder.lastTextContent.orNull
-
-    val adBarMethods get() = hookInfo.adBar.methodsList.map { it.name }
-
-    fun adResponseData() = hookInfo.adResponseData.itemList
-        .mapNotNull { item ->
-            val c = item.class_ from classLoader
-            val ml = item.getAdsList.map { it.name }
-            Pair(c, ml)
-        }
-
-    fun initTabFragment() = hookInfo.homePageFragment.initTabFragment.orNull
-    fun addTabById() = hookInfo.mainDesktopHeader.addTabById.orNull
-    fun addTabByName() = hookInfo.mainDesktopHeader.addTabByName.orNull
-    fun get() = hookInfo.adManager.get.orNull
-    fun update() = hookInfo.personalEntryView.update.orNull
-    fun resume() = hookInfo.baseFragment.resume.orNull
-    fun showStyledToast() = hookInfo.bannerTips.showStyledToast.orNull
-    fun showMusicWorld() = hookInfo.mainDesktopHeader.showMusicWorld.orNull
-    fun showBubble() = hookInfo.userInfoHolder.showBubble.orNull
-    fun getProperty() = hookInfo.abTester.getProperty.orNull
-    fun showCurListen() = hookInfo.topAreaDelegate.showCurListen.orNull
-    fun initLiveGuide() = hookInfo.topAreaDelegate.initLiveGuide.orNull
-    fun getStrategyId() = hookInfo.abTester.getStrategyId.orNull
-    fun setCanSlide() = hookInfo.playViewModel.setCanSlide.orNull
-    fun getSp() = hookInfo.spManager.get.orNull
-    fun doOnCreate() = hookInfo.appStarterActivity.doOnCreate.orNull
-    fun addSecondFragment() = hookInfo.appStarterActivity.addSecondFragment.orNull
-    fun showMessageDialog() = hookInfo.appStarterActivity.showMessageDialog.orNull
-    fun with() = hookInfo.setting.with.orNull
-    fun build() = hookInfo.setting.builder.build.orNull
-    fun isSwitchOn() = hookInfo.setting.switchListener.isSwitchOn.orNull
-    fun onSwitchStatusChange() = hookInfo.setting.switchListener.onSwitchStatusChange.orNull
-    fun settingPackage() = hookInfo.setting.baseSettingFragment.settingPackage.orNull
-    fun title() = hookInfo.setting.baseSettingFragment.title.orNull
-    fun createSettingProvider() = hookInfo.setting.baseSettingPack.createSettingProvider.orNull
-    fun create() = hookInfo.setting.baseSettingProvider.create.orNull
-    fun getSetting() = hookInfo.setting.baseSettingProvider.getSetting.orNull
-    fun initKolEnter() = hookInfo.setting.drawerSettingPack.initKolEnter.orNull
-    fun startActionActivity() = hookInfo.authAgent.startActionActivity.orNull
-    fun parseModuleItem() = hookInfo.jsonRespParser.parseModuleItem.orNull
-    fun fromJson() = hookInfo.gson.fromJson.orNull
-    fun toJson() = hookInfo.gson.toJson.orNull
-    fun isThemeForbid() = hookInfo.uiModeManager.isThemeForbid.orNull
-    fun getFileEKey() = hookInfo.eKeyManager.getFileEKey.orNull
-    fun decryptFile() = hookInfo.eKeyDecryptor.decryptFile.orNull
-    fun staticDecryptFile() = hookInfo.vipDownloadHelper.decryptFile.orNull
-    fun updateBottomTips() = hookInfo.bottomTipController.updateBottomTips.orNull
-    fun onResult() = hookInfo.videoViewDelegate.onResult.orNull
-    fun genreOnBind() = hookInfo.genreViewDelegate.onBind.orNull
-    fun showUserGuide() = hookInfo.userGuideViewDelegate.showUserGuide.orNull
-    fun topSongOnBind() = hookInfo.topSongViewDelegate.onBind.orNull
-    fun handleJsRequest() = hookInfo.dataPlugin.handleJsRequest.orNull
-    fun activity() = hookInfo.dataPlugin.activity.orNull
-    fun onHolderCreated() = hookInfo.albumIntroViewHolder.onHolderCreated.orNull
-    fun setSetting() = hookInfo.settingView.setSetting.orNull
-    fun setLastClickTime() = hookInfo.settingView.setLastClickTime.orNull
-    fun toValidFilename() = hookInfo.fileUtils.toValidFilename.orNull
-    fun getVolumes() = hookInfo.storageUtils.getVolumes.orNull
-    fun showShareGuide() = hookInfo.topAreaDelegate.showShareGuide.orNull
-    fun getSkinId() = hookInfo.skinManager.getSkinId.orNull
-
-    private fun readHookInfo(context: Context): Configs.HookInfo {
+    private fun readHookInfo(): HookInfo {
         try {
-            val hookInfoFile = File(context.cacheDir, Constant.HOOK_INFO_FILE_NAME)
+            val hookInfoFile = File(currentContext.cacheDir, HOOK_INFO_FILE_NAME)
             Log.d("Reading hook info: $hookInfoFile")
-            val t = measureTimeMillis {
-                if (hookInfoFile.isFile && hookInfoFile.canRead()) {
-                    val lastUpdateTime = context.packageManager.getPackageInfo(
-                        hostPackageName, 0
-                    ).lastUpdateTime
-                    val lastModuleUpdateTime = try {
-                        context.packageManager.getPackageInfo(BuildConfig.APPLICATION_ID, 0)
-                    } catch (e: Throwable) {
-                        null
-                    }?.lastUpdateTime ?: 0
-                    val info = hookInfoFile.inputStream().use {
-                        runCatchingOrNull { Configs.HookInfo.parseFrom(it) }
-                            ?: Configs.HookInfo.newBuilder().build()
-                    }
-                    if (info.lastUpdateTime >= lastUpdateTime && info.lastUpdateTime >= lastModuleUpdateTime
-                        && getVersionCode(hostPackageName) == info.clientVersionCode
-                        && BuildConfig.VERSION_CODE == info.moduleVersionCode
-                        && BuildConfig.VERSION_NAME == info.moduleVersionName
-                    ) return info
+            val start = System.currentTimeMillis()
+            if (hookInfoFile.isFile && hookInfoFile.canRead()) {
+                val lastUpdateTime = currentContext.packageManager.getPackageInfo(
+                    hostPackageName, 0
+                ).lastUpdateTime
+                val lastModuleUpdateTime = try {
+                    currentContext.packageManager.getPackageInfo(BuildConfig.APPLICATION_ID, 0)
+                } catch (e: Throwable) {
+                    null
+                }?.lastUpdateTime ?: 0
+                val info = hookInfoFile.inputStream().use {
+                    runCatchingOrNull { ObjectInputStream(it).readAny<HookInfo>() } ?: HookInfo()
+                }
+                if (info.lastUpdateTime >= lastUpdateTime && info.lastUpdateTime >= lastModuleUpdateTime
+                    && getVersionCode(hostPackageName) == info.clientVersionCode
+                    && BuildConfig.VERSION_CODE == info.moduleVersionCode
+                    && BuildConfig.VERSION_NAME == info.moduleVersionName
+                ) {
+                    val end = System.currentTimeMillis()
+                    Log.d("Read hook info from cache success, took ${end - start} ms")
+                    return info
                 }
             }
-            Log.d("Read hook info completed: take $t ms")
         } catch (e: Throwable) {
             Log.w(e)
         }
-        return initHookInfo(context).also {
+        return initHookInfo().also {
             try {
-                val hookInfoFile = File(context.cacheDir, Constant.HOOK_INFO_FILE_NAME)
+                val hookInfoFile = File(currentContext.cacheDir, HOOK_INFO_FILE_NAME)
                 if (hookInfoFile.exists()) hookInfoFile.delete()
-                hookInfoFile.outputStream().use { o -> it.writeTo(o) }
+                hookInfoFile.outputStream().use { o -> ObjectOutputStream(o).writeObject(it) }
             } catch (e: Exception) {
                 Log.e(e)
             }
@@ -218,12 +97,12 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
     }
 
     companion object {
-        @Volatile
-        lateinit var instance: QMPackage
+        val instance by lazy { QMPackage() }
+        private const val HOOK_INFO_FILE_NAME = "hookinfo.dat"
 
         @JvmStatic
-        fun initHookInfo(context: Context) = hookInfo {
-            val classLoader = context.classLoader
+        fun initHookInfo() = HookInfo().apply out@{
+            val classLoader = currentContext.classLoader
             //val classesList = classLoader.allClassesList().asSequence()
 
             try {
@@ -231,19 +110,19 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
             } catch (e: Throwable) {
                 Log.e(e)
                 BannerTips.error(R.string.not_supported)
-                return@hookInfo
+                return@out
             }
-            val dexHelper = DexHelper(classLoader.findDexClassLoader() ?: return@hookInfo)
+            val dexHelper = DexHelper(classLoader.findDexClassLoader() ?: return@out)
             lastUpdateTime = max(
-                context.packageManager.getPackageInfo(hostPackageName, 0).lastUpdateTime,
+                currentContext.packageManager.getPackageInfo(hostPackageName, 0).lastUpdateTime,
                 runCatchingOrNull {
-                    context.packageManager.getPackageInfo(BuildConfig.APPLICATION_ID, 0)
+                    currentContext.packageManager.getPackageInfo(BuildConfig.APPLICATION_ID, 0)
                 }?.lastUpdateTime ?: 0
             )
             clientVersionCode = getVersionCode(hostPackageName)
             moduleVersionCode = BuildConfig.VERSION_CODE
             moduleVersionName = BuildConfig.VERSION_NAME
-            baseFragment = baseFragment {
+            baseFragment = BaseFragment().apply {
                 val resumeMethod = dexHelper.findMethodUsingString(
                     "[onResume]this[%s]", true
                 ).firstOrNull()?.run {
@@ -254,21 +133,21 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     ).asSequence().firstNotNullOfOrNull {
                         dexHelper.decodeMethodIndex(it)?.takeIf { m -> m.isAbstract }
                     }
-                } ?: return@baseFragment
-                class_ = class_ { name = resumeMethod.declaringClass.name }
+                } ?: return@apply
+                clazz = clazz { name = resumeMethod.declaringClass.name }
                 resume = method { name = resumeMethod.name }
             }
-            splashAdapter = class_ {
+            splashAdapter = clazz {
                 val splashAdapterClass =
                     "com.tencentmusic.ad.adapter.madams.splash.OperExpertSplashAdapter"
                         .from(classLoader) ?: dexHelper.findMethodUsingString(
                         "postSplashResult", true
                     ).asSequence().firstNotNullOfOrNull {
                         dexHelper.decodeMethodIndex(it)
-                    }?.declaringClass ?: return@class_
+                    }?.declaringClass ?: return@clazz
                 name = splashAdapterClass.name
             }
-            homePageFragment = homePageFragment {
+            homePageFragment = HomePageFragment().apply {
                 val initTabFragmentMethod = dexHelper.findMethodUsingString(
                     "not support native tab, do nothing",
                 ).firstOrNull()?.run {
@@ -281,43 +160,46 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                             m is Method && m.isNotStatic && m.isFinal
                         }
                     }
-                } ?: return@homePageFragment
-                class_ = class_ { name = initTabFragmentMethod.declaringClass.name }
+                } ?: return@apply
+                clazz = clazz { name = initTabFragmentMethod.declaringClass.name }
                 initTabFragment = method { name = initTabFragmentMethod.name }
             }
-            mainDesktopHeader = mainDesktopHeader {
+            mainDesktopHeader = MainDesktopHeader().apply {
                 val clazz = "com.tencent.qqmusic.ui.MainDesktopHeader".from(classLoader)
                     ?: dexHelper.findMethodUsingString("MainDesktopHeader").firstOrNull()?.let {
                         dexHelper.decodeMethodIndex(it)
-                    }?.declaringClass ?: return@mainDesktopHeader
+                    }?.declaringClass ?: return@apply
                 val clazzIndex = dexHelper.encodeClassIndex(clazz)
                 val addTabByIdMethod = dexHelper.findMethodUsingString(
                     "iconUrl",
                     declaringClass = clazzIndex,
                 ).asSequence().firstNotNullOfOrNull {
                     dexHelper.decodeMethodIndex(it)
-                } ?: return@mainDesktopHeader
+                } ?: return@apply
                 val addTabByNameMethod = dexHelper.findMethodUsingString(
                     "tabName",
                     declaringClass = clazzIndex,
                 ).asSequence().firstNotNullOfOrNull {
                     dexHelper.decodeMethodIndex(it)
-                } ?: return@mainDesktopHeader
+                } ?: return@apply
                 val showMusicWorldMethod = dexHelper.findMethodUsingString(
                     "showMusicWorldEntranceBtn",
                     declaringClass = clazzIndex,
                 ).asSequence().firstNotNullOfOrNull {
                     dexHelper.decodeMethodIndex(it)
-                } ?: return@mainDesktopHeader
-                class_ = class_ { name = clazz.name }
+                } ?: return@apply
+                this.clazz = clazz { name = clazz.name }
                 addTabById = method { name = addTabByIdMethod.name }
                 addTabByName = method { name = addTabByNameMethod.name }
-                showMusicWorld = method { name = showMusicWorldMethod.name }
+                showMusicWorld = method {
+                    name = showMusicWorldMethod.name
+                    paramTypes = showMusicWorldMethod.paramTypes
+                }
             }
-            adManager = adManager {
+            adManager = AdManager().apply {
                 val onStartIndex = dexHelper.encodeMethodIndex(
                     "com.tencent.qqmusic.activity.AppStarterActivity".from(classLoader)
-                        ?.getDeclaredMethod("onStart") ?: return@adManager
+                        ?.getDeclaredMethod("onStart") ?: return@apply
                 )
                 val getMethod = dexHelper.findMethodInvoking(
                     onStartIndex,
@@ -327,44 +209,44 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     dexHelper.decodeMethodIndex(it)?.takeIf { m ->
                         m is Method && m.isNotStatic
                     }
-                } ?: return@adManager
-                class_ = class_ { name = getMethod.declaringClass.name }
+                } ?: return@apply
+                clazz = clazz { name = getMethod.declaringClass.name }
                 get = method { name = getMethod.name }
             }
             val settingBuilderClass = dexHelper.findMethodUsingString(
                 "onSwitchLister can't be null while type is TYPE_SWITCH"
             ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
             val settingClass = settingBuilderClass?.declaringClass
-            setting = setting {
-                settingBuilderClass ?: return@setting
-                settingClass ?: return@setting
+            setting = Setting().apply {
+                settingBuilderClass ?: return@apply
+                settingClass ?: return@apply
                 val withMethod = settingClass.declaredMethods.find {
                     it.isStatic && it.returnType == settingBuilderClass
-                } ?: return@setting
+                } ?: return@apply
                 val buildMethod = settingBuilderClass.declaredMethods.find {
                     it.returnType == settingClass
-                } ?: return@setting
-                val fields = settingClass.declaredFields.takeIf { it.size > 15 } ?: return@setting
+                } ?: return@apply
+                val fields = settingClass.declaredFields.takeIf { it.size > 15 } ?: return@apply
                 val builderFields = settingBuilderClass.declaredFields
-                    .takeIf { it.size >= 17 } ?: return@setting
+                    .takeIf { it.size >= 17 } ?: return@apply
                 val switchListenerField = builderFields[6]
                 val switchListenerClass = switchListenerField.type.takeIf {
                     it.isInterface && it.methods.size == 2
-                } ?: return@setting
+                } ?: return@apply
                 val isSwitchOnMethod = switchListenerClass.methods.find {
                     it.returnType == Boolean::class.javaPrimitiveType
-                } ?: return@setting
+                } ?: return@apply
                 val onSwitchStatusChangeMethod = switchListenerClass.methods.find { m ->
                     m.parameterTypes.let { it.size == 1 && it[0] == Boolean::class.javaPrimitiveType }
-                } ?: return@setting
-                class_ = class_ { name = settingClass.name }
+                } ?: return@apply
+                clazz = clazz { name = settingClass.name }
                 with = method { name = withMethod.name }
                 type = field { name = fields[0].name }
                 title = field { name = fields[1].name }
                 rightDesc = field { name = fields[3].name }
                 redDotListener = field { name = fields[10].name }
-                builder = settingBuilder {
-                    class_ = class_ { name = settingBuilderClass.name }
+                builder = SettingBuilder().apply {
+                    clazz = clazz { name = settingBuilderClass.name }
                     build = method { name = buildMethod.name }
                     type = field { name = builderFields[0].name }
                     title = field { name = builderFields[1].name }
@@ -372,14 +254,14 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     dotRightDesc = field { name = builderFields[3].name }
                     summary = field { name = builderFields[5].name }
                     switchListener = field { name = switchListenerField.name }
-                    settingProvider = field { name = builderFields[8].name }
+                    tag = field { name = builderFields[8].name }
                     redDot = field { name = builderFields[11].name }
                     enabled = field { name = builderFields[12].name }
                     clickListener = field { name = builderFields[13].name }
                     touchListener = field { name = builderFields[14].name }
                 }
-                switchListener = switchListener {
-                    class_ = class_ { name = switchListenerClass.name }
+                switchListener = SwitchListener().apply {
+                    clazz = clazz { name = switchListenerClass.name }
                     isSwitchOn = method { name = isSwitchOnMethod.name }
                     onSwitchStatusChange = method { name = onSwitchStatusChangeMethod.name }
                 }
@@ -388,86 +270,89 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     "com.tencent.qqmusic.fragment.debug.DebugSettingFragment"
                         .from(classLoader) ?: dexHelper.findMethodUsingString("DebugMode")
                         .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                        ?.declaringClass ?: return@setting
+                        ?.declaringClass ?: return@apply
                 val baseSettingFragmentClass =
-                    debugSettingFragmentClass.superclass ?: return@setting
+                    debugSettingFragmentClass.superclass ?: return@apply
                 val settingPackMethod = debugSettingFragmentClass.declaredMethods.find {
                     it.returnType != String::class.java
-                } ?: return@setting
+                } ?: return@apply
                 val titleMethod = debugSettingFragmentClass.declaredMethods.find {
                     it.returnType == String::class.java
-                } ?: return@setting
+                } ?: return@apply
                 val baseSettingPackClass = settingPackMethod.returnType
                 val createSettingProviderMethod = baseSettingPackClass.methods.find {
                     it.returnType == CopyOnWriteArrayList::class.java && it.isAbstract
-                } ?: return@setting
+                } ?: return@apply
                 val hostField = baseSettingPackClass.declaredFields.find {
                     it.type.isInterface && baseSettingPackClass.interfaces.contains(it.type)
-                } ?: return@setting
+                } ?: return@apply
                 val baseSettingProviderClass =
                     dexHelper.findMethodUsingString("setting is null").firstOrNull()
-                        ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@setting
+                        ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@apply
                 val createMethod = baseSettingProviderClass.methods.find {
                     it.returnType == settingClass && it.isAbstract
-                } ?: return@setting
+                } ?: return@apply
                 val getSettingMethod = baseSettingProviderClass.declaredMethods.find {
                     it.returnType == settingClass
-                } ?: return@setting
+                } ?: return@apply
                 val initKolEnterMethod = dexHelper.findMethodUsingString(
                     "initMusicAccoutEnter: start"
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@setting
-                baseSettingFragment = baseSettingFragment {
-                    class_ = class_ { name = baseSettingFragmentClass.name }
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                baseSettingFragment = BaseSettingFragment().apply {
+                    clazz = clazz { name = baseSettingFragmentClass.name }
                     settingPackage = method { name = settingPackMethod.name }
                     title = method { name = titleMethod.name }
                 }
-                baseSettingPack = baseSettingPack {
-                    class_ = class_ { name = baseSettingPackClass.name }
+                baseSettingPack = BaseSettingPack().apply {
+                    clazz = clazz { name = baseSettingPackClass.name }
                     createSettingProvider = method { name = createSettingProviderMethod.name }
                     host = field { name = hostField.name }
                 }
-                baseSettingProvider = baseSettingProvider {
-                    class_ = class_ { name = baseSettingProviderClass.name }
+                baseSettingProvider = BaseSettingProvider().apply {
+                    clazz = clazz { name = baseSettingProviderClass.name }
                     create = method { name = createMethod.name }
                     getSetting = method { name = getSettingMethod.name }
                 }
-                drawerSettingPack = drawerSettingPackage {
-                    class_ = class_ { name = initKolEnterMethod.declaringClass.name }
+                drawerSettingPack = DrawerSettingPackage().apply {
+                    clazz = clazz { name = initKolEnterMethod.declaringClass.name }
                     initKolEnter = method { name = initKolEnterMethod.name }
                 }
             }
-            personalEntryView = personalEntryView {
+            personalEntryView = PersonalEntryView().apply {
                 val entryViewClass =
                     "com.tencent.qqmusic.fragment.morefeatures.settings.view.PersonalCenterEntryView"
                         .from(classLoader) ?: dexHelper.findMethodUsingString(
                         "PersonalCenterEntryView",
                     ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                        ?.declaringClass ?: return@personalEntryView
+                        ?.declaringClass ?: return@apply
                 val updateMethod = entryViewClass.declaredMethods.find {
                     it.isSynthetic && it.parameterTypes.size == 1
-                } ?: return@personalEntryView
+                } ?: return@apply
                 val rightDescViewField = entryViewClass.declaredFields.find {
                     TextView::class.java.isAssignableFrom(it.type)
-                } ?: return@personalEntryView
+                } ?: return@apply
                 val redDotViewField = entryViewClass.declaredFields.find {
                     ImageView::class.java.isAssignableFrom(it.type)
-                } ?: return@personalEntryView
-                class_ = class_ { name = entryViewClass.name }
-                update = method { name = updateMethod.name }
+                } ?: return@apply
+                clazz = clazz { name = entryViewClass.name }
+                update = method {
+                    name = updateMethod.name
+                    paramTypes = updateMethod.paramTypes
+                }
                 rightDescView = field { name = rightDescViewField.name }
                 redDotView = field { name = redDotViewField.name }
             }
-            bannerTips = bannerTips {
+            bannerTips = me.kofua.qmhelper.data.BannerTips().apply {
                 val showStyledToastMethod = dexHelper.findMethodUsingString(
                     "showToast() >>> IS USING QPLAY_AUTO, FORBID BANNER_TIPS",
                     parameterCount = 7,
                 ).asSequence().firstNotNullOfOrNull {
                     dexHelper.decodeMethodIndex(it)
-                } ?: return@bannerTips
-                class_ = class_ { name = showStyledToastMethod.declaringClass.name }
+                } ?: return@apply
+                clazz = clazz { name = showStyledToastMethod.declaringClass.name }
                 showStyledToast = method { name = showStyledToastMethod.name }
             }
-            settingFragment = settingFragment {
+            settingFragment = SettingFragment().apply {
                 val settingFragmentClass =
                     "com.tencent.qqmusic.fragment.morefeatures.SettingFeaturesFragment"
                         .from(classLoader) ?: dexHelper.findMethodUsingString(
@@ -475,13 +360,13 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                         parameterCount = 1,
                     ).asSequence().firstNotNullOfOrNull {
                         dexHelper.decodeMethodIndex(it)
-                    }?.declaringClass ?: return@settingFragment
+                    }?.declaringClass ?: return@apply
                 val settingListField = settingFragmentClass
-                    .findFieldByExactType(List::class.java) ?: return@settingFragment
-                class_ = class_ { name = settingFragmentClass.name }
+                    .findFieldByExactType(List::class.java) ?: return@apply
+                clazz = clazz { name = settingFragmentClass.name }
                 settingList = field { name = settingListField.name }
             }
-            userInfoHolder = userInfoHolder {
+            userInfoHolder = UserInfoHolder().apply {
                 val showBubbleMethod =
                     "com.tencent.qqmusic.modular.module.musichall.views.viewholders.cell.MyMusicUserInfoViewHolder"
                         .from(classLoader)?.declaredMethods?.find {
@@ -489,7 +374,7 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                         } ?: run {
                         val clazz = dexHelper.findMethodUsingString("refreshVipIcons")
                             .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                            ?.declaringClass ?: return@userInfoHolder
+                            ?.declaringClass ?: return@apply
                         val clazzIndex = dexHelper.encodeClassIndex(clazz)
                         dexHelper.findMethodUsingString(
                             "3",
@@ -499,34 +384,40 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                         ).asSequence().firstNotNullOfOrNull {
                             dexHelper.decodeMethodIndex(it)?.takeIf { m -> m.isFinal }
                         }
-                    } ?: return@userInfoHolder
-                class_ = class_ { name = showBubbleMethod.declaringClass.name }
-                showBubble = method { name = showBubbleMethod.name }
+                    } ?: return@apply
+                clazz = clazz { name = showBubbleMethod.declaringClass.name }
+                showBubble = method {
+                    name = showBubbleMethod.name
+                    paramTypes = showBubbleMethod.paramTypes
+                }
             }
-            abTester = baseABTester {
+            abTester = BaseABTester().apply {
                 val clazz = dexHelper.findMethodUsingString(
                     "[BaseABTester init]: need ABTestAnnotation"
                 ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?.declaringClass ?: return@baseABTester
+                    ?.declaringClass ?: return@apply
                 val getStrategyIdMethod = dexHelper.findMethodUsingString(
                     "[getClientStrategyStrategyId]: this:"
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@baseABTester
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
                 val getPropertyMethod = clazz.declaredMethods.find {
                     it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java
                             && it.returnType != Void::class.javaPrimitiveType && it.isPublic
-                } ?: return@baseABTester
-                class_ = class_ { name = clazz.name }
+                } ?: return@apply
+                this.clazz = clazz { name = clazz.name }
                 getProperty = method { name = getPropertyMethod.name }
-                strategyModule = class_ { name = getStrategyIdMethod.declaringClass.name }
-                getStrategyId = method { name = getStrategyIdMethod.name }
+                strategyModule = clazz { name = getStrategyIdMethod.declaringClass.name }
+                getStrategyId = method {
+                    name = getStrategyIdMethod.name
+                    paramTypes = getStrategyIdMethod.paramTypes
+                }
             }
-            topAreaDelegate = topAreaDelegate {
+            topAreaDelegate = TopAreaDelegate().apply {
                 val initLiveGuideMethod = dexHelper.findMethodUsingString(
                     "[initLiveGuide]"
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@topAreaDelegate
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
                 val showCurListenMethod = dexHelper.findMethodUsingString(
                     "[showCurrentListen]--block by long audio ad recall entrance show"
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@topAreaDelegate
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
                 val clazz = initLiveGuideMethod.declaringClass
                 val classIndex = dexHelper.encodeClassIndex(clazz)
                 val showShareGuideMethod = dexHelper.findMethodUsingString(
@@ -534,116 +425,125 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     declaringClass = classIndex,
                 ).asSequence().firstNotNullOfOrNull {
                     dexHelper.decodeMethodIndex(it)
-                } ?: return@topAreaDelegate
-                class_ = class_ { name = clazz.name }
+                } ?: return@apply
+                this.clazz = clazz { name = clazz.name }
                 initLiveGuide = method { name = initLiveGuideMethod.name }
-                showCurListen = method { name = showCurListenMethod.name }
+                showCurListen = method {
+                    name = showCurListenMethod.name
+                    paramTypes = showCurListenMethod.paramTypes
+                }
                 showShareGuide = method { name = showShareGuideMethod.name }
             }
-            playViewModel = playerViewModel {
+            playViewModel = PlayerViewModel().apply {
                 val clazz = "com.tencent.qqmusic.business.playernew.viewmodel.PlayerViewModel"
                     .from(classLoader) ?: dexHelper.findMethodUsingString("PlayerViewModel")
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
-                ?: return@playerViewModel
+                ?: return@apply
                 val setCanSlideMethod =
                     dexHelper.encodeMethodIndex(clazz.declaredMethods.find { m ->
                         !m.isSynthetic && m.returnType == Void::class.javaPrimitiveType
                                 && m.parameterTypes.let { it.size == 1 && it[0] == clazz }
-                    } ?: return@playerViewModel).run {
+                    } ?: return@apply).run {
                         dexHelper.findMethodInvoking(this, parameterShorty = "VZ")
                             .asSequence().firstNotNullOfOrNull { dexHelper.decodeMethodIndex(it) }
-                    } ?: return@playerViewModel
-                class_ = class_ { name = clazz.name }
+                    } ?: return@apply
+                this.clazz = clazz { name = clazz.name }
                 setCanSlide = method { name = setCanSlideMethod.name }
             }
-            spManager = spManager {
+            spManager = SpManager().apply {
                 val clazz = dexHelper.findMethodUsingString("SPManager").firstOrNull()
-                    ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@spManager
+                    ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@apply
                 val getMethod = clazz.declaredMethods.find {
                     it.isStatic && it.returnType == clazz && it.parameterTypes.isEmpty()
-                } ?: return@spManager
-                class_ = class_ { name = clazz.name }
+                } ?: return@apply
+                this.clazz = clazz { name = clazz.name }
                 get = method { name = getMethod.name }
             }
-            appStarterActivity = appStarterActivity {
+            appStarterActivity = AppStarterActivity().apply {
                 val doOnCreateMethod = dexHelper
                     .findMethodUsingString("Appstarter activity oncreate")
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?: return@appStarterActivity
+                    ?: return@apply
                 val addSecondFragmentMethod = dexHelper
                     .findMethodUsingString("[addSecondFragment] gotoFirstFragment").firstOrNull()
-                    ?.let { dexHelper.decodeMethodIndex(it) } ?: return@appStarterActivity
+                    ?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
                 val appStarterActivityClass = doOnCreateMethod.declaringClass
                 val showMessageDialogMethod = appStarterActivityClass.methods.find { m ->
                     Dialog::class.java.isAssignableFrom(m.returnType)
                             && m.parameterTypes.let { it.size == 8 && it[0] == String::class.java && it[7] == Boolean::class.javaPrimitiveType }
-                } ?: return@appStarterActivity
-                class_ = class_ { name = appStarterActivityClass.name }
+                } ?: return@apply
+                clazz = clazz { name = appStarterActivityClass.name }
                 doOnCreate = method { name = doOnCreateMethod.name }
                 addSecondFragment = method { name = addSecondFragmentMethod.name }
                 showMessageDialog = method { name = showMessageDialogMethod.name }
             }
-            modeFragment = class_ {
+            modeFragment = clazz {
                 name = "com.tencent.qqmusic.fragment.morefeatures.ModeSettingFragment"
                     .from(classLoader)?.name ?: dexHelper.findMethodUsingString(
                     "runningModeSetting"
                 ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?.declaringClass?.name ?: return@class_
+                    ?.declaringClass?.name ?: return@clazz
             }
-            authAgent = authAgent {
+            authAgent = AuthAgent().apply {
                 val startActionActivityMethod = dexHelper.findMethodUsingString(
                     "LOGIN_CHECK_SDK"
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@authAgent
-                class_ = class_ { name = startActionActivityMethod.declaringClass.name }
-                startActionActivity = method { name = startActionActivityMethod.name }
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                clazz = clazz { name = startActionActivityMethod.declaringClass.name }
+                startActionActivity = method {
+                    name = startActionActivityMethod.name
+                    paramTypes = startActionActivityMethod.paramTypes
+                }
             }
             val parseModuleItemMethod = dexHelper.findMethodUsingString(
                 "[parseModuleItem] "
             ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) as? Method }
-            jsonRespParser = jsonRespParser {
-                parseModuleItemMethod ?: return@jsonRespParser
-                class_ = class_ { name = parseModuleItemMethod.declaringClass.name }
-                parseModuleItem = method { name = parseModuleItemMethod.name }
+            jsonRespParser = JsonRespParser().apply {
+                parseModuleItemMethod ?: return@apply
+                clazz = clazz { name = parseModuleItemMethod.declaringClass.name }
+                parseModuleItem = method {
+                    name = parseModuleItemMethod.name
+                    paramTypes = parseModuleItemMethod.paramTypes
+                }
             }
-            gson = gson {
+            gson = Gson().apply {
                 val gsonClass = "com.google.gson.Gson".from(classLoader)
                     ?: dexHelper.findMethodUsingString("GSON cannot serialize ").firstOrNull()
-                        ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@gson
+                        ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass ?: return@apply
                 val fromJsonMethod = gsonClass.declaredMethods.find { m ->
-                    m.parameterTypes.let { it.size == 2 && it[0] == String::class.java && it[1] == Class::class.java }
-                } ?: return@gson
+                    m.parameterTypes.let { it.size == 2 && it[0] == String::class.java && it[1] == java.lang.Class::class.java }
+                } ?: return@apply
                 val toJsonMethod = gsonClass.declaredMethods.find { m ->
                     m.parameterTypes.let { it.size == 1 && it[0] == Any::class.java } && m.returnType == String::class.java
-                } ?: return@gson
+                } ?: return@apply
                 val jsonObjectClass = parseModuleItemMethod?.parameterTypes
-                    ?.getOrNull(2) ?: return@gson
-                class_ = class_ { name = gsonClass.name }
+                    ?.getOrNull(2) ?: return@apply
+                clazz = clazz { name = gsonClass.name }
                 fromJson = method { name = fromJsonMethod.name }
                 toJson = method { name = toJsonMethod.name }
-                jsonObject = class_ { name = jsonObjectClass.name }
+                jsonObject = clazz { name = jsonObjectClass.name }
             }
-            uiModeManager = uiModeManager {
+            uiModeManager = UiModeManager().apply {
                 val clazz = dexHelper.findMethodUsingString("UIModeManager")
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
-                    ?: return@uiModeManager
+                    ?: return@apply
                 val method = clazz.declaredMethods.find { m ->
                     m.returnType == Boolean::class.javaPrimitiveType && m.parameterTypes.let { it.size == 1 && it[0] == String::class.java }
-                } ?: return@uiModeManager
-                class_ = class_ { name = clazz.name }
+                } ?: return@apply
+                this.clazz = clazz { name = clazz.name }
                 isThemeForbid = method { name = method.name }
             }
-            adBar = apkDownloadAdBar {
+            adBar = ApkDownloadAdBar().apply {
                 val clazz = "com.tencent.qqmusic.business.ad.topbarad.apkdownload.ApkDownloadAdBar"
                     .from(classLoader) ?: dexHelper.findMethodUsingString("ApkDownloadAdBar")
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
-                ?: return@apkDownloadAdBar
+                ?: return@apply
                 val methods = clazz.interfaces.firstOrNull()?.methods?.filter {
                     it.returnType == Void::class.javaPrimitiveType && it.parameterTypes.isEmpty()
-                } ?: return@apkDownloadAdBar
-                class_ = class_ { name = clazz.name }
-                this.methods.addAll(methods.map { method { name = it.name } })
+                } ?: return@apply
+                this.clazz = clazz { name = clazz.name }
+                this.methods = methods.map { method { name = it.name } }
             }
-            musicWorldTouchListener = class_ {
+            musicWorldTouchListener = clazz {
                 name = dexHelper.findMethodUsingString(
                     "MusicWorldEntrance",
                     findFirst = false,
@@ -651,140 +551,149 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     dexHelper.decodeMethodIndex(it)?.declaringClass?.takeIf { c ->
                         View.OnTouchListener::class.java.isAssignableFrom(c)
                     }
-                }?.name ?: return@class_
+                }?.name ?: return@clazz
             }
-            eKeyManager = audioStreamEKeyManager {
+            eKeyManager = AudioStreamEKeyManager().apply {
                 val getFileEKeyMethod = dexHelper.findMethodUsingString(
                     "getFileEKey filePath is empty!"
                 ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?: return@audioStreamEKeyManager
+                    ?: return@apply
                 val eKeyManagerClass = getFileEKeyMethod.declaringClass
                 val instanceField = eKeyManagerClass.declaredFields.find {
                     it.type == eKeyManagerClass
-                } ?: return@audioStreamEKeyManager
-                class_ = class_ { name = eKeyManagerClass.name }
+                } ?: return@apply
+                clazz = clazz { name = eKeyManagerClass.name }
                 instance = field { name = instanceField.name }
                 getFileEKey = method { name = getFileEKeyMethod.name }
             }
-            eKeyDecryptor = eKeyDecryptor {
+            eKeyDecryptor = EKeyDecryptor().apply {
                 val decryptFileMethod = dexHelper.findMethodUsingString(
                     "decryptFile srcFilePath = "
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@eKeyDecryptor
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
                 val companionClass = decryptFileMethod.declaringClass
-                val decryptorClass = companionClass.declaringClass ?: return@eKeyDecryptor
+                val decryptorClass = companionClass.declaringClass ?: return@apply
                 val instanceField = decryptorClass.declaredFields.find {
                     it.type == companionClass
-                } ?: return@eKeyDecryptor
-                class_ = class_ { name = decryptorClass.name }
+                } ?: return@apply
+                clazz = clazz { name = decryptorClass.name }
                 instance = field { name = instanceField.name }
                 decryptFile = method { name = decryptFileMethod.name }
             }
-            vipDownloadHelper = vipDownloadHelper {
+            vipDownloadHelper = VipDownloadHelper().apply {
                 val decryptFileMethod = dexHelper.findMethodUsingString(
                     "decryptFile create dest = "
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@vipDownloadHelper
-                class_ = class_ { name = decryptFileMethod.declaringClass.name }
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                clazz = clazz { name = decryptFileMethod.declaringClass.name }
                 decryptFile = method { name = decryptFileMethod.name }
             }
-            bottomTipController = bottomTipController {
+            bottomTipController = BottomTipController().apply {
                 val method = dexHelper.findMethodUsingString("updateBottomTips ")
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?: return@bottomTipController
-                class_ = class_ { name = method.declaringClass.name }
+                    ?: return@apply
+                clazz = clazz { name = method.declaringClass.name }
                 updateBottomTips = method { name = method.name }
             }
-            videoViewDelegate = videoViewDelegate {
+            videoViewDelegate = VideoViewDelegate().apply {
                 val method = dexHelper.findMethodUsingString("[onResult] show mv icon.")
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?: return@videoViewDelegate
-                class_ = class_ { name = method.declaringClass.name }
+                    ?: return@apply
+                clazz = clazz { name = method.declaringClass.name }
                 onResult = method { name = method.name }
             }
-            genreViewDelegate = genreViewDelegate {
+            genreViewDelegate = GenreViewDelegate().apply {
                 val method = dexHelper.findMethodUsingString(
                     "[onBind] hide the song genre tags info."
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@genreViewDelegate
-                class_ = class_ { name = method.declaringClass.name }
-                onBind = method { name = method.name }
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                clazz = clazz { name = method.declaringClass.name }
+                onBind = method {
+                    name = method.name
+                    paramTypes = method.paramTypes
+                }
             }
-            userGuideViewDelegate = userGuideViewDelegate {
+            userGuideViewDelegate = UserGuideViewDelegate().apply {
                 val method = dexHelper.findMethodUsingString(
                     "showNewUserGuide hasGuideShowing ="
                 ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?: return@userGuideViewDelegate
-                class_ = class_ { name = method.declaringClass.name }
+                    ?: return@apply
+                clazz = clazz { name = method.declaringClass.name }
                 showUserGuide = method { name = method.name }
             }
-            topSongViewDelegate = topSongViewDelegate {
+            topSongViewDelegate = TopSongViewDelegate().apply {
                 val method = dexHelper.findMethodUsingString(
                     "[onBind] show top song info: peakCount="
                 ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?: return@topSongViewDelegate
-                class_ = class_ { name = method.declaringClass.name }
-                onBind = method { name = method.name }
+                    ?: return@apply
+                clazz = clazz { name = method.declaringClass.name }
+                onBind = method {
+                    name = method.name
+                    paramTypes = method.paramTypes
+                }
             }
-            dataPlugin = dataPlugin {
+            dataPlugin = DataPlugin().apply {
                 val handleJsRequestMethod = dexHelper.findMethodUsingString(
                     "[handleJsRequest] writeGlobalData"
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@dataPlugin
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
                 val dataPluginClass = handleJsRequestMethod.declaringClass
-                val basePluginClass = dataPluginClass.superclass ?: return@dataPlugin
+                val basePluginClass = dataPluginClass.superclass ?: return@apply
                 val runtimeField = basePluginClass.declaredFields
-                    .find { it.isPublic } ?: return@dataPlugin
+                    .find { it.isPublic } ?: return@apply
                 val activityMethod = runtimeField.type.declaredMethods.find {
                     it.parameterTypes.isEmpty() && it.returnType == Activity::class.java
-                } ?: return@dataPlugin
-                class_ = class_ { name = dataPluginClass.name }
-                handleJsRequest = method { name = handleJsRequestMethod.name }
+                } ?: return@apply
+                clazz = clazz { name = dataPluginClass.name }
+                handleJsRequest = method {
+                    name = handleJsRequestMethod.name
+                    paramTypes = handleJsRequestMethod.paramTypes
+                }
                 runtime = field { name = runtimeField.name }
                 activity = method { name = activityMethod.name }
             }
-            albumIntroViewHolder = albumIntroViewHolder {
+            albumIntroViewHolder = AlbumIntroViewHolder().apply {
                 val c = "com.tencent.qqmusic.albumdetail.ui.viewholders.AlbumIntroduceViewHolder"
                     .from(classLoader) ?: dexHelper.findMethodUsingString("tvAlbumDetail")
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
-                ?: return@albumIntroViewHolder
+                ?: return@apply
                 val m = c.declaredMethods.find { m ->
                     m.isPublic && m.returnType == Void::class.javaPrimitiveType && m.parameterTypes
                         .let { it.size == 1 && it[0] == View::class.java }
-                } ?: return@albumIntroViewHolder
+                } ?: return@apply
                 val tvAlbumDetailField = c.declaredFields.find {
                     it.isNotStatic && TextView::class.java.isAssignableFrom(it.type)
-                } ?: return@albumIntroViewHolder
+                } ?: return@apply
                 val lastTextContentField = c.declaredFields.find {
                     it.isNotStatic && it.type == String::class.java
-                } ?: return@albumIntroViewHolder
-                class_ = class_ { name = c.name }
+                } ?: return@apply
+                clazz = clazz { name = c.name }
                 onHolderCreated = method { name = m.name }
                 tvAlbumDetail = field { name = tvAlbumDetailField.name }
                 lastTextContent = field { name = lastTextContentField.name }
             }
-            albumTagViewHolder = class_ {
+            albumTagViewHolder = clazz {
                 name = "com.tencent.qqmusic.albumdetail.ui.viewholders.AlbumTagViewHolder"
                     .from(classLoader)?.name ?: dexHelper.findMethodUsingString("tvAlbumInfo")
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?.declaringClass?.name ?: return@class_
+                    ?.declaringClass?.name ?: return@clazz
             }
-            settingView = settingView {
+            settingView = SettingView().apply {
                 val clazz = "com.tencent.qqmusic.fragment.morefeatures.settings.view.SettingView"
                     .from(classLoader) ?: dexHelper.findMethodUsingString(
                     "initView: titleText "
                 ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?.declaringClass ?: return@settingView
+                    ?.declaringClass ?: return@apply
                 val method = clazz.declaredMethods.find { m ->
                     m.parameterTypes.let { it.size == 1 && it[0] == settingClass }
-                } ?: return@settingView
-                class_ = class_ { name = clazz.name }
+                } ?: return@apply
+                this.clazz = clazz { name = clazz.name }
                 setSetting = method { name = method.name }
                 val setLastClickTimeMethod = clazz.declaredMethods.find { m ->
                     m.isSynthetic && m.parameterTypes.let { it.size == 2 && it[1] == Long::class.javaPrimitiveType }
-                } ?: return@settingView
+                } ?: return@apply
                 setLastClickTime = method { name = setLastClickTimeMethod.name }
             }
-            fileUtils = fileUtils {
+            fileUtils = FileUtils().apply {
                 val getSongNameIndex = dexHelper.findMethodUsingString(
                     "[getDownloadSongName] songInfo is null"
-                ).firstOrNull() ?: return@fileUtils
+                ).firstOrNull() ?: return@apply
                 val stringIndex = dexHelper.encodeClassIndex(String::class.java)
                 val toValidFilenameMethod = dexHelper.findMethodInvoking(
                     getSongNameIndex,
@@ -792,49 +701,49 @@ class QMPackage(private val classLoader: ClassLoader, context: Context) {
                     parameterTypes = longArrayOf(stringIndex, stringIndex, stringIndex),
                 ).asSequence().firstNotNullOfOrNull {
                     dexHelper.decodeMethodIndex(it)
-                } ?: return@fileUtils
-                class_ = class_ { name = toValidFilenameMethod.declaringClass.name }
+                } ?: return@apply
+                clazz = clazz { name = toValidFilenameMethod.declaringClass.name }
                 toValidFilename = method { name = toValidFilenameMethod.name }
             }
-            storageVolume = class_ {
+            storageVolume = clazz {
                 name = "com.tencent.qqmusiccommon.storage.StorageVolume".from(classLoader)?.name
                     ?: dexHelper.findMethodUsingString("StorageVolume [mStorageId=")
                         .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                        ?.declaringClass?.name ?: return@class_
+                        ?.declaringClass?.name ?: return@clazz
             }
-            storageUtils = storageUtils {
+            storageUtils = StorageUtils().apply {
                 val getVolumesMethod = dexHelper.findMethodUsingString(
                     "StorageVolume From Android API SDK_INT : "
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@storageUtils
-                class_ = class_ { name = getVolumesMethod.declaringClass.name }
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                clazz = clazz { name = getVolumesMethod.declaringClass.name }
                 getVolumes = method { name = getVolumesMethod.name }
             }
-            vipAdBarData = class_ {
+            vipAdBarData = clazz {
                 name = dexHelper.findMethodUsingString("VipAdBarData(posId=").firstOrNull()
-                    ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass?.name ?: return@class_
+                    ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass?.name ?: return@clazz
             }
-            skinManager = skinManager {
+            skinManager = SkinManager().apply {
                 val getSkinIdMethod = dexHelper.findMethodUsingString(
                     "[getSyncSkinIdInUse][event:has not update skinIdInUse,use SkinIdToSwitch = %s]"
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@skinManager
-                class_ = class_ { name = getSkinIdMethod.declaringClass.name }
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                clazz = clazz { name = getSkinIdMethod.declaringClass.name }
                 getSkinId = method { name = getSkinIdMethod.name }
             }
-            adResponseData = adResponseData {
+            adResponseData = AdResponseData().apply {
                 val classes = dexHelper.findMethodUsingString(
                     "AdResponseData(retCode=",
                     findFirst = false,
                 ).map { dexHelper.decodeMethodIndex(it)?.declaringClass }
-                    .filterNotNull().ifEmpty { return@adResponseData }
+                    .filterNotNull().ifEmpty { return@apply }
                 val getAdsMethods = classes.map { c ->
                     c.declaredMethods.filter { it.returnType == List::class.java && it.parameterTypes.isEmpty() }
                 }
                 classes.zip(getAdsMethods) { c, ml ->
-                    adResponseDataItem {
-                        class_ = class_ { name = c.name }
-                        getAds.addAll(ml.map { method { name = it.name } })
+                    AdResponseDataItem().apply {
+                        clazz = clazz { name = c.name }
+                        getAds = ml.map { method { name = it.name } }
                     }
-                }.let { item.addAll(it) }
+                }.let { item = it }
             }
 
             dexHelper.close()

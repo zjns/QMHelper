@@ -1,8 +1,7 @@
+
 import com.android.build.api.artifact.ArtifactTransformationRequest
 import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.BuiltArtifact
-import com.google.protobuf.gradle.id
-import com.google.protobuf.gradle.proto
 import org.gradle.internal.os.OperatingSystem
 import java.nio.file.Paths
 import java.util.Properties
@@ -10,7 +9,6 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("com.google.protobuf")
 }
 
 fun findInPath(executable: String): String? {
@@ -32,7 +30,6 @@ val appVerCode: String by rootProject
 val appVerName: String by rootProject
 
 val kotlinVersion: String by rootProject
-val protobufVersion: String by rootProject
 
 android {
     namespace = "me.kofua.qmhelper"
@@ -177,15 +174,6 @@ android {
         )
     }
 
-    sourceSets {
-        named("main") {
-            proto {
-                srcDir("src/main/proto")
-                include("**/*.proto")
-            }
-        }
-    }
-
     packagingOptions {
         resources {
             excludes += arrayOf("**")
@@ -208,27 +196,6 @@ android {
         cmake {
             path("src/main/jni/CMakeLists.txt")
             version = "3.22.1+"
-        }
-    }
-}
-
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:$protobufVersion"
-    }
-
-    generatedFilesBaseDir = "$projectDir/src/generated"
-
-    generateProtoTasks {
-        all().forEach { task ->
-            task.builtins {
-                id("java") {
-                    option("lite")
-                }
-                id("kotlin") {
-                    option("lite")
-                }
-            }
         }
     }
 }
@@ -278,8 +245,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
     implementation("androidx.annotation:annotation:1.5.0")
     implementation("dev.rikka.ndk.thirdparty:cxx:1.2.0")
-    implementation("com.google.protobuf:protobuf-kotlin-lite:$protobufVersion")
-    compileOnly("com.google.protobuf:protoc:$protobufVersion")
     implementation("com.linkedin.dexmaker:dexmaker:2.28.3")
 }
 

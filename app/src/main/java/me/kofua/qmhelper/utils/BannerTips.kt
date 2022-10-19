@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.R
+import me.kofua.qmhelper.hookInfo
 
 object BannerTips {
 
@@ -14,14 +15,8 @@ object BannerTips {
         val action = Runnable {
             instance.bannerTipsClass?.also {
                 it.callStaticMethod(
-                    instance.showStyledToast(),
-                    currentContext,
-                    type,
-                    newMessage,
-                    0,
-                    0,
-                    true,
-                    0
+                    hookInfo.bannerTips.showStyledToast.name,
+                    currentContext, type, newMessage, 0, 0, true, 0
                 )
             } ?: Toast.makeText(currentContext, newMessage, Toast.LENGTH_SHORT).show()
         }

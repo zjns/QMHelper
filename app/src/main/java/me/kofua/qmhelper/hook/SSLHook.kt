@@ -6,33 +6,17 @@ import android.annotation.SuppressLint
 import android.net.http.SslError
 import android.webkit.SslErrorHandler
 import android.webkit.WebView
-import me.kofua.qmhelper.utils.callMethod
-import me.kofua.qmhelper.utils.callMethodAs
-import me.kofua.qmhelper.utils.callStaticMethodAs
-import me.kofua.qmhelper.utils.from
-import me.kofua.qmhelper.utils.getObjectField
-import me.kofua.qmhelper.utils.hookAfterConstructor
-import me.kofua.qmhelper.utils.hookAfterMethod
-import me.kofua.qmhelper.utils.hookBeforeMethod
-import me.kofua.qmhelper.utils.new
-import me.kofua.qmhelper.utils.on
-import me.kofua.qmhelper.utils.replaceMethod
-import me.kofua.qmhelper.utils.runCatchingOrNull
-import me.kofua.qmhelper.utils.setObjectField
+import me.kofua.qmhelper.utils.*
 import org.apache.http.conn.scheme.HostNameResolver
 import org.apache.http.conn.ssl.SSLSocketFactory
 import java.net.Socket
 import java.security.KeyStore
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import javax.net.ssl.HostnameVerifier
-import javax.net.ssl.KeyManager
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
+import javax.net.ssl.*
 
-class SSLHook(classLoader: ClassLoader) : BaseHook(classLoader) {
-    override fun startHook() {
+object SSLHook : BaseHook {
+    override fun hook() {
         @SuppressLint("CustomX509TrustManager")
         val emptyTrustManagers = arrayOf(object : X509TrustManager {
             @SuppressLint("TrustAllX509TrustManager")

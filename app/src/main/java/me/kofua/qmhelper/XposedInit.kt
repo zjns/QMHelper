@@ -2,42 +2,16 @@ package me.kofua.qmhelper
 
 import android.app.Application
 import android.app.Instrumentation
-import android.content.Context
 import android.content.res.Resources
 import android.content.res.XModuleResources
 import android.os.Build
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.IXposedHookZygoteInit
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
-import me.kofua.qmhelper.hook.ABTesterHook
-import me.kofua.qmhelper.hook.BaseHook
-import me.kofua.qmhelper.hook.CgiHook
-import me.kofua.qmhelper.hook.CommonAdsHook
-import me.kofua.qmhelper.hook.CopyHook
-import me.kofua.qmhelper.hook.DebugHook
-import me.kofua.qmhelper.hook.HomePageHook
-import me.kofua.qmhelper.hook.HomeTopTabHook
-import me.kofua.qmhelper.hook.MiscHook
-import me.kofua.qmhelper.hook.SSLHook
-import me.kofua.qmhelper.hook.SettingsHook
-import me.kofua.qmhelper.hook.SplashHook
-import me.kofua.qmhelper.hook.WebLoginHook
-import me.kofua.qmhelper.utils.BannerTips
-import me.kofua.qmhelper.utils.Log
-import me.kofua.qmhelper.utils.callMethod
-import me.kofua.qmhelper.utils.currentContext
-import me.kofua.qmhelper.utils.from
-import me.kofua.qmhelper.utils.getPackageVersion
-import me.kofua.qmhelper.utils.hookBeforeAllConstructors
-import me.kofua.qmhelper.utils.hookBeforeMethod
-import me.kofua.qmhelper.utils.is64
-import me.kofua.qmhelper.utils.isBuiltIn
-import me.kofua.qmhelper.utils.logFile
-import me.kofua.qmhelper.utils.oldLogFile
-import me.kofua.qmhelper.utils.preloadProxyClasses
-import me.kofua.qmhelper.utils.sPrefs
-import me.kofua.qmhelper.utils.shouldSaveLog
-import me.kofua.qmhelper.utils.string
+import me.kofua.qmhelper.hook.*
+import me.kofua.qmhelper.utils.*
+
+val classLoader get() = XposedInit.classLoader
 
 class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
 
@@ -47,18 +21,18 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
     }
 
     override fun handleLoadPackage(lpparam: LoadPackageParam) {
-        if (lpparam.packageName != Constant.QM_PACKAGE_NAME) return
-        // TODO: allow tinker, use tinker classloader and update hook info after tinker patched
-        disableTinker(lpparam)
+        if (lpparam.packageName != "com.tencent.qqmusic") return
+        classLoader = lpparam.classLoader
+        disableTinker()
 
         Instrumentation::class.java.hookBeforeMethod(
             "callApplicationOnCreate",
             Application::class.java
-        ) { param ->
+        ) {
             when {
                 !lpparam.processName.contains(":") -> {
                     if (shouldSaveLog) startLog()
-                    currentContext.assets.callMethod("addAssetPath", modulePath)
+                    currentContext.addModuleAssets()
 
                     Log.d("QQMusic process launched ...")
                     Log.d("QMHelper version: ${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE}) from $modulePath${if (isBuiltIn) " (BuiltIn)" else ""}")
@@ -66,37 +40,38 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     Log.d("SDK: ${Build.VERSION.RELEASE}(${Build.VERSION.SDK_INT}); Phone: ${Build.BRAND} ${Build.MODEL}")
                     Log.d("Config: ${sPrefs.all}")
 
-                    QMPackage(lpparam.classLoader, param.args[0] as Context)
                     preloadProxyClasses()
-                    if (BuildConfig.DEBUG) {
-                        startHook(SSLHook(lpparam.classLoader))
-                        startHook(DebugHook(lpparam.classLoader))
-                        startHook(ABTesterHook(lpparam.classLoader))
+                    val debugHookers = if (BuildConfig.DEBUG) {
+                        listOf(SSLHook, DebugHook, ABTesterHook)
+                    } else listOf()
+                    val buildInHookers = if (isBuiltIn) {
+                        listOf(WebLoginHook)
+                    } else listOf()
+                    val normalHookers = listOf(
+                        SettingsHook, SplashHook, HomeTopTabHook,
+                        HomePageHook, CgiHook, CopyHook,
+                        MiscHook, CommonAdsHook
+                    )
+                    val allHookers = buildList {
+                        addAll(debugHookers)
+                        addAll(buildInHookers)
+                        addAll(normalHookers)
                     }
-                    if (isBuiltIn) {
-                        startHook(WebLoginHook(lpparam.classLoader))
-                    }
-                    startHook(SettingsHook(lpparam.classLoader))
-                    startHook(SplashHook(lpparam.classLoader))
-                    startHook(HomeTopTabHook(lpparam.classLoader))
-                    startHook(HomePageHook(lpparam.classLoader))
-                    startHook(CgiHook(lpparam.classLoader))
-                    startHook(CopyHook(lpparam.classLoader))
-                    startHook(MiscHook(lpparam.classLoader))
-                    startHook(CommonAdsHook(lpparam.classLoader))
+                    startHook(allHookers)
                 }
             }
         }
     }
 
-    private fun startHook(hooker: BaseHook) {
-        try {
-            hookers.add(hooker)
-            hooker.startHook()
-        } catch (t: Throwable) {
-            Log.e(t)
-            val errorMessage = t.message ?: ""
-            BannerTips.error(string(R.string.hook_error, errorMessage))
+    private fun startHook(hookers: List<BaseHook>) {
+        hookers.forEach {
+            try {
+                it.hook()
+            } catch (t: Throwable) {
+                Log.e(t)
+                val errorMessage = t.message ?: ""
+                BannerTips.error(string(R.string.hook_error, errorMessage))
+            }
         }
     }
 
@@ -114,15 +89,14 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
         null
     }
 
-    private fun disableTinker(lpparam: LoadPackageParam) {
-        "com.tencent.tinker.loader.app.TinkerApplication".from(lpparam.classLoader)
+    private fun disableTinker() {
+        "com.tencent.tinker.loader.app.TinkerApplication".from(classLoader)
             ?.hookBeforeAllConstructors { it.args[0] = 0 }
     }
 
     companion object {
         lateinit var modulePath: String
         lateinit var moduleRes: Resources
-
-        private val hookers = ArrayList<BaseHook>()
+        lateinit var classLoader: ClassLoader
     }
 }
