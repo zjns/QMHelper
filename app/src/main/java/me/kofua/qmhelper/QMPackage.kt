@@ -616,7 +616,10 @@ class QMPackage private constructor() {
                 ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
                     ?: return@apply
                 clazz = clazz { name = method.declaringClass.name }
-                showUserGuide = method { name = method.name }
+                showUserGuide = method {
+                    name = method.name
+                    paramTypes = method.paramTypes
+                }
             }
             topSongViewDelegate = TopSongViewDelegate().apply {
                 val method = dexHelper.findMethodUsingString(

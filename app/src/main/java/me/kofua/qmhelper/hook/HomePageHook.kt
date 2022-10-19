@@ -93,10 +93,11 @@ object HomePageHook : BaseHook {
                 ) { null }
         }
         if (sPrefs.getBoolean("block_user_guide", false)) {
-            hookInfo.userGuideViewDelegate.clazz.from(classLoader)?.declaredMethods?.find {
-                it.name == hookInfo.userGuideViewDelegate.showUserGuide.name
-                        && it.returnType == Void::class.javaPrimitiveType
-            }?.replaceMethod { null }
+            hookInfo.userGuideViewDelegate.clazz.from(classLoader)
+                ?.replaceMethod(
+                    hookInfo.userGuideViewDelegate.showUserGuide.name,
+                    *hookInfo.userGuideViewDelegate.showUserGuide.paramTypes
+                ) { null }
         }
     }
 }
