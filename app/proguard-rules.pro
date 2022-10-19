@@ -24,10 +24,6 @@
     public static final ** CREATOR;
 }
 
--keepclassmembers class me.kofua.qmhelper.** implements java.io.Externalizable {
-    static final long serialVersionUID;
-}
-
 #-keepclassmembers class me.kofua.qmhelper.MainActivity$Companion {
 #    boolean isModuleActive();
 #}
