@@ -1,7 +1,6 @@
 package me.kofua.qmhelper.hook
 
 import me.kofua.qmhelper.QMPackage.Companion.instance
-import me.kofua.qmhelper.from
 import me.kofua.qmhelper.hookInfo
 import me.kofua.qmhelper.utils.*
 import org.json.JSONObject
@@ -14,10 +13,7 @@ object CgiHook : BaseHook {
         val removeCommentRecommend = sPrefs.getBoolean("remove_comment_recommend", false)
         val removeMineKol = sPrefs.getBoolean("remove_mine_kol", false)
 
-        hookInfo.jsonRespParser.clazz.from(classLoader)?.hookBeforeMethod(
-            hookInfo.jsonRespParser.parseModuleItem.name,
-            *hookInfo.jsonRespParser.parseModuleItem.paramTypes,
-        ) { param ->
+        hookInfo.jsonRespParser.hookBeforeMethod({ parseModuleItem }) { param ->
             val path = param.args[1] as? String
             if (path == "music.recommend.RecommendFeed.get_recommend_feed" && blockLive) {
                 val json = param.args[2]?.toString() ?: return@hookBeforeMethod

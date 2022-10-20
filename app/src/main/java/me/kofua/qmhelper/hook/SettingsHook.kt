@@ -31,10 +31,7 @@ object SettingsHook : BaseHook {
     }
 
     override fun hook() {
-        instance.appStarterActivityClass?.hookAfterMethod(
-            hookInfo.appStarterActivity.doOnCreate.name,
-            Bundle::class.java
-        ) { param ->
+        hookInfo.appStarterActivity.hookAfterMethod({ doOnCreate }) { param ->
             val activity = param.thisObject as Activity
             settingPack.activity = activity
             activity.addModuleAssets()
@@ -51,7 +48,7 @@ object SettingsHook : BaseHook {
                         sPrefs.edit { putBoolean("ui_mode_hint", true) }
                         hookInfo.modeFragment.from(classLoader)?.let {
                             activity.callMethod(
-                                hookInfo.appStarterActivity.addSecondFragment.name,
+                                hookInfo.appStarterActivity.addSecondFragment,
                                 it, null
                             )
                         } ?: BannerTips.error(R.string.jump_failed)
@@ -82,19 +79,14 @@ object SettingsHook : BaseHook {
             val grantResults = param.args[2] as IntArray
             settingPack.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
-        hookInfo.uiModeManager.clazz.from(classLoader)?.replaceMethod(
-            hookInfo.uiModeManager.isThemeForbid.name,
-            String::class.java
-        ) { false }
-        hookInfo.settingView.clazz.from(classLoader)?.hookAfterMethod(
-            hookInfo.settingView.setSetting.name, instance.settingClass
-        ) { param ->
+        hookInfo.uiModeManager.replaceMethod({ isThemeForbid }) { false }
+        hookInfo.settingView.hookAfterMethod({ setSetting }) { param ->
             val viewGroup = param.thisObject as ViewGroup
             val setting = param.args[0] ?: return@hookAfterMethod
             settingViewTextFields.forEach {
                 viewGroup.getObjectFieldAs<TextView?>(it)?.isSingleLine = false
             }
-            val typeField = hookInfo.setting.type.name
+            val typeField = hookInfo.setting.type
             if (setting.getIntField(typeField) != Setting.Type.DIVIDER.key) {
                 (viewGroup.layoutParams as? RelativeLayout.LayoutParams)?.apply {
                     height = RelativeLayout.LayoutParams.WRAP_CONTENT
@@ -103,25 +95,16 @@ object SettingsHook : BaseHook {
                     viewGroup.setPadding(0, 6.dp, 0, 6.dp)
             }
         }
-        hookInfo.settingView.setLastClickTime.name.ifNotEmpty { m ->
-            val settingViewClass = hookInfo.settingView.clazz.from(classLoader)
-            settingViewClass?.hookBeforeMethod(
-                m, settingViewClass, Long::class.javaPrimitiveType
-            ) { it.args[1] = 0L }
-        }
-        val drawerSettingPackClass =
-            hookInfo.setting.drawerSettingPack.clazz.from(classLoader)
-        val createSettingProvider =
-            hookInfo.setting.baseSettingPack.createSettingProvider.name
+        hookInfo.settingView.hookAfterMethod({ setLastClickTime }) { it.args[1] = 0L }
         @Suppress("UNCHECKED_CAST")
-        drawerSettingPackClass?.hookAfterMethod(createSettingProvider) { param ->
+        hookInfo.setting.drawerSettingPack.hookAfterMethod({ createSettingProvider }) { param ->
             val settingProviders = param.result as CopyOnWriteArrayList<Any?>
-            val hostField = hookInfo.setting.baseSettingPack.host.name
+            val hostField = hookInfo.setting.baseSettingPack.host
             val fragment = param.thisObject.getObjectField(hostField)
                 ?: return@hookAfterMethod
-            val getSetting = hookInfo.setting.baseSettingProvider.getSetting.name
-            val rightDescField = hookInfo.setting.rightDesc.name
-            val redDotListenerField = hookInfo.setting.redDotListener.name
+            val getSetting = hookInfo.setting.baseSettingProvider.getSetting
+            val rightDescField = hookInfo.setting.rightDesc
+            val redDotListenerField = hookInfo.setting.redDotListener
             settingProviders.map { it?.callMethod(getSetting) }.forEach { s ->
                 if (purifyRedDots) {
                     s?.getObjectField(rightDescField)?.takeIf {
@@ -130,7 +113,7 @@ object SettingsHook : BaseHook {
                     s.setObjectField(redDotListenerField, null)
                 }
             }
-            val titleField = hookInfo.setting.title.name
+            val titleField = hookInfo.setting.title
             for (i in settingProviders.size - 1 downTo 0) {
                 settingProviders[i]?.callMethod(getSetting)
                     ?.getObjectFieldAs<String>(titleField)?.takeIf {
@@ -147,27 +130,19 @@ object SettingsHook : BaseHook {
             settingProviders.add(1, settingProvider(fragment, moduleSetting))
         }
         if (purifyMoreItems.contains("创作者中心"))
-            drawerSettingPackClass?.replaceMethod(
-                hookInfo.setting.drawerSettingPack.initKolEnter.name
-            ) { null }
+            hookInfo.setting.drawerSettingPack.replaceMethod({ initKolEnter }) { null }
 
         if (!purifyRedDots) return
-        hookInfo.personalEntryView.clazz.from(classLoader)
-            ?.hookAfterMethod(
-                hookInfo.personalEntryView.update.name,
-                *hookInfo.personalEntryView.update.paramTypes
-            ) { param ->
-                param.thisObject.getObjectFieldAs<TextView>(hookInfo.personalEntryView.rightDescView.name)
-                    .run { text = "" }
-                param.thisObject.getObjectFieldAs<View>(hookInfo.personalEntryView.redDotView.name)
-                    .run { visibility = View.GONE }
-            }
-        hookInfo.settingFragment.clazz.from(classLoader)?.hookBeforeMethod(
-            hookInfo.baseFragment.resume.name
-        ) { param ->
-            param.thisObject.getObjectFieldAs<List<*>>(hookInfo.settingFragment.settingList.name)
+        hookInfo.personalEntryView.hookAfterMethod({ update }) { param ->
+            param.thisObject.getObjectFieldAs<TextView>(hookInfo.personalEntryView.rightDescView)
+                .run { text = "" }
+            param.thisObject.getObjectFieldAs<View>(hookInfo.personalEntryView.redDotView)
+                .run { visibility = View.GONE }
+        }
+        hookInfo.settingFragment.hookBeforeMethod({ resume }) { param ->
+            param.thisObject.getObjectFieldAs<List<*>>(hookInfo.settingFragment.settingList)
                 .forEach {
-                    it?.setObjectField(hookInfo.setting.redDotListener.name, null)
+                    it?.setObjectField(hookInfo.setting.redDotListener, null)
                 }
         }
     }
@@ -214,7 +189,7 @@ object SettingsHook : BaseHook {
             it.thisObject.invocationHandler(handler)
         }
         context.callMethod(
-            hookInfo.appStarterActivity.addSecondFragment.name,
+            hookInfo.appStarterActivity.addSecondFragment,
             moduleSettingFragmentClass, null
         )
         unhook?.unhook()

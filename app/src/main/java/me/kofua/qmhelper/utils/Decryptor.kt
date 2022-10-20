@@ -63,7 +63,7 @@ object Decryptor {
     private fun getEncSongs(): List<File> {
         return runCatching {
             instance.storageUtilsClass?.callStaticMethodAs<Set<*>>(
-                hookInfo.storageUtils.getVolumes.name, currentContext
+                hookInfo.storageUtils.getVolumes, currentContext
             )?.mapNotNull { it?.toMockVolume()?.path }
                 ?.flatMap { p ->
                     File(p, "qqmusic/song")
@@ -88,7 +88,7 @@ object Decryptor {
         val fileNoExt = srcFilePath.substringBeforeLast(".")
         val fileExt = srcFilePath.substringAfterLast(".", "")
         val decExt = decExtMap[fileExt]?.ext
-            ?: if (fileExt.isEmpty()) "decrypted" else "$fileExt.decrypted"
+            ?: if (fileExt.isEmpty()) "dec" else "$fileExt.dec"
         val destFilePath = (if (saveDir == null) {
             "$fileNoExt.$decExt"
         } else {
@@ -101,19 +101,19 @@ object Decryptor {
     }
 
     private fun getFileEKey(srcFilePath: String) = runCatching {
-        instance.eKeyManagerClass?.getStaticObjectField(hookInfo.eKeyManager.instance.name)
-            ?.callMethodAs<String?>(hookInfo.eKeyManager.getFileEKey.name, srcFilePath, null)
+        instance.eKeyManagerClass?.getStaticObjectField(hookInfo.eKeyManager.instance)
+            ?.callMethodAs<String?>(hookInfo.eKeyManager.getFileEKey, srcFilePath, null)
     }.onFailure { Log.e(it) }.getOrNull() ?: ""
 
     private fun decrypt(srcFilePath: String, destFilePath: String, eKey: String) = runCatching {
-        instance.eKeyDecryptorClass?.getStaticObjectField(hookInfo.eKeyDecryptor.instance.name)
-            ?.callMethod(hookInfo.eKeyDecryptor.decryptFile.name, srcFilePath, destFilePath, eKey)
+        instance.eKeyDecryptorClass?.getStaticObjectField(hookInfo.eKeyDecryptor.instance)
+            ?.callMethod(hookInfo.eKeyDecryptor.decryptFile, srcFilePath, destFilePath, eKey)
         true
     }.onFailure { Log.e(it) }.getOrNull() ?: false
 
     private fun staticDecrypt(srcFilePath: String, destFilePath: String) = runCatching {
         instance.vipDownloadHelperClass?.callStaticMethod(
-            hookInfo.vipDownloadHelper.decryptFile.name, srcFilePath, destFilePath
+            hookInfo.vipDownloadHelper.decryptFile, srcFilePath, destFilePath
         )
         true
     }.onFailure { Log.e(it) }.getOrNull() ?: false

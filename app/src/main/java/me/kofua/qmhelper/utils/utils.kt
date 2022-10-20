@@ -104,7 +104,7 @@ fun stringArray(@ArrayRes resId: Int): Array<String> = currentContext.resources.
 
 val qmSp by lazy {
     hookInfo.spManager.clazz.from(classLoader)
-        ?.callStaticMethodAs<SharedPreferences>(hookInfo.spManager.get.name) ?: sPrefs
+        ?.callStaticMethodAs<SharedPreferences>(hookInfo.spManager.get) ?: sPrefs
 }
 
 val handler = Handler(Looper.getMainLooper())

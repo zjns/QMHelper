@@ -21,13 +21,13 @@ fun JSONArray?.isNotEmpty() = !isEmpty()
 val gson by lazy { hookInfo.gson.clazz.from(classLoader)?.new() }
 
 inline fun <reified T> String.fromJson(): T? {
-    return gson?.callMethodAs(hookInfo.gson.fromJson.name, this, T::class.java)
+    return gson?.callMethodAs(hookInfo.gson.fromJson, this, T::class.java)
 }
 
 fun String.fromJson(type: Class<*>?): Any? {
-    return gson?.callMethod(hookInfo.gson.fromJson.name, this, type)
+    return gson?.callMethod(hookInfo.gson.fromJson, this, type)
 }
 
 fun Any.toJson(): String? {
-    return gson?.callMethodAs(hookInfo.gson.toJson.name, this)
+    return gson?.callMethodAs(hookInfo.gson.toJson, this)
 }

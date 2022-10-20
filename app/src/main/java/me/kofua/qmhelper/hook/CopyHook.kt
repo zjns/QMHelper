@@ -8,7 +8,6 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.TextView
 import me.kofua.qmhelper.R
-import me.kofua.qmhelper.from
 import me.kofua.qmhelper.hookInfo
 import me.kofua.qmhelper.utils.*
 
@@ -23,10 +22,7 @@ object CopyHook : BaseHook {
         if (!sPrefs.getBoolean("copy_enhance", false)) return
 
         @Suppress("UNCHECKED_CAST")
-        hookInfo.dataPlugin.clazz.from(classLoader)?.hookBeforeMethod(
-            hookInfo.dataPlugin.handleJsRequest.name,
-            *hookInfo.dataPlugin.handleJsRequest.paramTypes
-        ) { param ->
+        hookInfo.dataPlugin.hookBeforeMethod({ handleJsRequest }) { param ->
             val dataPlugin = param.thisObject
             val method = param.args[2] as String
             val params = param.args[3] as Array<String>
@@ -35,9 +31,9 @@ object CopyHook : BaseHook {
                     ?.optString("text")?.replace("\\n", "\n")
                     ?: return@hookBeforeMethod
                 val activity = dataPlugin.getObjectField(
-                    hookInfo.dataPlugin.runtime.name
+                    hookInfo.dataPlugin.runtime
                 )?.callMethodAs<Activity?>(
-                    hookInfo.dataPlugin.activity.name
+                    hookInfo.dataPlugin.activity
                 ) ?: return@hookBeforeMethod
                 showCopyDialog(activity, text, param)
                 param.result = null
@@ -55,16 +51,13 @@ object CopyHook : BaseHook {
                 param.thisObject.setBooleanField(it, false)
             }
         }
-        hookInfo.albumIntroViewHolder.clazz.from(classLoader)?.hookAfterMethod(
-            hookInfo.albumIntroViewHolder.onHolderCreated.name,
-            View::class.java
-        ) { param ->
+        hookInfo.albumIntroViewHolder.hookAfterMethod({ onHolderCreated }) { param ->
             val holder = param.thisObject
             holder.getObjectFieldAs<View?>(
-                hookInfo.albumIntroViewHolder.tvAlbumDetail.name
+                hookInfo.albumIntroViewHolder.tvAlbumDetail
             )?.longClick { v ->
                 val text = holder.getObjectFieldAs(
-                    hookInfo.albumIntroViewHolder.lastTextContent.name
+                    hookInfo.albumIntroViewHolder.lastTextContent
                 ) ?: ""
                 showCopyDialog(v.context, text, null) {
                     it.copyToClipboard()
@@ -73,10 +66,7 @@ object CopyHook : BaseHook {
                 true
             }
         }
-        hookInfo.albumTagViewHolder.from(classLoader)?.hookAfterMethod(
-            hookInfo.albumIntroViewHolder.onHolderCreated.name,
-            View::class.java
-        ) { param ->
+        hookInfo.albumTagViewHolder.hookAfterMethod({ onHolderCreated }) { param ->
             val holder = param.thisObject
             holder.javaClass.declaredFields.filter {
                 TextView::class.java.isAssignableFrom(it.type)

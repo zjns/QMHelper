@@ -41,7 +41,7 @@ class Setting : ClassInfo() {
     var baseSettingFragment: BaseSettingFragment = BaseSettingFragment()
     var baseSettingPack: BaseSettingPack = BaseSettingPack()
     var baseSettingProvider: BaseSettingProvider = BaseSettingProvider()
-    var drawerSettingPack: DrawerSettingPackage = DrawerSettingPackage()
+    var drawerSettingPack: DrawerSettingPack = DrawerSettingPack()
 }
 
 class SettingBuilder : ClassInfo() {
@@ -79,7 +79,10 @@ class BaseSettingProvider : ClassInfo() {
     var getSetting: Method = method { }
 }
 
-class DrawerSettingPackage(var initKolEnter: Method = method { }) : ClassInfo()
+class DrawerSettingPack : ClassInfo() {
+    var createSettingProvider: Method = method { }
+    var initKolEnter: Method = method { }
+}
 
 class PersonalEntryView : ClassInfo() {
     var update: Method = method { }
@@ -89,15 +92,16 @@ class PersonalEntryView : ClassInfo() {
 
 class BannerTips(var showStyledToast: Method = method { }) : ClassInfo()
 
-class SettingFragment(var settingList: Field = field { }) : ClassInfo()
+class SettingFragment : ClassInfo() {
+    var resume: Method = method { }
+    var settingList: Field = field { }
+}
 
 class UserInfoHolder(var showBubble: Method = method { }) : ClassInfo()
 
-class BaseABTester : ClassInfo() {
-    var getProperty: Method = method { }
-    var strategyModule: Class = clazz {}
-    var getStrategyId: Method = method { }
-}
+class BaseABTester(var getProperty: Method = method { }) : ClassInfo()
+
+class StrategyModule(var getStrategyId: Method = method { }) : ClassInfo()
 
 class TopAreaDelegate : ClassInfo() {
     var initLiveGuide: Method = method { }
@@ -163,6 +167,8 @@ class AlbumIntroViewHolder : ClassInfo() {
     var lastTextContent: Field = field { }
 }
 
+class AlbumTagViewHolder(var onHolderCreated: Method = method { }) : ClassInfo()
+
 class SettingView : ClassInfo() {
     var setSetting: Method = method { }
     var setLastClickTime: Method = method { }
@@ -194,6 +200,7 @@ class HookInfo : Serializable {
     var settingFragment: SettingFragment = SettingFragment()
     var userInfoHolder: UserInfoHolder = UserInfoHolder()
     var abTester: BaseABTester = BaseABTester()
+    var strategyModule: StrategyModule = StrategyModule()
     var topAreaDelegate: TopAreaDelegate = TopAreaDelegate()
     var playViewModel: PlayerViewModel = PlayerViewModel()
     var spManager: SpManager = SpManager()
@@ -215,7 +222,7 @@ class HookInfo : Serializable {
     var topSongViewDelegate: TopSongViewDelegate = TopSongViewDelegate()
     var dataPlugin: DataPlugin = DataPlugin()
     var albumIntroViewHolder: AlbumIntroViewHolder = AlbumIntroViewHolder()
-    var albumTagViewHolder: Class = clazz { }
+    var albumTagViewHolder: AlbumTagViewHolder = AlbumTagViewHolder()
     var settingView: SettingView = SettingView()
     var fileUtils: FileUtils = FileUtils()
     var storageVolume: Class = clazz { }

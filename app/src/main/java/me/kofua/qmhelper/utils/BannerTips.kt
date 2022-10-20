@@ -15,7 +15,7 @@ object BannerTips {
         val action = Runnable {
             instance.bannerTipsClass?.also {
                 it.callStaticMethod(
-                    hookInfo.bannerTips.showStyledToast.name,
+                    hookInfo.bannerTips.showStyledToast,
                     currentContext, type, newMessage, 0, 0, true, 0
                 )
             } ?: Toast.makeText(currentContext, newMessage, Toast.LENGTH_SHORT).show()

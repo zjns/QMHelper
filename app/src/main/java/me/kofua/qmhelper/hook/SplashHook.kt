@@ -19,7 +19,6 @@ object SplashHook : BaseHook {
                     noAdSplashType?.let { param.result = it }
                 }
             }
-        hookInfo.adManager.clazz.from(classLoader)
-            ?.replaceMethod(hookInfo.adManager.get.name) { null }
+        hookInfo.adManager.replaceMethod({ get }) { null }
     }
 }

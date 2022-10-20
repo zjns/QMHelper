@@ -14,7 +14,7 @@ import kotlin.coroutines.resume
 typealias ButtonClickListener = (v: View) -> Unit
 
 val isBlackSkinInUse: Boolean
-    get() = instance.skinManagerClass?.callStaticMethod(hookInfo.skinManager.getSkinId.name) == "901"
+    get() = instance.skinManagerClass?.callStaticMethod(hookInfo.skinManager.getSkinId) == "901"
 
 @get:StyleRes
 val themeIdForDialog: Int

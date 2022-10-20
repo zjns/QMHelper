@@ -116,30 +116,27 @@ class Setting {
     var clickListener: View.OnClickListener? = null
     var touchListener: View.OnTouchListener? = null
 
-    private fun build() = instance.settingClass
-        ?.callStaticMethod(hookInfo.setting.with.name, currentContext)
-        ?.apply {
-            setIntField(hookInfo.setting.builder.type.name, type.key)
-            setObjectField(hookInfo.setting.builder.title.name, title)
-            setObjectField(hookInfo.setting.builder.rightDesc.name, rightDesc)
-            setObjectField(hookInfo.setting.builder.summary.name, summary)
-            setObjectField(hookInfo.setting.builder.switchListener.name, Proxy.newProxyInstance(
-                currentContext.classLoader,
-                arrayOf(instance.switchListenerClass)
-            ) { _, m, args ->
-                when (m.name) {
-                    hookInfo.setting.switchListener.isSwitchOn.name -> isSwitchOn?.invoke() ?: false
-
-                    hookInfo.setting.switchListener.onSwitchStatusChange.name -> {
-                        onSwitchChanged?.invoke(args[0] as Boolean)
+    private fun build(): Any? {
+        val builder = hookInfo.setting.builder
+        return instance.settingClass
+            ?.callStaticMethod(hookInfo.setting.with, currentContext)
+            ?.apply {
+                setIntField(builder.type, type.key)
+                setObjectField(builder.title, title)
+                setObjectField(builder.rightDesc, rightDesc)
+                setObjectField(builder.summary, summary)
+                setObjectField(builder.switchListener, Proxy.newProxyInstance(
+                    currentContext.classLoader,
+                    arrayOf(instance.switchListenerClass)
+                ) { _, m, args ->
+                    val switchListener = hookInfo.setting.switchListener
+                    when (m.name) {
+                        switchListener.isSwitchOn.name -> isSwitchOn?.invoke() ?: false
+                        switchListener.onSwitchStatusChange.name -> onSwitchChanged?.invoke(args[0] as Boolean)
+                        else -> null
                     }
-
-                    else -> null
-                }
-            })
-            setObjectField(
-                hookInfo.setting.builder.clickListener.name,
-                clickListener ?: emptyClickListener
-            )
-        }?.callMethod(hookInfo.setting.builder.build.name)
+                })
+                setObjectField(builder.clickListener, clickListener ?: emptyClickListener)
+            }?.callMethod(builder.build)
+    }
 }

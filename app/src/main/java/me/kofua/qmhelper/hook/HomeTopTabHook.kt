@@ -1,7 +1,6 @@
 package me.kofua.qmhelper.hook
 
 import me.kofua.qmhelper.R
-import me.kofua.qmhelper.from
 import me.kofua.qmhelper.hookInfo
 import me.kofua.qmhelper.utils.*
 
@@ -20,25 +19,15 @@ object HomeTopTabHook : BaseHook {
     override fun hook() {
         if (purifyHomeTopTabIds.isEmpty()) return
 
-        hookInfo.homePageFragment.clazz.from(classLoader)?.hookBeforeMethod(
-            hookInfo.homePageFragment.initTabFragment.name,
-            Int::class.javaPrimitiveType
-        ) { param ->
+        hookInfo.homePageFragment.hookBeforeMethod({ initTabFragment }) { param ->
             if (purifyHomeTopTabIds.contains(param.args[0] as Int))
                 param.result = null
         }
-        hookInfo.mainDesktopHeader.clazz.from(classLoader)?.hookBeforeMethod(
-            hookInfo.mainDesktopHeader.addTabByName.name,
-            String::class.java
-        ) { param ->
+        hookInfo.mainDesktopHeader.hookBeforeMethod({ addTabByName }) { param ->
             if (purifyHomeTobTabNames.contains(param.args[0] as String))
                 param.result = null
         }
-        hookInfo.mainDesktopHeader.clazz.from(classLoader)?.hookBeforeMethod(
-            hookInfo.mainDesktopHeader.addTabById.name,
-            Int::class.javaPrimitiveType,
-            String::class.java
-        ) { param ->
+        hookInfo.mainDesktopHeader.hookBeforeMethod({ addTabById }) { param ->
             val name = runCatchingOrNull { string(param.args[0] as Int) }
                 ?: return@hookBeforeMethod
             if (purifyHomeTobTabNames.contains(name))

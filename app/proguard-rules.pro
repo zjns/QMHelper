@@ -4,10 +4,6 @@
     <init>();
 }
 
--keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite {
-  <fields>;
-}
-
 -keepclasseswithmembers class me.kofua.qmhelper.utils.DexHelper {
  native <methods>;
  long token;
@@ -22,6 +18,10 @@
 
 -keepclassmembers class * implements android.os.Parcelable {
     public static final ** CREATOR;
+}
+
+-keepclassmembernames class me.kofua.qmhelper.data.* implements java.io.Serializable {
+    <fields>;
 }
 
 #-keepclassmembers class me.kofua.qmhelper.MainActivity$Companion {

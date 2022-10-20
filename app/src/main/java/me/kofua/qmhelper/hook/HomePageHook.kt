@@ -10,40 +10,23 @@ object HomePageHook : BaseHook {
 
     override fun hook() {
         if (sPrefs.getBoolean("hide_music_world", false)) {
-            hookInfo.mainDesktopHeader.clazz.from(classLoader)?.replaceMethod(
-                hookInfo.mainDesktopHeader.showMusicWorld.name,
-                *hookInfo.mainDesktopHeader.showMusicWorld.paramTypes
-            ) { null }
+            hookInfo.mainDesktopHeader.replaceMethod({ showMusicWorld }) { null }
         }
         if (sPrefs.getBoolean("hide_vip_bubble", false)) {
-            hookInfo.userInfoHolder.clazz.from(classLoader)?.replaceMethod(
-                hookInfo.userInfoHolder.showBubble.name,
-                *hookInfo.userInfoHolder.showBubble.paramTypes
-            ) { null }
+            hookInfo.userInfoHolder.replaceMethod({ showBubble }) { null }
             hookInfo.vipAdBarData.from(classLoader)?.declaredConstructors
                 ?.find { m -> m.parameterTypes.let { it.size == 10 && it[8] == Boolean::class.javaPrimitiveType } }
                 ?.hookBeforeMethod { it.args[8] = true }
         }
         if (sPrefs.getBoolean("purify_live_guide", false)) {
-            hookInfo.topAreaDelegate.clazz.from(classLoader)?.run {
-                replaceMethod(hookInfo.topAreaDelegate.initLiveGuide.name) { null }
-                replaceMethod(
-                    hookInfo.topAreaDelegate.showCurListen.name,
-                    *hookInfo.topAreaDelegate.showCurListen.paramTypes
-                ) { null }
-            }
+            hookInfo.topAreaDelegate.replaceMethod({ initLiveGuide }) { null }
+            hookInfo.topAreaDelegate.replaceMethod({ showCurListen }) { null }
         }
         if (sPrefs.getBoolean("purify_share_guide", false)) {
-            hookInfo.topAreaDelegate.clazz.from(classLoader)?.replaceMethod(
-                hookInfo.topAreaDelegate.showShareGuide.name,
-                Int::class.javaPrimitiveType
-            ) { null }
+            hookInfo.topAreaDelegate.replaceMethod({ showShareGuide }) { null }
         }
         if (sPrefs.getBoolean("forbid_slide", false)) {
-            hookInfo.playViewModel.clazz.from(classLoader)?.hookBeforeMethod(
-                hookInfo.playViewModel.setCanSlide.name,
-                Boolean::class.javaPrimitiveType
-            ) { it.args[0] = false }
+            hookInfo.playViewModel.hookBeforeMethod({ setCanSlide }) { it.args[0] = false }
         }
         if (sPrefs.getBoolean("hide_ad_bar", false)) {
             hookInfo.adBar.clazz.from(classLoader)?.run {
@@ -72,32 +55,18 @@ object HomePageHook : BaseHook {
                 ?.replaceMethod("onTouch", View::class.java, MotionEvent::class.java) { false }
         }
         if (sPrefs.getBoolean("block_bottom_tips", false)) {
-            hookInfo.bottomTipController.clazz.from(classLoader)
-                ?.replaceMethod(hookInfo.bottomTipController.updateBottomTips.name) { null }
+            hookInfo.bottomTipController.replaceMethod({ updateBottomTips }) { null }
         }
         val blockCoverAds = sPrefs.getStringSet("block_cover_ads", null) ?: setOf()
         if (blockCoverAds.contains("video")) {
-            hookInfo.videoViewDelegate.clazz.from(classLoader)
-                ?.replaceMethod(hookInfo.videoViewDelegate.onResult.name) { null }
+            hookInfo.videoViewDelegate.replaceMethod({ onResult }) { null }
         }
         if (blockCoverAds.contains("genre")) {
-            hookInfo.genreViewDelegate.clazz.from(classLoader)
-                ?.replaceMethod(
-                    hookInfo.genreViewDelegate.onBind.name,
-                    *hookInfo.genreViewDelegate.onBind.paramTypes
-                ) { null }
-            hookInfo.topSongViewDelegate.clazz.from(classLoader)
-                ?.replaceMethod(
-                    hookInfo.topSongViewDelegate.onBind.name,
-                    *hookInfo.topSongViewDelegate.onBind.paramTypes
-                ) { null }
+            hookInfo.genreViewDelegate.replaceMethod({ onBind }) { null }
+            hookInfo.topSongViewDelegate.replaceMethod({ onBind }) { null }
         }
         if (sPrefs.getBoolean("block_user_guide", false)) {
-            hookInfo.userGuideViewDelegate.clazz.from(classLoader)
-                ?.replaceMethod(
-                    hookInfo.userGuideViewDelegate.showUserGuide.name,
-                    *hookInfo.userGuideViewDelegate.showUserGuide.paramTypes
-                ) { null }
+            hookInfo.userGuideViewDelegate.replaceMethod({ showUserGuide }) { null }
         }
     }
 }

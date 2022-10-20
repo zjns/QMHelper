@@ -7,9 +7,12 @@ import android.app.Dialog
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.kofua.qmhelper.data.*
 import me.kofua.qmhelper.utils.*
 import me.kofua.qmhelper.utils.BannerTips
+import org.json.JSONObject
 import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -51,7 +54,12 @@ class QMPackage private constructor() {
 
     val hookInfo = run {
         val (result, time) = measureTimedValue { readHookInfo() }
-        Log.d("Load hook info took $time")
+        Log.d("Load hook info took $time ms")
+        mainScope.launch(Dispatchers.IO) {
+            result.toJson()?.let {
+                JSONObject(it).toString(2)
+            }.let { Log.d("Loaded hook info:\n$it") }
+        }
         result
     }
 
@@ -135,7 +143,10 @@ class QMPackage private constructor() {
                     }
                 } ?: return@apply
                 clazz = clazz { name = resumeMethod.declaringClass.name }
-                resume = method { name = resumeMethod.name }
+                resume = method {
+                    name = resumeMethod.name
+                    paramTypes = resumeMethod.paramTypes
+                }
             }
             splashAdapter = clazz {
                 val splashAdapterClass =
@@ -162,7 +173,10 @@ class QMPackage private constructor() {
                     }
                 } ?: return@apply
                 clazz = clazz { name = initTabFragmentMethod.declaringClass.name }
-                initTabFragment = method { name = initTabFragmentMethod.name }
+                initTabFragment = method {
+                    name = initTabFragmentMethod.name
+                    paramTypes = initTabFragmentMethod.paramTypes
+                }
             }
             mainDesktopHeader = MainDesktopHeader().apply {
                 val clazz = "com.tencent.qqmusic.ui.MainDesktopHeader".from(classLoader)
@@ -189,8 +203,14 @@ class QMPackage private constructor() {
                     dexHelper.decodeMethodIndex(it)
                 } ?: return@apply
                 this.clazz = clazz { name = clazz.name }
-                addTabById = method { name = addTabByIdMethod.name }
-                addTabByName = method { name = addTabByNameMethod.name }
+                addTabById = method {
+                    name = addTabByIdMethod.name
+                    paramTypes = addTabByIdMethod.paramTypes
+                }
+                addTabByName = method {
+                    name = addTabByNameMethod.name
+                    paramTypes = addTabByNameMethod.paramTypes
+                }
                 showMusicWorld = method {
                     name = showMusicWorldMethod.name
                     paramTypes = showMusicWorldMethod.paramTypes
@@ -305,7 +325,10 @@ class QMPackage private constructor() {
                 }
                 baseSettingPack = BaseSettingPack().apply {
                     clazz = clazz { name = baseSettingPackClass.name }
-                    createSettingProvider = method { name = createSettingProviderMethod.name }
+                    createSettingProvider = method {
+                        name = createSettingProviderMethod.name
+                        paramTypes = createSettingProviderMethod.paramTypes
+                    }
                     host = field { name = hostField.name }
                 }
                 baseSettingProvider = BaseSettingProvider().apply {
@@ -313,9 +336,13 @@ class QMPackage private constructor() {
                     create = method { name = createMethod.name }
                     getSetting = method { name = getSettingMethod.name }
                 }
-                drawerSettingPack = DrawerSettingPackage().apply {
+                drawerSettingPack = DrawerSettingPack().apply {
                     clazz = clazz { name = initKolEnterMethod.declaringClass.name }
-                    initKolEnter = method { name = initKolEnterMethod.name }
+                    createSettingProvider = baseSettingPack.createSettingProvider
+                    initKolEnter = method {
+                        name = initKolEnterMethod.name
+                        paramTypes = initKolEnterMethod.paramTypes
+                    }
                 }
             }
             personalEntryView = PersonalEntryView().apply {
@@ -364,6 +391,7 @@ class QMPackage private constructor() {
                 val settingListField = settingFragmentClass
                     .findFieldByExactType(List::class.java) ?: return@apply
                 clazz = clazz { name = settingFragmentClass.name }
+                resume = baseFragment.resume
                 settingList = field { name = settingListField.name }
             }
             userInfoHolder = UserInfoHolder().apply {
@@ -396,16 +424,21 @@ class QMPackage private constructor() {
                     "[BaseABTester init]: need ABTestAnnotation"
                 ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
                     ?.declaringClass ?: return@apply
-                val getStrategyIdMethod = dexHelper.findMethodUsingString(
-                    "[getClientStrategyStrategyId]: this:"
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
                 val getPropertyMethod = clazz.declaredMethods.find {
                     it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java
                             && it.returnType != Void::class.javaPrimitiveType && it.isPublic
                 } ?: return@apply
                 this.clazz = clazz { name = clazz.name }
-                getProperty = method { name = getPropertyMethod.name }
-                strategyModule = clazz { name = getStrategyIdMethod.declaringClass.name }
+                getProperty = method {
+                    name = getPropertyMethod.name
+                    paramTypes = getPropertyMethod.paramTypes
+                }
+            }
+            strategyModule = StrategyModule().apply {
+                val getStrategyIdMethod = dexHelper.findMethodUsingString(
+                    "[getClientStrategyStrategyId]: this:"
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                clazz = clazz { name = getStrategyIdMethod.declaringClass.name }
                 getStrategyId = method {
                     name = getStrategyIdMethod.name
                     paramTypes = getStrategyIdMethod.paramTypes
@@ -427,12 +460,18 @@ class QMPackage private constructor() {
                     dexHelper.decodeMethodIndex(it)
                 } ?: return@apply
                 this.clazz = clazz { name = clazz.name }
-                initLiveGuide = method { name = initLiveGuideMethod.name }
+                initLiveGuide = method {
+                    name = initLiveGuideMethod.name
+                    paramTypes = initLiveGuideMethod.paramTypes
+                }
                 showCurListen = method {
                     name = showCurListenMethod.name
                     paramTypes = showCurListenMethod.paramTypes
                 }
-                showShareGuide = method { name = showShareGuideMethod.name }
+                showShareGuide = method {
+                    name = showShareGuideMethod.name
+                    paramTypes = showShareGuideMethod.paramTypes
+                }
             }
             playViewModel = PlayerViewModel().apply {
                 val clazz = "com.tencent.qqmusic.business.playernew.viewmodel.PlayerViewModel"
@@ -448,7 +487,10 @@ class QMPackage private constructor() {
                             .asSequence().firstNotNullOfOrNull { dexHelper.decodeMethodIndex(it) }
                     } ?: return@apply
                 this.clazz = clazz { name = clazz.name }
-                setCanSlide = method { name = setCanSlideMethod.name }
+                setCanSlide = method {
+                    name = setCanSlideMethod.name
+                    paramTypes = setCanSlideMethod.paramTypes
+                }
             }
             spManager = SpManager().apply {
                 val clazz = dexHelper.findMethodUsingString("SPManager").firstOrNull()
@@ -473,7 +515,10 @@ class QMPackage private constructor() {
                             && m.parameterTypes.let { it.size == 8 && it[0] == String::class.java && it[7] == Boolean::class.javaPrimitiveType }
                 } ?: return@apply
                 clazz = clazz { name = appStarterActivityClass.name }
-                doOnCreate = method { name = doOnCreateMethod.name }
+                doOnCreate = method {
+                    name = doOnCreateMethod.name
+                    paramTypes = doOnCreateMethod.paramTypes
+                }
                 addSecondFragment = method { name = addSecondFragmentMethod.name }
                 showMessageDialog = method { name = showMessageDialogMethod.name }
             }
@@ -530,7 +575,10 @@ class QMPackage private constructor() {
                     m.returnType == Boolean::class.javaPrimitiveType && m.parameterTypes.let { it.size == 1 && it[0] == String::class.java }
                 } ?: return@apply
                 this.clazz = clazz { name = clazz.name }
-                isThemeForbid = method { name = method.name }
+                isThemeForbid = method {
+                    name = method.name
+                    paramTypes = method.paramTypes
+                }
             }
             adBar = ApkDownloadAdBar().apply {
                 val clazz = "com.tencent.qqmusic.business.ad.topbarad.apkdownload.ApkDownloadAdBar"
@@ -591,14 +639,20 @@ class QMPackage private constructor() {
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
                     ?: return@apply
                 clazz = clazz { name = method.declaringClass.name }
-                updateBottomTips = method { name = method.name }
+                updateBottomTips = method {
+                    name = method.name
+                    paramTypes = method.paramTypes
+                }
             }
             videoViewDelegate = VideoViewDelegate().apply {
                 val method = dexHelper.findMethodUsingString("[onResult] show mv icon.")
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
                     ?: return@apply
                 clazz = clazz { name = method.declaringClass.name }
-                onResult = method { name = method.name }
+                onResult = method {
+                    name = method.name
+                    paramTypes = method.paramTypes
+                }
             }
             genreViewDelegate = GenreViewDelegate().apply {
                 val method = dexHelper.findMethodUsingString(
@@ -667,15 +721,20 @@ class QMPackage private constructor() {
                     it.isNotStatic && it.type == String::class.java
                 } ?: return@apply
                 clazz = clazz { name = c.name }
-                onHolderCreated = method { name = m.name }
+                onHolderCreated = method {
+                    name = m.name
+                    paramTypes = m.paramTypes
+                }
                 tvAlbumDetail = field { name = tvAlbumDetailField.name }
                 lastTextContent = field { name = lastTextContentField.name }
             }
-            albumTagViewHolder = clazz {
-                name = "com.tencent.qqmusic.albumdetail.ui.viewholders.AlbumTagViewHolder"
+            albumTagViewHolder = AlbumTagViewHolder().apply {
+                val clazz = "com.tencent.qqmusic.albumdetail.ui.viewholders.AlbumTagViewHolder"
                     .from(classLoader)?.name ?: dexHelper.findMethodUsingString("tvAlbumInfo")
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?.declaringClass?.name ?: return@clazz
+                    ?.declaringClass?.name ?: return@apply
+                this.clazz = clazz { name = clazz }
+                onHolderCreated = albumIntroViewHolder.onHolderCreated
             }
             settingView = SettingView().apply {
                 val clazz = "com.tencent.qqmusic.fragment.morefeatures.settings.view.SettingView"
@@ -686,12 +745,18 @@ class QMPackage private constructor() {
                 val method = clazz.declaredMethods.find { m ->
                     m.parameterTypes.let { it.size == 1 && it[0] == settingClass }
                 } ?: return@apply
-                this.clazz = clazz { name = clazz.name }
-                setSetting = method { name = method.name }
                 val setLastClickTimeMethod = clazz.declaredMethods.find { m ->
                     m.isSynthetic && m.parameterTypes.let { it.size == 2 && it[1] == Long::class.javaPrimitiveType }
                 } ?: return@apply
-                setLastClickTime = method { name = setLastClickTimeMethod.name }
+                this.clazz = clazz { name = clazz.name }
+                setSetting = method {
+                    name = method.name
+                    paramTypes = method.paramTypes
+                }
+                setLastClickTime = method {
+                    name = setLastClickTimeMethod.name
+                    paramTypes = setLastClickTimeMethod.paramTypes
+                }
             }
             fileUtils = FileUtils().apply {
                 val getSongNameIndex = dexHelper.findMethodUsingString(
@@ -706,7 +771,10 @@ class QMPackage private constructor() {
                     dexHelper.decodeMethodIndex(it)
                 } ?: return@apply
                 clazz = clazz { name = toValidFilenameMethod.declaringClass.name }
-                toValidFilename = method { name = toValidFilenameMethod.name }
+                toValidFilename = method {
+                    name = toValidFilenameMethod.name
+                    paramTypes = toValidFilenameMethod.paramTypes
+                }
             }
             storageVolume = clazz {
                 name = "com.tencent.qqmusiccommon.storage.StorageVolume".from(classLoader)?.name
@@ -719,7 +787,10 @@ class QMPackage private constructor() {
                     "StorageVolume From Android API SDK_INT : "
                 ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
                 clazz = clazz { name = getVolumesMethod.declaringClass.name }
-                getVolumes = method { name = getVolumesMethod.name }
+                getVolumes = method {
+                    name = getVolumesMethod.name
+                    paramTypes = getVolumesMethod.paramTypes
+                }
             }
             vipAdBarData = clazz {
                 name = dexHelper.findMethodUsingString("VipAdBarData(posId=").firstOrNull()
