@@ -54,7 +54,7 @@ class QMPackage private constructor() {
 
     val hookInfo = run {
         val (result, time) = measureTimedValue { readHookInfo() }
-        Log.d("Load hook info took $time ms")
+        Log.d("Load hook info took $time")
         mainScope.launch(Dispatchers.IO) {
             result.toJson()?.let {
                 JSONObject(it).toString(2)
