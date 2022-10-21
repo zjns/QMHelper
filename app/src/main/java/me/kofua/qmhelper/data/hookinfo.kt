@@ -16,7 +16,7 @@ class Class : Element()
 class Field : Element()
 class Method(var paramTypes: Array<String> = arrayOf()) : Element()
 
-open class ClassInfo(var clazz: Class = clazz { }) : Serializable
+sealed class ClassInfo(var clazz: Class = clazz { }) : Serializable
 
 class BaseFragment(var resume: Method = method { }) : ClassInfo()
 

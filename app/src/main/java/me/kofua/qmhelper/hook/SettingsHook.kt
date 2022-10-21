@@ -95,7 +95,7 @@ object SettingsHook : BaseHook {
                     viewGroup.setPadding(0, 6.dp, 0, 6.dp)
             }
         }
-        hookInfo.settingView.hookAfterMethod({ setLastClickTime }) { it.args[1] = 0L }
+        hookInfo.settingView.hookBeforeMethod({ setLastClickTime }) { it.args[1] = 0L }
         @Suppress("UNCHECKED_CAST")
         hookInfo.setting.drawerSettingPack.hookAfterMethod({ createSettingProvider }) { param ->
             val settingProviders = param.result as CopyOnWriteArrayList<Any?>
