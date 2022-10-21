@@ -3,11 +3,14 @@ package me.kofua.qmhelper.utils
 import android.annotation.SuppressLint
 import android.app.AndroidAppHelper
 import android.content.*
+import android.content.pm.PackageManager
+import android.content.pm.PackageManager.NameNotFoundException
 import android.net.Uri
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.DocumentsContract
+import android.util.Base64
 import androidx.annotation.ArrayRes
 import androidx.annotation.StringRes
 import kotlinx.coroutines.MainScope
@@ -16,6 +19,7 @@ import me.kofua.qmhelper.XposedInit.Companion.moduleRes
 import me.kofua.qmhelper.classLoader
 import me.kofua.qmhelper.from
 import me.kofua.qmhelper.hookInfo
+import org.json.JSONObject
 import java.io.File
 import java.lang.ref.WeakReference
 import kotlin.reflect.KProperty
@@ -157,3 +161,30 @@ inline fun <C : CharSequence, R> C?.ifNotEmpty(action: (text: C) -> R) =
 fun String.toUri(): Uri = Uri.parse(this)
 
 fun Context.addModuleAssets() = assets.callMethod("addAssetPath", modulePath)
+
+fun isPackageInstalled(packageName: String) = try {
+    systemContext.packageManager.getPackageInfo(packageName, 0)
+    true
+} catch (_: NameNotFoundException) {
+    false
+}
+
+fun isFakeSigEnabledFor(packageName: String): Boolean {
+    try {
+        val metaData = systemContext.packageManager
+            .getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+            .metaData
+        val encoded = metaData.getString("lspatch")
+        if (encoded != null) {
+            val json = Base64.decode(encoded, Base64.DEFAULT).toString(Charsets.UTF_8)
+            val patchConfig = JSONObject(json)
+            val sigBypassLevel = patchConfig.optInt("sigBypassLevel", -1)
+            val lspVerCode = patchConfig.optJSONObject("lspConfig")
+                ?.optInt("VERSION_CODE", -1) ?: -1
+            if (sigBypassLevel >= 1 && lspVerCode >= 339)
+                return true
+        }
+    } catch (_: Throwable) {
+    }
+    return false
+}
