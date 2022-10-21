@@ -3,7 +3,6 @@ package me.kofua.qmhelper.hook
 import android.content.pm.PackageManager
 import android.util.Base64
 import me.kofua.qmhelper.hookInfo
-import me.kofua.qmhelper.utils.Log
 import me.kofua.qmhelper.utils.hookBeforeMethod
 import me.kofua.qmhelper.utils.systemContext
 import org.json.JSONObject
@@ -31,8 +30,7 @@ object WebLoginHook : BaseHook {
                 if (sigBypassLevel > 0 && lspVerCode >= 339)
                     return true
             }
-        } catch (t: Throwable) {
-            Log.e(t)
+        } catch (_: Throwable) {
         }
         return false
     }
