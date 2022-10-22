@@ -113,4 +113,6 @@
     <string name="prefs_purify_share_guide_summary">隐藏播放页右上角分享引导动画图标</string>
     <string name="prefs_block_common_ads_title">屏蔽所有三方推广</string>
     <string name="prefs_block_common_ads_summary">屏蔽所有带有标记的三方推广，涵盖轮播图、播放页封面等</string>
+    <string name="prefs_global_light_effect_title">禁用律动光效</string>
+    <string name="prefs_global_light_effect_summary">禁用播放页律动光效</string>
 </resources>

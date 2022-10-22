@@ -152,6 +152,14 @@ class SettingPack {
             R.string.prefs_block_common_ads_title,
             R.string.prefs_block_common_ads_summary
         )?.let { add(it) }
+        Setting.switch(
+            R.string.prefs_global_light_effect_title,
+            R.string.prefs_global_light_effect_summary,
+            isSwitchOn = { !qmSp.getBoolean("KEY_GLOBAL_LIGHT_EFFECT_SWITCH", true) },
+            onSwitchChanged = { enabled ->
+                qmSp.edit { putBoolean("KEY_GLOBAL_LIGHT_EFFECT_SWITCH", !enabled) }
+            }
+        )?.also { add(it) }
 
         Setting.category(R.string.prefs_category_misc)
             ?.let { add(it) }
