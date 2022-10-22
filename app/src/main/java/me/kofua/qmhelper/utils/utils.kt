@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package me.kofua.qmhelper.utils
 
 import android.annotation.SuppressLint
@@ -45,21 +47,23 @@ val systemContext: Context
     }
 
 fun getPackageVersion(packageName: String) = try {
-    @Suppress("DEPRECATION")
     systemContext.packageManager.getPackageInfo(packageName, 0).run {
-        String.format("${packageName}@%s(%s)", versionName, getVersionCode(packageName))
+        "${packageName}@%s(%s)".format(versionName, versionCode)
     }
-} catch (e: Throwable) {
-    Log.e(e)
+} catch (_: Throwable) {
     "(unknown)"
 }
 
 fun getVersionCode(packageName: String) = try {
-    @Suppress("DEPRECATION")
     systemContext.packageManager.getPackageInfo(packageName, 0).versionCode
-} catch (e: Throwable) {
-    Log.e(e)
+} catch (_: Throwable) {
     -1
+}
+
+fun getPackageLastUpdateTime(packageName: String) = try {
+    systemContext.packageManager.getPackageInfo(packageName, 0).lastUpdateTime
+} catch (_: Throwable) {
+    0
 }
 
 val currentContext by lazy { AndroidAppHelper.currentApplication() as Context }
@@ -74,11 +78,9 @@ val logFile by lazy { File(currentContext.externalCacheDir, "log.txt") }
 
 val oldLogFile by lazy { File(currentContext.externalCacheDir, "old_log.txt") }
 
-@Suppress("DEPRECATION")
 val sPrefs
     get() = currentContext.getSharedPreferences("qmhelper", Context.MODE_MULTI_PROCESS)!!
 
-@Suppress("DEPRECATION")
 val sCaches
     get() = currentContext.getSharedPreferences("qmhelper_cache", Context.MODE_MULTI_PROCESS)!!
 

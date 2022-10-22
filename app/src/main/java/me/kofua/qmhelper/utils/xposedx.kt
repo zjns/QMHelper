@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("UNUSED", "UNCHECKED_CAST")
 
 package me.kofua.qmhelper.utils
 
@@ -42,10 +42,8 @@ fun Any.getObjectFieldOrNull(field: Field): Any? = runCatchingOrNull {
     getObjectField(this, field.name)
 }
 
-@Suppress("UNCHECKED_CAST")
 fun <T> Any.getObjectFieldAs(field: Field) = getObjectField(this, field.name) as T
 
-@Suppress("UNCHECKED_CAST")
 fun <T> Any.getObjectFieldOrNullAs(field: Field) = runCatchingOrNull {
     getObjectField(this, field.name) as T
 }
@@ -75,11 +73,9 @@ fun Any.callMethodOrNull(method: Method, vararg args: Any?): Any? = runCatchingO
     callMethod(this, method.name, *args)
 }
 
-@Suppress("UNCHECKED_CAST")
 fun <T> Any.callMethodAs(method: Method, vararg args: Any?) =
     callMethod(this, method.name, *args) as T
 
-@Suppress("UNCHECKED_CAST")
 fun <T> Any.callMethodOrNullAs(method: Method, vararg args: Any?) = runCatchingOrNull {
     callMethod(this, method.name, *args) as T
 }
@@ -92,21 +88,17 @@ fun Class<*>.callStaticMethodOrNull(method: Method, vararg args: Any?): Any? =
         callStaticMethod(this, method.name, *args)
     }
 
-@Suppress("UNCHECKED_CAST")
 fun <T> Class<*>.callStaticMethodAs(method: Method, vararg args: Any?) =
     callStaticMethod(this, method.name, *args) as T
 
-@Suppress("UNCHECKED_CAST")
 fun <T> Class<*>.callStaticMethodOrNullAs(method: Method, vararg args: Any?) =
     runCatchingOrNull {
         callStaticMethod(this, method.name, *args) as T
     }
 
-@Suppress("UNCHECKED_CAST")
 fun <T> Class<*>.getStaticObjectFieldAs(field: Field) =
     getStaticObjectField(this, field.name) as T
 
-@Suppress("UNCHECKED_CAST")
 fun <T> Class<*>.getStaticObjectFieldOrNullAs(field: Field) = runCatchingOrNull {
     getStaticObjectField(this, field.name) as T
 }

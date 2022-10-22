@@ -6,16 +6,12 @@ import me.kofua.qmhelper.utils.isFakeSigEnabledFor
 import me.kofua.qmhelper.utils.isPackageInstalled
 
 object WebLoginHook : BaseHook {
-    private const val PACKAGE_QQ = "com.tencent.mobileqq"
-    private const val PACKAGE_TIM = "com.tencent.tim"
+    private val loginClients = arrayOf("com.tencent.mobileqq", "com.tencent.tim")
 
     override fun hook() {
         hookInfo.authAgent.hookBeforeMethod({ startActionActivity }) { param ->
-            if (isPackageInstalled(PACKAGE_QQ)) {
-                if (!isFakeSigEnabledFor(PACKAGE_QQ))
-                    param.result = false
-            } else if (isPackageInstalled(PACKAGE_TIM)) {
-                if (!isFakeSigEnabledFor(PACKAGE_TIM))
+            loginClients.find { isPackageInstalled(it) }?.let {
+                if (!isFakeSigEnabledFor(it))
                     param.result = false
             }
         }

@@ -1,4 +1,3 @@
-
 import com.android.build.api.artifact.ArtifactTransformationRequest
 import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.BuiltArtifact

@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package me.kofua.qmhelper
 
 import android.app.Activity
@@ -69,18 +67,12 @@ class QMPackage private constructor() {
             Log.d("Reading hook info: $hookInfoFile")
             val start = System.currentTimeMillis()
             if (hookInfoFile.isFile && hookInfoFile.canRead()) {
-                val lastUpdateTime = currentContext.packageManager.getPackageInfo(
-                    hostPackageName, 0
-                ).lastUpdateTime
-                val lastModuleUpdateTime = try {
-                    currentContext.packageManager.getPackageInfo(BuildConfig.APPLICATION_ID, 0)
-                } catch (e: Throwable) {
-                    null
-                }?.lastUpdateTime ?: 0
+                val lastUpdateTime = getPackageLastUpdateTime(hostPackageName)
+                val lastModuleUpdateTime = getPackageLastUpdateTime(BuildConfig.APPLICATION_ID)
                 val info = hookInfoFile.inputStream().use {
                     runCatchingOrNull { ObjectInputStream(it).readAny<HookInfo>() } ?: HookInfo()
                 }
-                if (info.lastUpdateTime >= lastUpdateTime && info.lastUpdateTime >= lastModuleUpdateTime
+                if (info.lastUpdateTime >= max(lastUpdateTime, lastModuleUpdateTime)
                     && getVersionCode(hostPackageName) == info.clientVersionCode
                     && BuildConfig.VERSION_CODE == info.moduleVersionCode
                     && BuildConfig.VERSION_NAME == info.moduleVersionName
@@ -122,10 +114,8 @@ class QMPackage private constructor() {
             }
             val dexHelper = DexHelper(classLoader.findDexClassLoader() ?: return@out)
             lastUpdateTime = max(
-                currentContext.packageManager.getPackageInfo(hostPackageName, 0).lastUpdateTime,
-                runCatchingOrNull {
-                    currentContext.packageManager.getPackageInfo(BuildConfig.APPLICATION_ID, 0)
-                }?.lastUpdateTime ?: 0
+                getPackageLastUpdateTime(hostPackageName),
+                getPackageLastUpdateTime(BuildConfig.APPLICATION_ID)
             )
             clientVersionCode = getVersionCode(hostPackageName)
             moduleVersionCode = BuildConfig.VERSION_CODE

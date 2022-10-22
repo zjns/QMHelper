@@ -41,30 +41,30 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                     Log.d("Config: ${sPrefs.all}")
 
                     preloadProxyClasses()
-                    val debugHookers = if (BuildConfig.DEBUG) {
+                    val debugHooks = if (BuildConfig.DEBUG) {
                         listOf(SSLHook, DebugHook, ABTesterHook)
                     } else listOf()
-                    val buildInHookers = if (isBuiltIn) {
+                    val buildInHooks = if (isBuiltIn) {
                         listOf(WebLoginHook)
                     } else listOf()
-                    val normalHookers = listOf(
+                    val normalHooks = listOf(
                         SettingsHook, SplashHook, HomeTopTabHook,
                         HomePageHook, CgiHook, CopyHook,
                         MiscHook, CommonAdsHook
                     )
-                    val allHookers = buildList {
-                        addAll(debugHookers)
-                        addAll(buildInHookers)
-                        addAll(normalHookers)
+                    val allHooks = buildList {
+                        addAll(debugHooks)
+                        addAll(buildInHooks)
+                        addAll(normalHooks)
                     }
-                    startHook(allHookers)
+                    startHook(allHooks)
                 }
             }
         }
     }
 
-    private fun startHook(hookers: List<BaseHook>) {
-        hookers.forEach {
+    private fun startHook(hooks: List<BaseHook>) {
+        hooks.forEach {
             try {
                 it.hook()
             } catch (t: Throwable) {
