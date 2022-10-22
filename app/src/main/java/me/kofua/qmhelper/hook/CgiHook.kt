@@ -3,6 +3,7 @@ package me.kofua.qmhelper.hook
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.hookInfo
 import me.kofua.qmhelper.utils.*
+import org.json.JSONArray
 import org.json.JSONObject
 
 object CgiHook : BaseHook {
@@ -12,6 +13,7 @@ object CgiHook : BaseHook {
         val blockCommentBanners = sPrefs.getBoolean("block_comment_banners", false)
         val removeCommentRecommend = sPrefs.getBoolean("remove_comment_recommend", false)
         val removeMineKol = sPrefs.getBoolean("remove_mine_kol", false)
+        val moveDownRecently = sPrefs.getBoolean("move_down_recently", false)
 
         hookInfo.jsonRespParser.hookBeforeMethod({ parseModuleItem }) { param ->
             val path = param.args[1] as? String
@@ -92,6 +94,29 @@ object CgiHook : BaseHook {
                     param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
                         ?: return@hookBeforeMethod
                 }
+            } else if (path == "music.individuation.Recommend.GetRecommend" && moveDownRecently) {
+                val json = param.args[2]?.toString() ?: return@hookBeforeMethod
+                val jo = json.runCatchingOrNull { toJSONObject() } ?: return@hookBeforeMethod
+                val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@hookBeforeMethod
+                val shelfList = data.optJSONArray("v_shelf") ?: return@hookBeforeMethod
+                var recentJson: JSONObject? = null
+                val newShelf = JSONArray()
+                for (item in shelfList.asSequence<JSONObject>()) {
+                    val title = item.optString("title_content")
+                    if (title != "最近播放" && title != "收藏歌单") {
+                        newShelf.put(item)
+                    } else if (title == "最近播放") {
+                        recentJson = item
+                    } else if (title == "收藏歌单") {
+                        newShelf.put(item)
+                        recentJson?.let {
+                            newShelf.put(it)
+                        }
+                    }
+                }
+                data.put("v_shelf", newShelf)
+                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
+                    ?: return@hookBeforeMethod
             }
         }
     }

@@ -160,6 +160,11 @@ class SettingPack {
                 qmSp.edit { putBoolean("KEY_GLOBAL_LIGHT_EFFECT_SWITCH", !enabled) }
             }
         )?.also { add(it) }
+        Setting.switch(
+            "move_down_recently",
+            R.string.prefs_move_down_recently_title,
+            R.string.prefs_move_down_recently_summary
+        )?.also { add(it) }
 
         Setting.category(R.string.prefs_category_misc)
             ?.let { add(it) }
