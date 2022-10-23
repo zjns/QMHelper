@@ -48,9 +48,16 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                         listOf(WebLoginHook)
                     } else listOf()
                     val normalHooks = listOf(
-                        SettingsHook, SplashHook, HomeTopTabHook,
-                        HomePageHook, CgiHook, CopyHook,
-                        MiscHook, CommonAdsHook
+                        SettingsHook,
+                        SplashHook,
+                        HomeTopTabHook,
+                        HomePageHook,
+                        CgiHook,
+                        CopyHook,
+                        MiscHook,
+                        CommonAdsHook,
+                        WebViewHook,
+                        JceHook
                     )
                     val allHooks = buildList {
                         addAll(debugHooks)

@@ -1,5 +1,6 @@
 package me.kofua.qmhelper.hook
 
+import me.kofua.qmhelper.BuildConfig
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.hookInfo
 import me.kofua.qmhelper.utils.*
@@ -8,15 +9,21 @@ import org.json.JSONObject
 
 object CgiHook : BaseHook {
     override fun hook() {
+        val hidden = sPrefs.getBoolean("hidden", false)
         val blockLive = sPrefs.getBoolean("block_live", false)
         val purifySearch = sPrefs.getStringSet("purify_search", null) ?: setOf()
         val blockCommentBanners = sPrefs.getBoolean("block_comment_banners", false)
         val removeCommentRecommend = sPrefs.getBoolean("remove_comment_recommend", false)
         val removeMineKol = sPrefs.getBoolean("remove_mine_kol", false)
         val moveDownRecently = sPrefs.getBoolean("move_down_recently", false)
+        val unlockTheme = sPrefs.getBoolean("unlock_theme", false)
 
         hookInfo.jsonRespParser.hookBeforeMethod({ parseModuleItem }) { param ->
             val path = param.args[1] as? String
+            if (BuildConfig.DEBUG && path != "traceid") {
+                val json = param.args[2]?.toString() ?: return@hookBeforeMethod
+                Log.d("net.cgi, path: $path, json: $json")
+            }
             if (path == "music.recommend.RecommendFeed.get_recommend_feed" && blockLive) {
                 val json = param.args[2]?.toString() ?: return@hookBeforeMethod
                 val jo = json.runCatchingOrNull { toJSONObject() } ?: return@hookBeforeMethod
@@ -101,7 +108,7 @@ object CgiHook : BaseHook {
                 val shelfList = data.optJSONArray("v_shelf") ?: return@hookBeforeMethod
                 var recentJson: JSONObject? = null
                 val newShelf = JSONArray()
-                for (item in shelfList.asSequence<JSONObject>()) {
+                for (item in shelfList) {
                     val title = item.optString("title_content")
                     if (title != "最近播放" && title != "收藏歌单") {
                         newShelf.put(item)
@@ -115,6 +122,17 @@ object CgiHook : BaseHook {
                     }
                 }
                 data.put("v_shelf", newShelf)
+                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
+                    ?: return@hookBeforeMethod
+            } else if (path == "Personal.PersonalCenterV2.get_subject_info" && hidden && unlockTheme) {
+                val json = param.args[2]?.toString() ?: return@hookBeforeMethod
+                val jo = json.runCatchingOrNull { toJSONObject() } ?: return@hookBeforeMethod
+                val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@hookBeforeMethod
+                val themeList = data.optJSONArray("vlist") ?: return@hookBeforeMethod
+                data.optJSONObject("alert")?.put("revertTheme", 0)
+                for (item in themeList) {
+                    item.put("enable", 1)
+                }
                 param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
                     ?: return@hookBeforeMethod
             }

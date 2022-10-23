@@ -188,6 +188,8 @@ class AdResponseDataItem(var getAds: List<Method> = listOf()) : ClassInfo()
 
 class AdResponseData(var item: List<AdResponseDataItem> = listOf()) : Serializable
 
+class JceResponseConverter(var parse: Method = defMethod) : ClassInfo()
+
 class HookInfo : Serializable {
     var lastUpdateTime: Long = 0L
     var clientVersionCode: Int = 0
@@ -234,4 +236,5 @@ class HookInfo : Serializable {
     var vipAdBarData: Class = defClazz
     var skinManager: SkinManager = SkinManager()
     var adResponseData: AdResponseData = AdResponseData()
+    var jceRespConverter: JceResponseConverter = JceResponseConverter()
 }

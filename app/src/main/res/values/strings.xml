@@ -117,4 +117,5 @@
     <string name="prefs_global_light_effect_summary">禁用播放页律动光效</string>
     <string name="prefs_move_down_recently_title">下移最近播放</string>
     <string name="prefs_move_down_recently_summary">我的页面将最近播放位置下移到收藏歌单下</string>
+    <string name="prefs_unlock_theme_title">解锁所有装扮</string>
 </resources>

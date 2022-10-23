@@ -198,6 +198,10 @@ class SettingPack {
             Setting.button(R.string.prefs_decrypt_downloads_title) {
                 onDecryptButtonClicked()
             }?.let { add(it) }
+            Setting.switch(
+                "unlock_theme",
+                R.string.prefs_unlock_theme_title
+            )?.let { add(it) }
         }
 
         Setting.category(R.string.prefs_category_settings)

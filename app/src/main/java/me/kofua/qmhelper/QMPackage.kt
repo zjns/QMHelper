@@ -809,6 +809,16 @@ class QMPackage private constructor() {
                     }
                 }.let { item = it }
             }
+            jceRespConverter = JceResponseConverter().apply {
+                val parseMethod = dexHelper.findMethodUsingString(
+                    "JceResponseItemConverter"
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                clazz = clazz { name = parseMethod.declaringClass.name }
+                parse = method {
+                    name = parseMethod.name
+                    paramTypes = parseMethod.paramTypes
+                }
+            }
 
             dexHelper.close()
         }
