@@ -49,6 +49,11 @@ class SettingPack {
             R.string.prefs_copy_enhance_title,
             R.string.prefs_copy_enhance_summary,
         )?.let { add(it) }
+        Setting.switch(
+            "daily_sign_in",
+            R.string.prefs_daily_sign_in_title,
+            R.string.prefs_daily_sign_in_summary
+        )?.let { add(it) }
 
         Setting.category(R.string.prefs_category_purify)
             ?.let { add(it) }

@@ -5,10 +5,10 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import me.kofua.qmhelper.BuildConfig
+import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.utils.*
 
 object WebViewHook : BaseHook {
-    private val x5WebViewClass by Weak { "com.tencent.smtt.sdk.WebView" from classLoader }
     private val hidden by lazy { sPrefs.getBoolean("hidden", false) }
     private val unlockTheme by lazy { sPrefs.getBoolean("unlock_theme", false) }
 
@@ -67,8 +67,8 @@ object WebViewHook : BaseHook {
             }
         }
         if (BuildConfig.DEBUG)
-            x5WebViewClass?.callStaticMethod("setWebContentsDebuggingEnabled", true)
-        x5WebViewClass?.hookBeforeMethod(
+            instance.x5WebViewClass?.callStaticMethod("setWebContentsDebuggingEnabled", true)
+        instance.x5WebViewClass?.hookBeforeMethod(
             "setWebViewClient",
             "com.tencent.smtt.sdk.WebViewClient"
         ) { param ->
@@ -78,7 +78,7 @@ object WebViewHook : BaseHook {
             try {
                 clazz.getDeclaredMethod(
                     "onPageStarted",
-                    x5WebViewClass,
+                    instance.x5WebViewClass,
                     String::class.java,
                     Bitmap::class.java
                 ).hookBeforeMethod(hooker)

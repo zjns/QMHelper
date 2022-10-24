@@ -112,6 +112,9 @@ val qmSp by lazy {
     hookInfo.spManager.clazz.from(classLoader)
         ?.callStaticMethodAs<SharedPreferences>(hookInfo.spManager.get) ?: sPrefs
 }
+val sessionCacheSp: SharedPreferences by lazy {
+    currentContext.getSharedPreferences("MusicSessionCache", Context.MODE_MULTI_PROCESS)
+}
 
 val handler = Handler(Looper.getMainLooper())
 val mainScope = MainScope()

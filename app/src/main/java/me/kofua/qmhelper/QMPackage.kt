@@ -49,6 +49,10 @@ class QMPackage private constructor() {
     val jsonObjectClass by Weak { hookInfo.gson.jsonObject from classLoader }
     val appStarterActivityClass by Weak { hookInfo.appStarterActivity.clazz from classLoader }
     val storageVolumeClass by Weak { hookInfo.storageVolume from classLoader }
+    val webRequestHeadersClass by Weak { hookInfo.webRequestHeaders.clazz from classLoader }
+    val x5WebViewClass by Weak { "com.tencent.smtt.sdk.WebView" from classLoader }
+    val userManagerClass by Weak { hookInfo.userManager.clazz from classLoader }
+    val mERJniClass by Weak { "com.tencent.qqmusic.modular.framework.encrypt.logic.MERJni" from classLoader }
 
     val hookInfo = run {
         val (result, time) = measureTimedValue { readHookInfo() }
@@ -818,6 +822,37 @@ class QMPackage private constructor() {
                     name = parseMethod.name
                     paramTypes = parseMethod.paramTypes
                 }
+            }
+            webRequestHeaders = WebRequestHeaders().apply {
+                val getUAMethod = dexHelper.findMethodUsingString(
+                    " ReleasedForAndroid["
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                val clazz = getUAMethod.declaringClass
+                val getCookiesMethod = clazz.declaredMethods.find { m ->
+                    m.returnType == String::class.java && m.parameterTypes.let { it.size == 1 && it[0] == String::class.java }
+                } ?: return@apply
+                val instanceField = clazz.declaredFields.find { it.type == clazz } ?: return@apply
+                this.clazz = clazz { name = clazz.name }
+                instance = field { name = instanceField.name }
+                getCookies = method { name = getCookiesMethod.name }
+                getUA = method { name = getUAMethod.name }
+            }
+            userManager = UserManager().apply {
+                val getMusicUinMethod = dexHelper.findMethodUsingString("getMusicUin")
+                    .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                val clazz = getMusicUinMethod.declaringClass
+                val getMethod = clazz.declaredMethods.find {
+                    it.isStatic && it.returnType == clazz && it.parameterTypes.isEmpty()
+                } ?: return@apply
+                val clazzIndex = dexHelper.encodeClassIndex(clazz)
+                val isLoginMethod = dexHelper.findMethodUsingString(
+                    "isLogin",
+                    declaringClass = clazzIndex
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                this.clazz = clazz { name = clazz.name }
+                get = method { name = getMethod.name }
+                getMusicUin = method { name = getMusicUinMethod.name }
+                isLogin = method { name = isLoginMethod.name }
             }
 
             dexHelper.close()

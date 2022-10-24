@@ -190,6 +190,18 @@ class AdResponseData(var item: List<AdResponseDataItem> = listOf()) : Serializab
 
 class JceResponseConverter(var parse: Method = defMethod) : ClassInfo()
 
+class WebRequestHeaders : ClassInfo() {
+    var instance: Field = defField
+    var getCookies: Method = defMethod
+    var getUA: Method = defMethod
+}
+
+class UserManager : ClassInfo() {
+    var get: Method = defMethod
+    var getMusicUin: Method = defMethod
+    var isLogin: Method = defMethod
+}
+
 class HookInfo : Serializable {
     var lastUpdateTime: Long = 0L
     var clientVersionCode: Int = 0
@@ -237,4 +249,6 @@ class HookInfo : Serializable {
     var skinManager: SkinManager = SkinManager()
     var adResponseData: AdResponseData = AdResponseData()
     var jceRespConverter: JceResponseConverter = JceResponseConverter()
+    var webRequestHeaders: WebRequestHeaders = WebRequestHeaders()
+    var userManager: UserManager = UserManager()
 }

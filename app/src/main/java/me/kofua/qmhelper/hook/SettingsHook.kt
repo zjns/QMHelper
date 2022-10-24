@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import android.widget.TextView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.R
 import me.kofua.qmhelper.from
@@ -16,6 +18,9 @@ import me.kofua.qmhelper.setting.Setting
 import me.kofua.qmhelper.setting.SettingPack
 import me.kofua.qmhelper.utils.*
 import java.lang.reflect.InvocationHandler
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.CopyOnWriteArrayList
 
 object SettingsHook : BaseHook {
@@ -29,13 +34,18 @@ object SettingsHook : BaseHook {
             ?.declaredFields?.filter { it.type == TextView::class.java }
             ?.map { it.name } ?: listOf()
     }
+    private val todayFormat: String
+        get() = SimpleDateFormat("yyyy-MM-dd", Locale.CHINA)
+            .format(Date())
 
     override fun hook() {
         hookInfo.appStarterActivity.hookAfterMethod({ doOnCreate }) { param ->
             val activity = param.thisObject as Activity
-            settingPack.activity = activity
             activity.addModuleAssets()
+            settingPack.activity = activity
             settingPack.checkUpdate(dialog = false)
+            if (sPrefs.getBoolean("daily_sign_in", false))
+                handler.postDelayed({ dailySignIn() }, 8000L)
             if (uiMode == UiMode.NORMAL && !sPrefs.getBoolean("ui_mode_hint", false)) {
                 handler.postDelayed({
                     activity.showMessageDialog(
@@ -193,5 +203,34 @@ object SettingsHook : BaseHook {
             moduleSettingFragmentClass, null
         )
         unhook?.unhook()
+    }
+
+    private fun dailySignIn() {
+        val recordKey = "${uin()}_daily_sign_in_record"
+        if (!isLogin() || sCaches.getString(recordKey, null) == todayFormat)
+            return
+        mainScope.launch(Dispatchers.IO) {
+            runCatching {
+                val url = "https://u.y.qq.com/cgi-bin/musics.fcg?_webcgikey=doSignIn"
+                webJsonPost(
+                    url,
+                    "music.actCenter.DaysignactSvr",
+                    "doSignIn",
+                    mapOf("date" to "")
+                )
+            }.onFailure {
+                Log.e(it)
+            }.onSuccess {
+                val response = it?.runCatchingOrNull { toJSONObject() } ?: return@launch
+                val code = response.optJSONObject("req_0")
+                    ?.optJSONObject("data")?.optInt("code") ?: return@launch
+                if (code == 0) {
+                    sCaches.edit { putString(recordKey, todayFormat) }
+                    BannerTips.success(R.string.daily_sign_in_success)
+                } else if (code == 2) {
+                    sCaches.edit { putString(recordKey, todayFormat) }
+                }
+            }
+        }
     }
 }

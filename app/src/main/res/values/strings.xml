@@ -118,4 +118,7 @@
     <string name="prefs_move_down_recently_title">下移最近播放</string>
     <string name="prefs_move_down_recently_summary">我的页面将最近播放位置下移到收藏歌单下</string>
     <string name="prefs_unlock_theme_title">解锁所有装扮</string>
+    <string name="prefs_daily_sign_in_title">自动签到</string>
+    <string name="prefs_daily_sign_in_summary">APP启动后每天自动签到一次</string>
+    <string name="daily_sign_in_success">自动签到完成！</string>
 </resources>
