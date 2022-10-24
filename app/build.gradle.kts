@@ -1,7 +1,5 @@
-import com.android.build.api.artifact.ArtifactTransformationRequest
-import com.android.build.api.artifact.SingleArtifact
-import com.android.build.api.variant.BuiltArtifact
 import org.gradle.internal.os.OperatingSystem
+import java.io.ByteArrayOutputStream
 import java.nio.file.Paths
 import java.util.Properties
 
@@ -25,10 +23,23 @@ val releaseStorePassword: String? by rootProject
 val releaseKeyAlias: String? by rootProject
 val releaseKeyPassword: String? by rootProject
 
-val appVerCode: String by rootProject
 val appVerName: String by rootProject
+val buildWithGitSuffix: String by rootProject
 
 val kotlinVersion: String by rootProject
+
+val gitCommitCount = "git rev-list HEAD --count".execute().toInt()
+val gitCommitHash = "git rev-parse --verify --short HEAD".execute()
+
+fun String.execute(currentWorkingDir: File = file("./")): String {
+    val byteOut = ByteArrayOutputStream()
+    exec {
+        workingDir = currentWorkingDir
+        commandLine = split(' ')
+        standardOutput = byteOut
+    }
+    return String(byteOut.toByteArray()).trim()
+}
 
 android {
     namespace = "me.kofua.qmhelper"
@@ -39,8 +50,11 @@ android {
         applicationId = "me.kofua.qmhelper"
         minSdk = 23
         targetSdk = 33
-        versionCode = appVerCode.toInt()
+        versionCode = gitCommitCount
         versionName = appVerName
+
+        if (buildWithGitSuffix.toBoolean())
+            versionNameSuffix = ".r$gitCommitCount.$gitCommitHash"
 
         externalNativeBuild {
             cmake {
@@ -199,36 +213,19 @@ android {
     }
 }
 
-abstract class CopyApksTask : DefaultTask() {
-    @get:Internal
-    abstract val transformer: Property<(input: BuiltArtifact) -> File>
+afterEvaluate {
+    android.applicationVariants.forEach { variant ->
+        if (variant.name != "release") return@forEach
+        val variantCapped = variant.name.capitalize()
+        val packageTask = tasks["package$variantCapped"]
 
-    @get:InputDirectory
-    abstract val apkFolder: DirectoryProperty
-
-    @get:OutputDirectory
-    abstract val outFolder: DirectoryProperty
-
-    @get:Internal
-    abstract val transformationRequest: Property<ArtifactTransformationRequest<CopyApksTask>>
-
-    @TaskAction
-    fun taskAction() = transformationRequest.get().submit(this) { builtArtifact ->
-        File(builtArtifact.outputFile).copyTo(transformer.get()(builtArtifact), true)
-    }
-}
-
-androidComponents.onVariants { variant ->
-    if (variant.name != "release") return@onVariants
-    val updateArtifact = project.tasks.register<CopyApksTask>("copy${variant.name.capitalize()}Apk")
-    val transformationRequest = variant.artifacts.use(updateArtifact)
-        .wiredWithDirectories(CopyApksTask::apkFolder, CopyApksTask::outFolder)
-        .toTransformMany(SingleArtifact.APK)
-    updateArtifact.configure {
-        this.transformationRequest.set(transformationRequest)
-        transformer.set { builtArtifact ->
-            File(projectDir, "${variant.name}/QMHelper_${builtArtifact.versionName}.apk")
-        }
+        task<Sync>("sync${variantCapped}Apk") {
+            into(variant.name)
+            from(packageTask.outputs) {
+                include("*.apk")
+                rename(".*\\.apk", "QMHelper-v${variant.versionName}.apk")
+            }
+        }.let { packageTask.finalizedBy(it) }
     }
 }
 
@@ -247,16 +244,15 @@ dependencies {
     implementation("com.linkedin.dexmaker:dexmaker:2.28.3")
 }
 
-val adbExecutable: String = androidComponents.sdkComponents.adb.get().asFile.absolutePath
-
 val restartHost = task("restartHost").doLast {
+    val adb: String = androidComponents.sdkComponents.adb.get().asFile.absolutePath
     exec {
-        commandLine(adbExecutable, "shell", "am", "force-stop", "com.tencent.qqmusic")
+        commandLine(adb, "shell", "am", "force-stop", "com.tencent.qqmusic")
     }
     exec {
         Thread.sleep(2000)
         commandLine(
-            adbExecutable, "shell", "am", "start",
+            adb, "shell", "am", "start",
             "$(pm resolve-activity --components com.tencent.qqmusic)"
         )
     }
@@ -284,12 +280,7 @@ val optimizeReleaseRes = task("optimizeReleaseRes").doLast {
 
 tasks.whenTaskAdded {
     when (name) {
-        "installDebug" -> {
-            finalizedBy(restartHost)
-        }
-
-        "optimizeReleaseResources" -> {
-            finalizedBy(optimizeReleaseRes)
-        }
+        "installDebug" -> finalizedBy(restartHost)
+        "optimizeReleaseResources" -> finalizedBy(optimizeReleaseRes)
     }
 }
