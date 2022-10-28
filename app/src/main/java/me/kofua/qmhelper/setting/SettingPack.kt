@@ -207,6 +207,15 @@ class SettingPack {
                 "unlock_theme",
                 R.string.prefs_unlock_theme_title
             )?.let { add(it) }
+            Setting.switch(
+                "unlock_font",
+                R.string.prefs_unlock_font_title,
+                R.string.prefs_unlock_font_summary
+            )?.let { add(it) }
+            Setting.switch(
+                "unlock_lyric_kinetic",
+                R.string.prefs_unlock_lyric_kinetic_title
+            )?.let { add(it) }
         }
 
         Setting.category(R.string.prefs_category_settings)

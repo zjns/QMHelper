@@ -121,4 +121,7 @@
     <string name="prefs_daily_sign_in_title">自动签到</string>
     <string name="prefs_daily_sign_in_summary">APP启动后每天自动签到一次</string>
     <string name="daily_sign_in_success">自动签到完成！</string>
+    <string name="prefs_unlock_font_title">解锁所有字体</string>
+    <string name="prefs_unlock_font_summary">解锁所有歌词及歌词海报字体</string>
+    <string name="prefs_unlock_lyric_kinetic_title">解锁所有歌词动效</string>
 </resources>

@@ -17,6 +17,8 @@ object CgiHook : BaseHook {
         val removeMineKol = sPrefs.getBoolean("remove_mine_kol", false)
         val moveDownRecently = sPrefs.getBoolean("move_down_recently", false)
         val unlockTheme = sPrefs.getBoolean("unlock_theme", false)
+        val unlockFont = sPrefs.getBoolean("unlock_font", false)
+        val unlockLyricKinetic = sPrefs.getBoolean("unlock_lyric_kinetic", false)
 
         hookInfo.jsonRespParser.hookBeforeMethod({ parseModuleItem }) { param ->
             val path = param.args[1] as? String
@@ -130,9 +132,25 @@ object CgiHook : BaseHook {
                 val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@hookBeforeMethod
                 val themeList = data.optJSONArray("vlist") ?: return@hookBeforeMethod
                 data.optJSONObject("alert")?.put("revertTheme", 0)
-                for (item in themeList) {
+                for (item in themeList)
                     item.put("enable", 1)
-                }
+                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
+                    ?: return@hookBeforeMethod
+            } else if (path == "music.lyricsPoster.PicturePoster.getFont" && hidden && unlockFont) {
+                val json = param.args[2]?.toString() ?: return@hookBeforeMethod
+                val jo = json.runCatchingOrNull { toJSONObject() } ?: return@hookBeforeMethod
+                val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@hookBeforeMethod
+                for (font in data.optJSONArray("fontList").orEmpty())
+                    font.put("enable", 1)
+                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
+                    ?: return@hookBeforeMethod
+            } else if (path == "musictv.openapi.LyricSvr.GetKineticLyricCategory" && hidden && unlockLyricKinetic) {
+                val json = param.args[2]?.toString() ?: return@hookBeforeMethod
+                val jo = json.runCatchingOrNull { toJSONObject() } ?: return@hookBeforeMethod
+                val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@hookBeforeMethod
+                for (tab in data.optJSONArray("tabs").orEmpty())
+                    for (template in tab.optJSONArray("templates").orEmpty())
+                        template.put("vip_needed", "0")
                 param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
                     ?: return@hookBeforeMethod
             }

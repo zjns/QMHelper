@@ -8,6 +8,7 @@ object JceHook : BaseHook {
     override fun hook() {
         val hidden = sPrefs.getBoolean("hidden", false)
         val unlockTheme = sPrefs.getBoolean("unlock_theme", false)
+        val unlockFont = sPrefs.getBoolean("unlock_font", false)
 
         hookInfo.jceRespConverter.hookAfterMethod({ parse }) { param ->
             val type = (param.args[1] as Class<*>).name
@@ -25,6 +26,12 @@ object JceHook : BaseHook {
                     getObjectField("auth")?.run {
                         setIntField("enable", 1)
                         setIntField("authType", 0)
+                    }
+                }
+            } else if (type == "com.tencent.qqmusic.business.playernew.view.playerlyric.model.QueryLyricFontRsp" && hidden && unlockFont) {
+                param.result?.run {
+                    getObjectFieldAs<Array<*>?>("fontList")?.forEach {
+                        it?.setIntField("auth", 0)
                     }
                 }
             }
