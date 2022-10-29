@@ -53,6 +53,7 @@ class QMPackage private constructor() {
     val x5WebViewClass by Weak { "com.tencent.smtt.sdk.WebView" from classLoader }
     val userManagerClass by Weak { hookInfo.userManager.clazz from classLoader }
     val mERJniClass by Weak { "com.tencent.qqmusic.modular.framework.encrypt.logic.MERJni" from classLoader }
+    val baseFragment by Weak { hookInfo.baseFragment.clazz from classLoader }
 
     val hookInfo = run {
         val (result, time) = measureTimedValue { readHookInfo() }
@@ -472,15 +473,16 @@ class QMPackage private constructor() {
                     .from(classLoader) ?: dexHelper.findMethodUsingString("PlayerViewModel")
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
                 ?: return@apply
-                val setCanSlideMethod =
-                    dexHelper.encodeMethodIndex(clazz.declaredMethods.find { m ->
-                        !m.isSynthetic && m.returnType == Void::class.javaPrimitiveType
-                                && m.parameterTypes.let { it.size == 1 && it[0] == clazz }
-                    } ?: return@apply).run {
-                        dexHelper.findMethodInvoking(this, parameterShorty = "VZ")
-                            .asSequence().firstNotNullOfOrNull { dexHelper.decodeMethodIndex(it) }
-                    } ?: return@apply
+                val setCanSlideMethod = clazz.declaredMethods.find { m ->
+                    !m.isSynthetic && m.returnType == Void::class.javaPrimitiveType
+                            && m.parameterTypes.let { it.size == 1 && it[0] == clazz }
+                } ?: return@apply
+                val postCanSlideMethod = dexHelper.encodeMethodIndex(setCanSlideMethod).run {
+                    dexHelper.findMethodInvoking(this, parameterShorty = "VZ")
+                        .asSequence().firstNotNullOfOrNull { dexHelper.decodeMethodIndex(it) }
+                } ?: return@apply
                 this.clazz = clazz { name = clazz.name }
+                postCanSlide = method { name = postCanSlideMethod.name }
                 setCanSlide = method {
                     name = setCanSlideMethod.name
                     paramTypes = setCanSlideMethod.paramTypes

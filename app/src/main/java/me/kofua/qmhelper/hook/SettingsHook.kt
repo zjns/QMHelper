@@ -162,8 +162,9 @@ object SettingsHook : BaseHook {
         val create = hookInfo.setting.baseSettingProvider.create.name
         val handler = InvocationHandler { _, _, _ -> setting }
         val settingProviderClass = baseSettingProviderClass.proxy(create)
-        val unhook = settingProviderClass.constructors.first().hookBeforeMethod {
-            it.thisObject.invocationHandler(handler)
+        val unhook = baseSettingProviderClass.constructors.first().hookBeforeMethod {
+            if (it.thisObject.javaClass.name == settingProviderClass.name)
+                it.thisObject.invocationHandler(handler)
         }
         return settingProviderClass.new(currentContext, fragment).also { unhook?.unhook() }
     }
@@ -182,8 +183,9 @@ object SettingsHook : BaseHook {
                     CopyOnWriteArrayList<Any?>(settingProviders)
                 }
                 val moduleSettingPackClass = baseSettingPackClass.proxy(createSettingProvider)
-                val unhook = moduleSettingPackClass.constructors.first().hookBeforeMethod {
-                    it.thisObject.invocationHandler(packSettingHandler)
+                val unhook = baseSettingPackClass.constructors.first().hookBeforeMethod {
+                    if (it.thisObject.javaClass.name == moduleSettingPackClass.name)
+                        it.thisObject.invocationHandler(packSettingHandler)
                 }
                 moduleSettingPackClass.new(currentContext, fp, Bundle()).also { unhook?.unhook() }
             } else if (fm.name == title) {
@@ -195,8 +197,9 @@ object SettingsHook : BaseHook {
             }
         }
         val moduleSettingFragmentClass = baseSettingFragmentClass.proxy(settingPackage, title)
-        val unhook = moduleSettingFragmentClass.hookBeforeConstructor {
-            it.thisObject.invocationHandler(handler)
+        val unhook = instance.baseFragment?.hookBeforeConstructor {
+            if (it.thisObject.javaClass.name == moduleSettingFragmentClass.name)
+                it.thisObject.invocationHandler(handler)
         }
         context.callMethod(
             hookInfo.appStarterActivity.addSecondFragment,

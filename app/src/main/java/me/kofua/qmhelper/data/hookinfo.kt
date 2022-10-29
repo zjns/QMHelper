@@ -113,7 +113,10 @@ class TopAreaDelegate : ClassInfo() {
     var showShareGuide: Method = defMethod
 }
 
-class PlayerViewModel(var setCanSlide: Method = defMethod) : ClassInfo()
+class PlayerViewModel : ClassInfo() {
+    var postCanSlide: Method = defMethod
+    var setCanSlide: Method = defMethod
+}
 
 class SpManager(var get: Method = defMethod) : ClassInfo()
 

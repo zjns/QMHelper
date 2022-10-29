@@ -26,7 +26,10 @@ object HomePageHook : BaseHook {
             hookInfo.topAreaDelegate.replaceMethod({ showShareGuide }) { null }
         }
         if (sPrefs.getBoolean("forbid_slide", false)) {
-            hookInfo.playViewModel.hookBeforeMethod({ setCanSlide }) { it.args[0] = false }
+            hookInfo.playViewModel.hookBeforeMethod({ setCanSlide }) {
+                it.args[0].callMethod(hookInfo.playViewModel.postCanSlide, false)
+                it.result = null
+            }
         }
         if (sPrefs.getBoolean("hide_ad_bar", false)) {
             hookInfo.adBar.clazz.from(classLoader)?.run {

@@ -5,8 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import me.kofua.qmhelper.from
-import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.utils.*
 import org.json.JSONObject
 import java.lang.reflect.Proxy
@@ -70,7 +69,7 @@ object DebugHook : BaseHook {
         Activity::class.java.hookBeforeMethod("onCreate", Bundle::class.java) { param ->
             Log.d("kofua, creating activity: ${param.thisObject}")
         }
-        hookInfo.baseFragment.clazz.from(classLoader)?.hookAfterMethod(
+        instance.baseFragment?.hookAfterMethod(
             "onCreateView",
             LayoutInflater::class.java,
             ViewGroup::class.java,
