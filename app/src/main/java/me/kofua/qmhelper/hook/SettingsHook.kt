@@ -197,7 +197,7 @@ object SettingsHook : BaseHook {
             }
         }
         val moduleSettingFragmentClass = baseSettingFragmentClass.proxy(settingPackage, title)
-        val unhook = instance.baseFragment?.hookBeforeConstructor {
+        val unhook = instance.baseFragmentClass?.hookBeforeConstructor {
             if (it.thisObject.javaClass.name == moduleSettingFragmentClass.name)
                 it.thisObject.invocationHandler(handler)
         }

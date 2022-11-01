@@ -15,11 +15,17 @@ object WebViewHook : BaseHook {
     private val hookedClient = HashSet<Class<*>>()
     private val hooker: Hooker = { param ->
         try {
-            param.args[0].callMethod(
-                "evaluateJavascript",
-                """(function(){$js})()""".trimMargin(),
-                null
-            )
+            val url = param.args[1] as String
+            if (url.startsWith("https://i.y.qq.com/n2/m/theme/index.html")
+                || url.startsWith("https://y.qq.com/m/basic/client/themev2/detail/index.html")
+                || url.startsWith("https://y.qq.com/m/client/player_detail/index.html")
+            ) {
+                param.args[0].callMethod(
+                    "evaluateJavascript",
+                    """(function(){$js})()""".trimMargin(),
+                    null
+                )
+            }
         } catch (e: Throwable) {
             Log.e(e)
         }
@@ -89,10 +95,9 @@ object WebViewHook : BaseHook {
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun hook(url: String, requestBody: String?, text: String): String {
         if (BuildConfig.DEBUG)
-            Log.d("net.webview, url: $url, text: $text")
+            Log.d("net.webview, url: $url, requestBody: $requestBody, text: $text")
         if (hidden && unlockTheme) {
             if (url.contains("/cgi-bin/musics.fcg?_webcgikey=GetSubject")
                 || url.contains("/cgi-bin/musics.fcg?_webcgikey=GetIcon")

@@ -53,7 +53,7 @@ class QMPackage private constructor() {
     val x5WebViewClass by Weak { "com.tencent.smtt.sdk.WebView" from classLoader }
     val userManagerClass by Weak { hookInfo.userManager.clazz from classLoader }
     val mERJniClass by Weak { "com.tencent.qqmusic.modular.framework.encrypt.logic.MERJni" from classLoader }
-    val baseFragment by Weak { hookInfo.baseFragment.clazz from classLoader }
+    val baseFragmentClass by Weak { hookInfo.baseFragment.clazz from classLoader }
 
     val hookInfo = run {
         val (result, time) = measureTimedValue { readHookInfo() }

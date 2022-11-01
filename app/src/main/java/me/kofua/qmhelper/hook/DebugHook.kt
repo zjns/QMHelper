@@ -69,7 +69,7 @@ object DebugHook : BaseHook {
         Activity::class.java.hookBeforeMethod("onCreate", Bundle::class.java) { param ->
             Log.d("kofua, creating activity: ${param.thisObject}")
         }
-        instance.baseFragment?.hookAfterMethod(
+        instance.baseFragmentClass?.hookAfterMethod(
             "onCreateView",
             LayoutInflater::class.java,
             ViewGroup::class.java,
