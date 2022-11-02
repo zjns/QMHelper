@@ -445,7 +445,7 @@ class QMPackage private constructor() {
                 ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
                 val showCurListenMethod = dexHelper.findMethodUsingString(
                     "[showCurrentListen]--block by long audio ad recall entrance show"
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
                 val clazz = initLiveGuideMethod.declaringClass
                 val classIndex = dexHelper.encodeClassIndex(clazz)
                 val showShareGuideMethod = dexHelper.findMethodUsingString(
@@ -459,9 +459,11 @@ class QMPackage private constructor() {
                     name = initLiveGuideMethod.name
                     paramTypes = initLiveGuideMethod.paramTypes
                 }
-                showCurListen = method {
-                    name = showCurListenMethod.name
-                    paramTypes = showCurListenMethod.paramTypes
+                showCurListenMethod?.let {
+                    showCurListen = method {
+                        name = it.name
+                        paramTypes = it.paramTypes
+                    }
                 }
                 showShareGuide = method {
                     name = showShareGuideMethod.name

@@ -20,7 +20,9 @@ object HomePageHook : BaseHook {
         }
         if (sPrefs.getBoolean("purify_live_guide", false)) {
             hookInfo.topAreaDelegate.replaceMethod({ initLiveGuide }) { null }
-            hookInfo.topAreaDelegate.replaceMethod({ showCurListen }) { null }
+            hookInfo.topAreaDelegate.showCurListen.name.ifNotEmpty {
+                hookInfo.topAreaDelegate.replaceMethod({ showCurListen }) { null }
+            }
         }
         if (sPrefs.getBoolean("purify_share_guide", false)) {
             hookInfo.topAreaDelegate.replaceMethod({ showShareGuide }) { null }
