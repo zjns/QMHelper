@@ -45,9 +45,11 @@ object SettingsHook : BaseHook {
             settingPack.activity = activity
             settingPack.checkUpdate(dialog = false)
             if (sPrefs.getBoolean("daily_sign_in", false))
-                handler.postDelayed({ dailySignIn() }, 8000L)
+                handler.post(8000L) {
+                    mainScope.launch(Dispatchers.IO) { dailySignIn() }
+                }
             if (uiMode == UiMode.NORMAL && !sPrefs.getBoolean("ui_mode_hint", false)) {
-                handler.postDelayed({
+                handler.post(2000L) {
                     activity.showMessageDialog(
                         string(R.string.tips_title),
                         string(R.string.tips_open_clean_mode),
@@ -63,7 +65,7 @@ object SettingsHook : BaseHook {
                             )
                         } ?: BannerTips.error(R.string.jump_failed)
                     }
-                }, 2000L)
+                }
             }
         }
         instance.appStarterActivityClass?.hookAfterMethod(
@@ -208,31 +210,38 @@ object SettingsHook : BaseHook {
         unhook?.unhook()
     }
 
-    private fun dailySignIn() {
+    private fun dailySignIn(check: Boolean = true) {
         val recordKey = "${uin()}_daily_sign_in_record"
         if (!isLogin() || sCaches.getString(recordKey, null) == todayFormat)
             return
-        mainScope.launch(Dispatchers.IO) {
-            runCatching {
-                val url = "https://u.y.qq.com/cgi-bin/musics.fcg?_webcgikey=doSignIn"
-                webJsonPost(
-                    url,
-                    "music.actCenter.DaysignactSvr",
-                    "doSignIn",
-                    mapOf("date" to "")
-                )
-            }.onFailure {
-                Log.e(it)
-            }.onSuccess {
-                val response = it?.runCatchingOrNull { toJSONObject() } ?: return@launch
-                val code = response.optJSONObject("req_0")
-                    ?.optJSONObject("data")?.optInt("code") ?: return@launch
-                if (code == 0) {
+        runCatching {
+            webJsonPost(
+                "https://u.y.qq.com/cgi-bin/musics.fcg?_webcgikey=doSignIn",
+                "music.actCenter.DaysignactSvr",
+                "doSignIn",
+                mapOf("date" to "")
+            )
+        }.onFailure {
+            Log.e(it)
+        }.onSuccess { json ->
+            val response = json?.runCatchingOrNull { toJSONObject() } ?: return
+            val code = response.optJSONObject("req_0")
+                ?.optJSONObject("data")?.optInt("code") ?: return
+            if (code == 0) {
+                if (check) {
+                    runCatching {
+                        webHtmlGet("https://i.y.qq.com/n2/m/client/day_sign/index.html")
+                    }.onFailure {
+                        Log.e(it)
+                    }.onSuccess {
+                        dailySignIn(false)
+                    }
+                } else {
                     sCaches.edit { putString(recordKey, todayFormat) }
                     BannerTips.success(R.string.daily_sign_in_success)
-                } else if (code == 2) {
-                    sCaches.edit { putString(recordKey, todayFormat) }
                 }
+            } else if (code == 2) {
+                sCaches.edit { putString(recordKey, todayFormat) }
             }
         }
     }

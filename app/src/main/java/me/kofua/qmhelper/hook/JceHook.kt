@@ -22,17 +22,13 @@ object JceHook : BaseHook {
             } else if ((type == "com.tencent.jce.personal.ApplyIconRsp"
                         || type == "com.tencent.jce.personal.GetIconRsp") && hidden && unlockTheme
             ) {
-                param.result?.run {
-                    getObjectField("auth")?.run {
-                        setIntField("enable", 1)
-                        setIntField("authType", 0)
-                    }
+                param.result?.getObjectField("auth")?.run {
+                    setIntField("enable", 1)
+                    setIntField("authType", 0)
                 }
             } else if (type == "com.tencent.qqmusic.business.playernew.view.playerlyric.model.QueryLyricFontRsp" && hidden && unlockFont) {
-                param.result?.run {
-                    getObjectFieldAs<Array<*>?>("fontList")?.forEach {
-                        it?.setIntField("auth", 0)
-                    }
+                param.result?.getObjectFieldAs<Array<*>?>("fontList")?.forEach {
+                    it?.setIntField("auth", 0)
                 }
             }
         }

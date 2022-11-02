@@ -119,6 +119,8 @@ val sessionCacheSp: SharedPreferences by lazy {
 val handler = Handler(Looper.getMainLooper())
 val mainScope = MainScope()
 
+fun Handler.post(delayMills: Long = 0L, r: () -> Unit) = postDelayed(r, delayMills)
+
 @SuppressLint("ApplySharedPref")
 fun SharedPreferences.edit(commit: Boolean = false, action: SharedPreferences.Editor.() -> Unit) =
     edit().apply(action).run { if (commit) commit() else apply() }

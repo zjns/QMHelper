@@ -1,11 +1,13 @@
 package me.kofua.qmhelper.utils
 
+import android.util.Base64
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
 private val HEX_DIGITS =
     charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
 
+@Suppress("SameParameterValue")
 private fun hashTemplate(data: ByteArray, algorithm: String): ByteArray? {
     return if (data.isEmpty()) null else try {
         val md: MessageDigest = MessageDigest.getInstance(algorithm)
@@ -31,5 +33,8 @@ fun ByteArray.toHexString(): String {
     return String(ret)
 }
 
-val String.md5: String
+val String.md5Hex: String
     get() = hashTemplate(toByteArray(), "MD5")?.toHexString() ?: ""
+
+val ByteArray.base64: String
+    get() = Base64.encodeToString(this, Base64.NO_WRAP)
