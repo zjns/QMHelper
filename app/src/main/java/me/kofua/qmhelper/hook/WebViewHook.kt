@@ -6,6 +6,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import me.kofua.qmhelper.BuildConfig
 import me.kofua.qmhelper.QMPackage.Companion.instance
+import me.kofua.qmhelper.XposedInit.Companion.moduleRes
 import me.kofua.qmhelper.utils.*
 
 object WebViewHook : BaseHook {
@@ -40,12 +41,10 @@ object WebViewHook : BaseHook {
     }
 
     private val js by lazy {
-        try {
-            WebViewHook::class.java.classLoader?.getResourceAsStream("assets/xhook.js")
-                ?.use { `is` -> return@lazy `is`.reader().readText() }
-        } catch (_: Exception) {
-        }
-        ""
+        runCatchingOrNull {
+            moduleRes.assets.open("xhook.js")
+                .use { it.bufferedReader().readText() }
+        } ?: ""
     }
 
     override fun hook() {
