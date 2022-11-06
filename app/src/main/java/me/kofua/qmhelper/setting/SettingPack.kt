@@ -277,30 +277,29 @@ class SettingPack {
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             CODE_EXPORT, CODE_IMPORT -> {
-                val prefsFile = File(currentContext.filesDir, "../shared_prefs/qmhelper.xml")
                 val uri = data?.data
-                if (resultCode == Activity.RESULT_CANCELED || uri == null) return
+                if (uri == null || resultCode != Activity.RESULT_OK) return
+                val prefsFile = File(currentContext.filesDir, "../shared_prefs/qmhelper.xml")
                 when (requestCode) {
-                    CODE_IMPORT -> {
-                        try {
-                            prefsFile.outputStream().use { o ->
-                                currentContext.contentResolver.openInputStream(uri)?.use {
-                                    it.copyTo(o)
-                                }
-                            }
-                        } catch (_: Exception) {
+                    CODE_IMPORT -> runCatchingOrNull {
+                        prefsFile.outputStream().use { o ->
+                            currentContext.contentResolver.openInputStream(uri)
+                                ?.use { it.copyTo(o) }
                         }
-                        BannerTips.success(R.string.pls_reboot_host)
+                        activity?.showMessageDialog(
+                            R.string.tips_title,
+                            R.string.pls_reboot_host,
+                            R.string.yes,
+                            R.string.no
+                        ) {
+                            activity?.let { restartApplication(it) }
+                        }
                     }
 
-                    CODE_EXPORT -> {
-                        try {
-                            prefsFile.inputStream().use {
-                                currentContext.contentResolver.openOutputStream(uri)?.use { o ->
-                                    it.copyTo(o)
-                                }
-                            }
-                        } catch (_: Exception) {
+                    CODE_EXPORT -> runCatchingOrNull {
+                        prefsFile.inputStream().use {
+                            currentContext.contentResolver.openOutputStream(uri)
+                                ?.use { o -> it.copyTo(o) }
                         }
                     }
                 }
@@ -431,10 +430,7 @@ class SettingPack {
                     string(R.string.old_log_item, "old_log.txt")
                 )
             ) { _, which ->
-                val toShareLog = when (which) {
-                    0 -> logFile
-                    else -> oldLogFile
-                }
+                val toShareLog = if (which == 0) logFile else oldLogFile
                 if (toShareLog.exists()) {
                     toShareLog.copyTo(
                         File(activity?.cacheDir, "com_qq_e_download/log.txt"),

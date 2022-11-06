@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import me.kofua.qmhelper.XposedInit.Companion.modulePath
 import me.kofua.qmhelper.data.*
 import me.kofua.qmhelper.utils.*
 import me.kofua.qmhelper.utils.BannerTips
@@ -73,7 +74,7 @@ class QMPackage private constructor() {
             val start = System.currentTimeMillis()
             if (hookInfoFile.isFile && hookInfoFile.canRead()) {
                 val lastUpdateTime = getPackageLastUpdateTime(hostPackageName)
-                val lastModuleUpdateTime = getPackageLastUpdateTime(BuildConfig.APPLICATION_ID)
+                val lastModuleUpdateTime = File(modulePath).lastModified()
                 val info = hookInfoFile.inputStream().use {
                     runCatchingOrNull { ObjectInputStream(it).readAny<HookInfo>() } ?: HookInfo()
                 }
@@ -120,7 +121,7 @@ class QMPackage private constructor() {
             val dexHelper = DexHelper(classLoader.findDexClassLoader() ?: return@out)
             lastUpdateTime = max(
                 getPackageLastUpdateTime(hostPackageName),
-                getPackageLastUpdateTime(BuildConfig.APPLICATION_ID)
+                File(modulePath).lastModified()
             )
             clientVersionCode = getVersionCode(hostPackageName)
             moduleVersionCode = BuildConfig.VERSION_CODE

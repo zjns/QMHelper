@@ -5,7 +5,7 @@
     <string name="back">返回</string>
     <string name="reboot_host">重启客户端</string>
     <string name="reboot_host_summary">配置修改后重启客户端才会生效</string>
-    <string name="pls_reboot_host">导入成功，请重启客户端</string>
+    <string name="pls_reboot_host">导入成功，是否立即重启客户端使之生效？</string>
     <string name="prefs_category_main">主要功能</string>
     <string name="prefs_purify_splash_title">净化开屏页面</string>
     <string name="prefs_purify_splash_summary">去除客户端启动时的推广</string>
