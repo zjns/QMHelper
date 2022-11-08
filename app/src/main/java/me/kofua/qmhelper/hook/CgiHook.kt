@@ -19,6 +19,7 @@ object CgiHook : BaseHook {
         val unlockTheme = sPrefs.getBoolean("unlock_theme", false)
         val unlockFont = sPrefs.getBoolean("unlock_font", false)
         val unlockLyricKinetic = sPrefs.getBoolean("unlock_lyric_kinetic", false)
+        val blockCommonAds = sPrefs.getBoolean("block_common_ads", false)
 
         hookInfo.jsonRespParser.hookBeforeMethod({ parseModuleItem }) { param ->
             val path = param.args[1] as? String
@@ -151,6 +152,21 @@ object CgiHook : BaseHook {
                 for (tab in data.optJSONArray("tabs").orEmpty())
                     for (template in tab.optJSONArray("templates").orEmpty())
                         template.put("vip_needed", "0")
+                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
+                    ?: return@hookBeforeMethod
+            } else if (path == "Advert.SdkAdvertServer.ProcessRequest" && blockCommonAds) {
+                val json = param.args[2]?.toString() ?: return@hookBeforeMethod
+                val jo = json.runCatchingOrNull { toJSONObject() } ?: return@hookBeforeMethod
+                val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@hookBeforeMethod
+                // see com.tencent.qqmusic.business.ad.naming.SdkAdId
+                // set to 0 for LockScreenLiveController, 10602: AD_ID_PLAYER_LIVE_INFO
+                if (data.optInt("musicadtype") == 10602)
+                    data.put("musicadtype", 0)
+                data.optJSONObject("data")?.run {
+                    put("ad_list", JSONArray())
+                    put("maxreqtimes", 0)
+                    put("maxshowtimes", 0)
+                }
                 param.args[2] = jo.toString().fromJson(instance.jsonObjectClass)
                     ?: return@hookBeforeMethod
             }
