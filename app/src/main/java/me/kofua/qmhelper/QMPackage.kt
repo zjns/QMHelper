@@ -55,6 +55,7 @@ class QMPackage private constructor() {
     val userManagerClass by Weak { hookInfo.userManager.clazz from classLoader }
     val mERJniClass by Weak { "com.tencent.qqmusic.modular.framework.encrypt.logic.MERJni" from classLoader }
     val baseFragmentClass by Weak { hookInfo.baseFragment.clazz from classLoader }
+    val jsonPrimitiveClass by Weak { "com.google.gson.JsonPrimitive" from classLoader }
 
     val hookInfo = run {
         val (result, time) = measureTimedValue { readHookInfo() }

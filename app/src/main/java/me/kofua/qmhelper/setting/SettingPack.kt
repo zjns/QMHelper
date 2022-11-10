@@ -170,6 +170,11 @@ class SettingPack {
             R.string.prefs_move_down_recently_title,
             R.string.prefs_move_down_recently_summary
         )?.also { add(it) }
+        Setting.switch(
+            "hide_song_list_guide",
+            R.string.prefs_hide_song_list_guide_title,
+            R.string.prefs_hide_song_list_guide_summary
+        )?.also { add(it) }
 
         Setting.category(R.string.prefs_category_misc)
             ?.let { add(it) }

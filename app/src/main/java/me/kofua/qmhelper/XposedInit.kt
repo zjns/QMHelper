@@ -42,7 +42,7 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
 
                     preloadProxyClasses()
                     val debugHooks = if (BuildConfig.DEBUG) {
-                        listOf(SSLHook, DebugHook, ABTesterHook)
+                        listOf(SSLHook, DebugHook)
                     } else listOf()
                     val buildInHooks = if (isBuiltIn) {
                         listOf(WebLoginHook)
@@ -57,7 +57,8 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                         MiscHook,
                         CommonAdsHook,
                         WebViewHook,
-                        JceHook
+                        JceHook,
+                        ABTesterHook,
                     )
                     val allHooks = buildList {
                         addAll(debugHooks)
