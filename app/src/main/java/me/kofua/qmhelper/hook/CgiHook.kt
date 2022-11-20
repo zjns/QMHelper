@@ -1,8 +1,8 @@
 package me.kofua.qmhelper.hook
 
 import me.kofua.qmhelper.BuildConfig
-import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.qmPackage
 import me.kofua.qmhelper.utils.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -43,7 +43,7 @@ object CgiHook : BaseHook {
                 }
                 if (position != -1) {
                     shelfList.remove(position)
-                    param.args[2] = jo.toString().fromJson(instance.jsonObjectClass) ?: return@out
+                    param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
                 }
             } else if (path == "music.musicsearch.HotkeyService.GetHotkeyAllBusinessForQQMusicMobile"
                 && purifySearch.any { it != "scroll" }
@@ -59,7 +59,7 @@ object CgiHook : BaseHook {
                     data.remove("business_en_cn")
                     data.remove("map_business_hotkey")
                 }
-                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass) ?: return@out
+                param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
             } else if (path == "music.defaultKey.DefaultKeyService.GetDefaultKeyForQQMusicMobile"
                 && purifySearch.contains("scroll")
             ) {
@@ -68,14 +68,14 @@ object CgiHook : BaseHook {
                 val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@out
                 data.remove("keys")
                 data.remove("map_business_keys")
-                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass) ?: return@out
+                param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
             } else if (path == "notice" && blockCommentBanners) {
                 val json = param.args[2]?.toString() ?: return@out
                 val jo = json.runCatchingOrNull { toJSONObject() } ?: return@out
                 val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@out
                 if (data.optJSONArray("Banners").isNotEmpty()) {
                     data.remove("Banners")
-                    param.args[2] = jo.toString().fromJson(instance.jsonObjectClass) ?: return@out
+                    param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
                 }
             } else if (path == "recommend" && removeCommentRecommend) {
                 val json = param.args[2]?.toString() ?: return@out
@@ -83,7 +83,7 @@ object CgiHook : BaseHook {
                 val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@out
                 if (data.optJSONArray("RecItems").isNotEmpty()) {
                     data.remove("RecItems")
-                    param.args[2] = jo.toString().fromJson(instance.jsonObjectClass) ?: return@out
+                    param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
                 }
             } else if (path == "music.sociality.KolEntrance.GetKolEntrance" && removeMineKol) {
                 val json = param.args[2]?.toString() ?: return@out
@@ -91,7 +91,7 @@ object CgiHook : BaseHook {
                 val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@out
                 if (data.optBoolean("ShowEntrance")) {
                     data.put("ShowEntrance", false)
-                    param.args[2] = jo.toString().fromJson(instance.jsonObjectClass) ?: return@out
+                    param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
                 }
             } else if (path == "music.individuation.Recommend.GetRecommend" && moveDownRecently) {
                 val json = param.args[2]?.toString() ?: return@out
@@ -118,7 +118,7 @@ object CgiHook : BaseHook {
                     }
                 }
                 data.put("v_shelf", newShelf)
-                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass) ?: return@out
+                param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
             } else if (path == "Personal.PersonalCenterV2.get_subject_info" && hidden && unlockTheme) {
                 val json = param.args[2]?.toString() ?: return@out
                 val jo = json.runCatchingOrNull { toJSONObject() } ?: return@out
@@ -127,14 +127,14 @@ object CgiHook : BaseHook {
                 data.optJSONObject("alert")?.put("revertTheme", 0)
                 for (item in themeList)
                     item.put("enable", 1)
-                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass) ?: return@out
+                param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
             } else if (path == "music.lyricsPoster.PicturePoster.getFont" && hidden && unlockFont) {
                 val json = param.args[2]?.toString() ?: return@out
                 val jo = json.runCatchingOrNull { toJSONObject() } ?: return@out
                 val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@out
                 for (font in data.optJSONArray("fontList").orEmpty())
                     font.put("enable", 1)
-                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass) ?: return@out
+                param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
             } else if (path == "musictv.openapi.LyricSvr.GetKineticLyricCategory" && hidden && unlockLyricKinetic) {
                 val json = param.args[2]?.toString() ?: return@out
                 val jo = json.runCatchingOrNull { toJSONObject() } ?: return@out
@@ -142,7 +142,7 @@ object CgiHook : BaseHook {
                 for (tab in data.optJSONArray("tabs").orEmpty())
                     for (template in tab.optJSONArray("templates").orEmpty())
                         template.put("vip_needed", "0")
-                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass) ?: return@out
+                param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
             } else if (path == "Advert.SdkAdvertServer.ProcessRequest" && blockCommonAds) {
                 val json = param.args[2]?.toString() ?: return@out
                 val jo = json.runCatchingOrNull { toJSONObject() } ?: return@out
@@ -156,7 +156,7 @@ object CgiHook : BaseHook {
                     put("maxreqtimes", 0)
                     put("maxshowtimes", 0)
                 }
-                param.args[2] = jo.toString().fromJson(instance.jsonObjectClass) ?: return@out
+                param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
             }
         }
     }

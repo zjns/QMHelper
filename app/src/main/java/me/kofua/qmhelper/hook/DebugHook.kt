@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import me.kofua.qmhelper.QMPackage.Companion.instance
+import me.kofua.qmhelper.qmPackage
 import me.kofua.qmhelper.utils.*
 import org.json.JSONObject
 import java.lang.reflect.Proxy
@@ -69,7 +69,7 @@ object DebugHook : BaseHook {
         Activity::class.java.hookBeforeMethod("onCreate", Bundle::class.java) { param ->
             Log.d("kofua, creating activity: ${param.thisObject}")
         }
-        instance.baseFragmentClass?.hookAfterMethod(
+        qmPackage.baseFragmentClass?.hookAfterMethod(
             "onCreateView",
             LayoutInflater::class.java,
             ViewGroup::class.java,
@@ -82,7 +82,7 @@ object DebugHook : BaseHook {
                 m.isPublic && m.isStatic && m.returnType == Void::class.javaPrimitiveType
                         && m.parameterTypes.let { it.size >= 2 && it[0] == String::class.java && it[1] == String::class.java }
             }?.forEach { m ->
-                m.hookBeforeMethod { param ->
+                m.hookBefore { param ->
                     val methodName = param.method.name
                     val tag = param.args[0] as? String ?: ""
                     val message = param.args[1] as? String ?: ""
@@ -122,7 +122,7 @@ object DebugHook : BaseHook {
                 }
             }
         "com.tencent.qqmusiccommon.hippy.bridge.WebApiHippyBridge".from(classLoader)
-            ?.declaredMethods?.find { it.name == "invoke" }?.hookAfterMethod { param ->
+            ?.declaredMethods?.find { it.name == "invoke" }?.hookAfter { param ->
                 Log.d("kofua, invoke, hippyMapJson: ${JSONObject(param.args[0].getObjectField("mDatas") as Map<*, *>)}")
             }
     }

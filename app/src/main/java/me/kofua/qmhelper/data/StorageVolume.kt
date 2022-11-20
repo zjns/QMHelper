@@ -1,6 +1,6 @@
 package me.kofua.qmhelper.data
 
-import me.kofua.qmhelper.QMPackage.Companion.instance
+import me.kofua.qmhelper.qmPackage
 import me.kofua.qmhelper.utils.new
 
 data class StorageVolume(
@@ -33,7 +33,7 @@ data class StorageVolume(
         }
 
         fun StorageVolume.toRealVolume(): Any? {
-            return instance.storageVolumeClass?.new(path, primary, removable, state)
+            return qmPackage.storageVolumeClass?.new(path, primary, removable, state)
         }
     }
 }

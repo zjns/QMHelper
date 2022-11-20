@@ -3,9 +3,9 @@ package me.kofua.qmhelper.utils
 import android.os.Looper
 import android.widget.Toast
 import androidx.annotation.StringRes
-import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.R
 import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.qmPackage
 
 object BannerTips {
 
@@ -13,7 +13,7 @@ object BannerTips {
     private fun showStyledToast(type: Int, message: String) {
         val newMessage = string(R.string.app_name) + "：" + message
         val action = Runnable {
-            instance.bannerTipsClass?.also {
+            qmPackage.bannerTipsClass?.also {
                 it.callStaticMethod(
                     hookInfo.bannerTips.showStyledToast,
                     currentContext, type, newMessage, 0, 0, true, 0

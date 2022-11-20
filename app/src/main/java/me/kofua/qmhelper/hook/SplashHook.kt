@@ -15,7 +15,7 @@ object SplashHook : BaseHook {
         hookInfo.splashAdapter.from(classLoader)?.declaredMethods
             ?.filter { it.returnType == splashShowTypeClass }
             ?.forEach { m ->
-                m.hookBeforeMethod { param ->
+                m.hookBefore { param ->
                     noAdSplashType?.let { param.result = it }
                 }
             }

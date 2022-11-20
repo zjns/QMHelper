@@ -33,7 +33,7 @@ fun Class<*>.hookMethod(method: String?, vararg args: Any?) = try {
     null
 }
 
-fun Member.hookMethod(callback: XC_MethodHook) = try {
+fun Member.hook(callback: XC_MethodHook) = try {
     hookMethod(this, callback)
 } catch (e: Throwable) {
     Log.e(e)
@@ -55,20 +55,17 @@ inline fun MethodHookParam.callReplacer(crossinline replacer: Replacer) = try {
     null
 }
 
-inline fun Member.replaceMethod(crossinline replacer: Replacer) =
-    hookMethod(object : XC_MethodReplacement() {
-        override fun replaceHookedMethod(param: MethodHookParam) = param.callReplacer(replacer)
-    })
+inline fun Member.replace(crossinline replacer: Replacer) = hook(object : XC_MethodReplacement() {
+    override fun replaceHookedMethod(param: MethodHookParam) = param.callReplacer(replacer)
+})
 
-inline fun Member.hookAfterMethod(crossinline hooker: Hooker) =
-    hookMethod(object : XC_MethodHook() {
-        override fun afterHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
-    })
+inline fun Member.hookAfter(crossinline hooker: Hooker) = hook(object : XC_MethodHook() {
+    override fun afterHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
+})
 
-inline fun Member.hookBeforeMethod(crossinline hooker: Hooker) =
-    hookMethod(object : XC_MethodHook() {
-        override fun beforeHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
-    })
+inline fun Member.hookBefore(crossinline hooker: Hooker) = hook(object : XC_MethodHook() {
+    override fun beforeHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
+})
 
 inline fun Class<*>.hookBeforeMethod(
     method: String?,

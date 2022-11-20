@@ -7,14 +7,14 @@ import android.view.View
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import kotlinx.coroutines.suspendCancellableCoroutine
-import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.qmPackage
 import kotlin.coroutines.resume
 
 typealias ButtonClickListener = (v: View) -> Unit
 
 val isBlackSkinInUse: Boolean
-    get() = instance.skinManagerClass?.callStaticMethod(hookInfo.skinManager.getSkinId) == "901"
+    get() = qmPackage.skinManagerClass?.callStaticMethod(hookInfo.skinManager.getSkinId) == "901"
 
 @get:StyleRes
 val themeIdForDialog: Int

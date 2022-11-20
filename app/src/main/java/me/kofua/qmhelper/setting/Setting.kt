@@ -3,8 +3,8 @@ package me.kofua.qmhelper.setting
 import android.content.SharedPreferences
 import android.view.View
 import androidx.annotation.StringRes
-import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.qmPackage
 import me.kofua.qmhelper.utils.*
 import java.lang.reflect.Proxy
 
@@ -118,7 +118,7 @@ class Setting {
 
     private fun build(): Any? {
         val builder = hookInfo.setting.builder
-        return instance.settingClass
+        return qmPackage.settingClass
             ?.callStaticMethod(hookInfo.setting.with, currentContext)
             ?.apply {
                 setIntField(builder.type, type.key)
@@ -127,7 +127,7 @@ class Setting {
                 setObjectField(builder.summary, summary)
                 setObjectField(builder.switchListener, Proxy.newProxyInstance(
                     currentContext.classLoader,
-                    arrayOf(instance.switchListenerClass)
+                    arrayOf(qmPackage.switchListenerClass)
                 ) { _, m, args ->
                     val switchListener = hookInfo.setting.switchListener
                     when (m.name) {

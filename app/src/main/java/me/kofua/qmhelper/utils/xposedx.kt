@@ -13,27 +13,24 @@ inline fun <T : ClassInfo> T.hookBeforeMethod(
     method: T.() -> Method,
     vararg exArgs: Any?,
     crossinline hooker: Hooker
-) {
-    val m = this.method()
-    clazz.from(classLoader)?.hookBeforeMethod(m.name, *m.paramTypes, *exArgs, hooker = hooker)
+) = method().let {
+    clazz.from(classLoader)?.hookBeforeMethod(it.name, *it.paramTypes, *exArgs, hooker = hooker)
 }
 
 inline fun <T : ClassInfo> T.hookAfterMethod(
     method: T.() -> Method,
     vararg exArgs: Any?,
     crossinline hooker: Hooker
-) {
-    val m = this.method()
-    clazz.from(classLoader)?.hookAfterMethod(m.name, *m.paramTypes, *exArgs, hooker = hooker)
+) = method().let {
+    clazz.from(classLoader)?.hookAfterMethod(it.name, *it.paramTypes, *exArgs, hooker = hooker)
 }
 
 inline fun <T : ClassInfo> T.replaceMethod(
     method: T.() -> Method,
     vararg exArgs: Any?,
     crossinline replacer: Replacer
-) {
-    val m = this.method()
-    clazz.from(classLoader)?.replaceMethod(m.name, *m.paramTypes, *exArgs, replacer = replacer)
+) = method().let {
+    clazz.from(classLoader)?.replaceMethod(it.name, *it.paramTypes, *exArgs, replacer = replacer)
 }
 
 fun Any.getObjectField(field: Field): Any? = getObjectField(this, field.name)

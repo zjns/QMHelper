@@ -32,6 +32,7 @@ val Member.paramTypes: Array<String>
         else -> arrayOf()
     }
 
+val qmPackage get() = QMPackage.instance
 val hookInfo get() = QMPackage.instance.hookInfo
 
 class QMPackage private constructor() {

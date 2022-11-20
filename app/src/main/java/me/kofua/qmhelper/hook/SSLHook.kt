@@ -130,7 +130,7 @@ object SSLHook : BaseHook {
 
         "okhttp3.CertificatePinner".from(classLoader)?.run {
             (runCatchingOrNull { getDeclaredMethod("findMatchingPins", String::class.java) }
-                ?: declaredMethods.firstOrNull { it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java && it.returnType == List::class.java })?.hookBeforeMethod { param ->
+                ?: declaredMethods.firstOrNull { it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java && it.returnType == List::class.java })?.hookBefore { param ->
                 param.args[0] = ""
             }
         }

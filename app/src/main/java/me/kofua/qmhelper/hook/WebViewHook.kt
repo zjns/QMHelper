@@ -5,8 +5,8 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import me.kofua.qmhelper.BuildConfig
-import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.XposedInit.Companion.moduleRes
+import me.kofua.qmhelper.qmPackage
 import me.kofua.qmhelper.utils.*
 
 object WebViewHook : BaseHook {
@@ -65,15 +65,15 @@ object WebViewHook : BaseHook {
                     WebView::class.java,
                     String::class.java,
                     Bitmap::class.java
-                ).hookBeforeMethod(hooker)
+                ).hookBefore(hooker)
                 hookedClient.add(clazz)
                 Log.d("hook webview $clazz")
             } catch (_: NoSuchMethodException) {
             }
         }
         if (BuildConfig.DEBUG)
-            instance.x5WebViewClass?.callStaticMethod("setWebContentsDebuggingEnabled", true)
-        instance.x5WebViewClass?.hookBeforeMethod(
+            qmPackage.x5WebViewClass?.callStaticMethod("setWebContentsDebuggingEnabled", true)
+        qmPackage.x5WebViewClass?.hookBeforeMethod(
             "setWebViewClient",
             "com.tencent.smtt.sdk.WebViewClient"
         ) { param ->
@@ -83,10 +83,10 @@ object WebViewHook : BaseHook {
             try {
                 clazz.getDeclaredMethod(
                     "onPageStarted",
-                    instance.x5WebViewClass,
+                    qmPackage.x5WebViewClass,
                     String::class.java,
                     Bitmap::class.java
-                ).hookBeforeMethod(hooker)
+                ).hookBefore(hooker)
                 hookedClient.add(clazz)
                 Log.d("hook webview $clazz")
             } catch (_: NoSuchMethodException) {

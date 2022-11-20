@@ -1,9 +1,9 @@
 package me.kofua.qmhelper.utils
 
 import android.os.Environment
-import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.data.StorageVolume.Companion.toMockVolume
 import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.qmPackage
 import java.io.File
 
 typealias SingleDecryptListener = (
@@ -62,7 +62,7 @@ object Decryptor {
 
     private fun getEncSongs(): List<File> {
         return runCatching {
-            instance.storageUtilsClass?.callStaticMethodAs<Set<*>>(
+            qmPackage.storageUtilsClass?.callStaticMethodAs<Set<*>>(
                 hookInfo.storageUtils.getVolumes, currentContext
             )?.mapNotNull { it?.toMockVolume()?.path }
                 ?.flatMap { p ->
@@ -101,18 +101,18 @@ object Decryptor {
     }
 
     private fun getFileEKey(srcFilePath: String) = runCatching {
-        instance.eKeyManagerClass?.getStaticObjectField(hookInfo.eKeyManager.instance)
+        qmPackage.eKeyManagerClass?.getStaticObjectField(hookInfo.eKeyManager.instance)
             ?.callMethodAs<String?>(hookInfo.eKeyManager.getFileEKey, srcFilePath, null)
     }.onFailure { Log.e(it) }.getOrNull() ?: ""
 
     private fun decrypt(srcFilePath: String, destFilePath: String, eKey: String) = runCatching {
-        instance.eKeyDecryptorClass?.getStaticObjectField(hookInfo.eKeyDecryptor.instance)
+        qmPackage.eKeyDecryptorClass?.getStaticObjectField(hookInfo.eKeyDecryptor.instance)
             ?.callMethod(hookInfo.eKeyDecryptor.decryptFile, srcFilePath, destFilePath, eKey)
         true
     }.onFailure { Log.e(it) }.getOrNull() ?: false
 
     private fun staticDecrypt(srcFilePath: String, destFilePath: String) = runCatching {
-        instance.vipDownloadHelperClass?.callStaticMethod(
+        qmPackage.vipDownloadHelperClass?.callStaticMethod(
             hookInfo.vipDownloadHelper.decryptFile, srcFilePath, destFilePath
         )
         true

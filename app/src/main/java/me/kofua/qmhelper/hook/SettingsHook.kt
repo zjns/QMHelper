@@ -10,10 +10,10 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.R
 import me.kofua.qmhelper.from
 import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.qmPackage
 import me.kofua.qmhelper.setting.Setting
 import me.kofua.qmhelper.setting.SettingPack
 import me.kofua.qmhelper.utils.*
@@ -68,7 +68,7 @@ object SettingsHook : BaseHook {
                 }
             }
         }
-        instance.appStarterActivityClass?.hookAfterMethod(
+        qmPackage.appStarterActivityClass?.hookAfterMethod(
             "onActivityResult",
             Int::class.javaPrimitiveType,
             Int::class.javaPrimitiveType,
@@ -80,7 +80,7 @@ object SettingsHook : BaseHook {
             settingPack.onActivityResult(requestCode, resultCode, data)
         }
         @Suppress("UNCHECKED_CAST")
-        instance.appStarterActivityClass?.hookAfterMethod(
+        qmPackage.appStarterActivityClass?.hookAfterMethod(
             "onRequestPermissionsResult",
             Int::class.javaPrimitiveType,
             Array<String>::class.java,
@@ -160,11 +160,11 @@ object SettingsHook : BaseHook {
     }
 
     private fun settingProvider(fragment: Any, setting: Any?): Any? {
-        val baseSettingProviderClass = instance.baseSettingProviderClass ?: return null
+        val baseSettingProviderClass = qmPackage.baseSettingProviderClass ?: return null
         val create = hookInfo.setting.baseSettingProvider.create.name
         val handler = InvocationHandler { _, _, _ -> setting }
         val settingProviderClass = baseSettingProviderClass.proxy(create)
-        val unhook = baseSettingProviderClass.constructors.first().hookBeforeMethod {
+        val unhook = baseSettingProviderClass.constructors.first().hookBefore {
             if (it.thisObject.javaClass.name == settingProviderClass.name)
                 it.thisObject.invocationHandler(handler)
         }
@@ -172,8 +172,8 @@ object SettingsHook : BaseHook {
     }
 
     private fun onQMHelperSettingClicked(context: Context) {
-        val baseSettingFragmentClass = instance.baseSettingFragmentClass ?: return
-        val baseSettingPackClass = instance.baseSettingPackClass ?: return
+        val baseSettingFragmentClass = qmPackage.baseSettingFragmentClass ?: return
+        val baseSettingPackClass = qmPackage.baseSettingPackClass ?: return
         val settingPackage = hookInfo.setting.baseSettingFragment.settingPackage.name
         val title = hookInfo.setting.baseSettingFragment.title.name
         val createSettingProvider = hookInfo.setting.baseSettingPack.createSettingProvider.name
@@ -185,7 +185,7 @@ object SettingsHook : BaseHook {
                     CopyOnWriteArrayList<Any?>(settingProviders)
                 }
                 val moduleSettingPackClass = baseSettingPackClass.proxy(createSettingProvider)
-                val unhook = baseSettingPackClass.constructors.first().hookBeforeMethod {
+                val unhook = baseSettingPackClass.constructors.first().hookBefore {
                     if (it.thisObject.javaClass.name == moduleSettingPackClass.name)
                         it.thisObject.invocationHandler(packSettingHandler)
                 }
@@ -199,7 +199,7 @@ object SettingsHook : BaseHook {
             }
         }
         val moduleSettingFragmentClass = baseSettingFragmentClass.proxy(settingPackage, title)
-        val unhook = instance.baseFragmentClass?.hookBeforeConstructor {
+        val unhook = qmPackage.baseFragmentClass?.hookBeforeConstructor {
             if (it.thisObject.javaClass.name == moduleSettingFragmentClass.name)
                 it.thisObject.invocationHandler(handler)
         }

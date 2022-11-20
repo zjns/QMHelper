@@ -16,7 +16,7 @@ object HomePageHook : BaseHook {
             hookInfo.userInfoHolder.replaceMethod({ showBubble }) { null }
             hookInfo.vipAdBarData.from(classLoader)?.declaredConstructors
                 ?.find { m -> m.parameterTypes.let { it.size == 10 && it[8] == Boolean::class.javaPrimitiveType } }
-                ?.hookBeforeMethod { it.args[8] = true }
+                ?.hookBefore { it.args[8] = true }
         }
         if (sPrefs.getBoolean("purify_live_guide", false)) {
             hookInfo.topAreaDelegate.replaceMethod({ initLiveGuide }) { null }

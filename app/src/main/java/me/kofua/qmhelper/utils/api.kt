@@ -2,8 +2,8 @@ package me.kofua.qmhelper.utils
 
 import android.os.Build
 import android.webkit.WebView
-import me.kofua.qmhelper.QMPackage.Companion.instance
 import me.kofua.qmhelper.hookInfo
+import me.kofua.qmhelper.qmPackage
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -13,7 +13,7 @@ import java.util.zip.GZIPInputStream
 
 val webViewDefUA by lazy {
     runCatching {
-        instance.x5WebViewClass?.new(currentContext)
+        qmPackage.x5WebViewClass?.new(currentContext)
             ?.callMethod("getSettings")
             ?.callMethodAs<String>("getUserAgentString")
             ?: WebView(currentContext).settings.userAgentString ?: ""
@@ -25,13 +25,13 @@ val defaultUA =
         .format(Build.VERSION.RELEASE, Build.MODEL)
 
 fun cookies(url: String? = null): String {
-    return instance.webRequestHeadersClass?.getStaticObjectField(
+    return qmPackage.webRequestHeadersClass?.getStaticObjectField(
         hookInfo.webRequestHeaders.instance
     )?.callMethodAs<String>(hookInfo.webRequestHeaders.getCookies, url) ?: ""
 }
 
 fun webUA(): String {
-    return instance.webRequestHeadersClass?.getStaticObjectField(
+    return qmPackage.webRequestHeadersClass?.getStaticObjectField(
         hookInfo.webRequestHeaders.instance
     )?.callMethodAs<String>(hookInfo.webRequestHeaders.getUA, null, null)?.let {
         //"$webViewDefUA QQJSSDK/1.3 /$it"
@@ -40,7 +40,7 @@ fun webUA(): String {
 }
 
 fun uin(): String {
-    return instance.userManagerClass?.callStaticMethod(
+    return qmPackage.userManagerClass?.callStaticMethod(
         hookInfo.userManager.get
     )?.callMethodAs(hookInfo.userManager.getMusicUin) ?: ""
 }
@@ -54,13 +54,13 @@ fun uid(): String {
 }
 
 fun isLogin(): Boolean {
-    return instance.userManagerClass?.callStaticMethod(
+    return qmPackage.userManagerClass?.callStaticMethod(
         hookInfo.userManager.get
     )?.callMethodAs(hookInfo.userManager.isLogin) ?: false
 }
 
 fun nativeSign(body: String, query: String): String {
-    return instance.mERJniClass?.callStaticMethodOrNullAs<String?>(
+    return qmPackage.mERJniClass?.callStaticMethodOrNullAs<String?>(
         "calc", body.toByteArray(), query.toByteArray()
     )?.split(' ')?.firstOrNull() ?: ""
 }
