@@ -85,12 +85,16 @@ object CgiHook : BaseHook {
                     data.remove("RecItems")
                     param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
                 }
-            } else if (path == "music.sociality.KolEntrance.GetKolEntrance" && removeMineKol) {
+            } else if ((path == "music.sociality.KolEntrance.GetKolEntrance"
+                        || path == "music.sociality.KolEntrance.GetNewKolEntrance"
+                        || path == "music.sociality.KolEntrance.GetFlashMsg") && removeMineKol
+            ) {
                 val json = param.args[2]?.toString() ?: return@out
                 val jo = json.runCatchingOrNull { toJSONObject() } ?: return@out
                 val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@out
-                if (data.optBoolean("ShowEntrance")) {
-                    data.put("ShowEntrance", false)
+                if (data.optBoolean("ShowEntrance") || data.optBoolean("ShowFlashMsg")) {
+                    data.put("ShowEntrance", false) // for GetKolEntrance
+                    data.put("ShowFlashMsg", false) // for GetFlashMsg
                     param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
                 }
             } else if (path == "music.individuation.Recommend.GetRecommend" && moveDownRecently) {
