@@ -257,12 +257,14 @@ class QMPackage private constructor() {
                 val onSwitchStatusChangeMethod = switchListenerClass.methods.find { m ->
                     m.parameterTypes.let { it.size == 1 && it[0] == Boolean::class.javaPrimitiveType }
                 } ?: return@apply
+                val startPos = fields.indexOfFirst { it.type == Int::class.javaPrimitiveType }
+                    .takeIf { it > -1 } ?: return@apply
                 clazz = clazz { name = settingClass.name }
                 with = method { name = withMethod.name }
-                type = field { name = fields[0].name }
-                title = field { name = fields[1].name }
-                rightDesc = field { name = fields[3].name }
-                redDotListener = field { name = fields[10].name }
+                type = field { name = fields[startPos].name }
+                title = field { name = fields[startPos + 1].name }
+                rightDesc = field { name = fields[startPos + 3].name }
+                redDotListener = field { name = fields[startPos + 10].name }
                 builder = SettingBuilder().apply {
                     clazz = clazz { name = settingBuilderClass.name }
                     build = method { name = buildMethod.name }
