@@ -34,9 +34,7 @@ object CgiHook : BaseHook {
                     ?.optJSONArray("v_shelf") ?: return@out
                 var position = -1
                 for ((idx, item) in shelfList.asSequence<JSONObject>().withIndex()) {
-                    val module = item.optJSONObject("extra_info")
-                        ?.optString("moduleID") ?: ""
-                    if (module.startsWith("mlive")) {
+                    if (item.optString("title_content").contains("直播")) {
                         position = idx
                         break
                     }
