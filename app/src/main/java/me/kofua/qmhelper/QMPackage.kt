@@ -426,7 +426,7 @@ class QMPackage private constructor() {
                     ?.declaringClass ?: return@apply
                 val getPropertyMethod = clazz.declaredMethods.find {
                     it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java
-                            && it.returnType != Void::class.javaPrimitiveType && it.isPublic
+                            && it.returnType != Void.TYPE && !it.isPrivate
                 } ?: return@apply
                 this.clazz = clazz { name = clazz.name }
                 getProperty = method {
@@ -481,7 +481,7 @@ class QMPackage private constructor() {
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
                 ?: return@apply
                 val setCanSlideMethod = clazz.declaredMethods.find { m ->
-                    !m.isSynthetic && m.returnType == Void::class.javaPrimitiveType
+                    !m.isSynthetic && m.returnType == Void.TYPE
                             && m.parameterTypes.let { it.size == 1 && it[0] == clazz }
                 } ?: return@apply
                 val postCanSlideMethod = dexHelper.encodeMethodIndex(setCanSlideMethod).run {
@@ -514,8 +514,9 @@ class QMPackage private constructor() {
                     ?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
                 val appStarterActivityClass = doOnCreateMethod.declaringClass
                 val showMessageDialogMethod = appStarterActivityClass.methods.find { m ->
-                    Dialog::class.java.isAssignableFrom(m.returnType)
-                            && m.parameterTypes.let { it.size == 8 && it[0] == String::class.java && it[7] == Boolean::class.javaPrimitiveType }
+                    Dialog::class.java.isAssignableFrom(m.returnType) && m.parameterTypes.let {
+                        it.size == 8 && it[0] == String::class.java && it[7] == Boolean::class.javaPrimitiveType
+                    }
                 } ?: return@apply
                 clazz = clazz { name = appStarterActivityClass.name }
                 doOnCreate = method {
@@ -589,7 +590,7 @@ class QMPackage private constructor() {
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
                 ?: return@apply
                 val methods = clazz.interfaces.firstOrNull()?.methods?.filter {
-                    it.returnType == Void::class.javaPrimitiveType && it.parameterTypes.isEmpty()
+                    it.returnType == Void.TYPE && it.parameterTypes.isEmpty()
                 } ?: return@apply
                 this.clazz = clazz { name = clazz.name }
                 this.methods = methods.map { method { name = it.name } }
@@ -714,7 +715,7 @@ class QMPackage private constructor() {
                     .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
                 ?: return@apply
                 val m = c.declaredMethods.find { m ->
-                    m.isPublic && m.returnType == Void::class.javaPrimitiveType && m.parameterTypes
+                    m.isPublic && m.returnType == Void.TYPE && m.parameterTypes
                         .let { it.size == 1 && it[0] == View::class.java }
                 } ?: return@apply
                 val tvAlbumDetailField = c.declaredFields.find {

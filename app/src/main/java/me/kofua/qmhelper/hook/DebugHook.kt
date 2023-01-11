@@ -77,50 +77,50 @@ object DebugHook : BaseHook {
         ) { param ->
             Log.d("kofua, creating fragment: ${param.thisObject}, view: ${param.result}")
         }
-        "com.tencent.qqmusiccommon.util.MLog".from(classLoader)?.declaredMethods
-            ?.filter { m ->
-                m.isPublic && m.isStatic && m.returnType == Void::class.javaPrimitiveType
-                        && m.parameterTypes.let { it.size >= 2 && it[0] == String::class.java && it[1] == String::class.java }
-            }?.forEach { m ->
-                m.hookBefore { param ->
-                    val methodName = param.method.name
-                    val tag = param.args[0] as? String ?: ""
-                    val message = param.args[1] as? String ?: ""
-                    val other = param.args.getOrNull(2)
-                    when (methodName) {
-                        "d" -> when (other) {
-                            null -> android.util.Log.d(tag, message)
-                            is Throwable -> android.util.Log.d(tag, message, other)
-                            is Array<*> -> android.util.Log.d(tag, message.format(*other))
-                        }
-
-                        "e" -> when (other) {
-                            null -> android.util.Log.e(tag, message)
-                            is Throwable -> android.util.Log.e(tag, message, other)
-                            is Array<*> -> android.util.Log.e(tag, message.format(*other))
-                        }
-
-                        "i" -> when (other) {
-                            null -> android.util.Log.i(tag, message)
-                            is Throwable -> android.util.Log.i(tag, message, other)
-                            is Array<*> -> android.util.Log.i(tag, message.format(*other))
-                        }
-
-                        "v" -> when (other) {
-                            null -> android.util.Log.v(tag, message)
-                            is Throwable -> android.util.Log.v(tag, message, other)
-                            is Array<*> -> android.util.Log.v(tag, message.format(*other))
-                        }
-
-                        "w" -> when (other) {
-                            null -> android.util.Log.w(tag, message)
-                            is Throwable -> android.util.Log.w(tag, message, other)
-                            is Array<*> -> android.util.Log.w(tag, message.format(*other))
-                        }
-                    }
-                    param.result = null
-                }
+        "com.tencent.qqmusiccommon.util.MLog".from(classLoader)?.declaredMethods?.filter { m ->
+            m.isPublic && m.isStatic && m.returnType == Void.TYPE && m.parameterTypes.let {
+                it.size >= 2 && it[0] == String::class.java && it[1] == String::class.java
             }
+        }?.forEach { m ->
+            m.hookBefore { param ->
+                val methodName = param.method.name
+                val tag = param.args[0] as? String ?: ""
+                val message = param.args[1] as? String ?: ""
+                val other = param.args.getOrNull(2)
+                when (methodName) {
+                    "d" -> when (other) {
+                        null -> android.util.Log.d(tag, message)
+                        is Throwable -> android.util.Log.d(tag, message, other)
+                        is Array<*> -> android.util.Log.d(tag, message.format(*other))
+                    }
+
+                    "e" -> when (other) {
+                        null -> android.util.Log.e(tag, message)
+                        is Throwable -> android.util.Log.e(tag, message, other)
+                        is Array<*> -> android.util.Log.e(tag, message.format(*other))
+                    }
+
+                    "i" -> when (other) {
+                        null -> android.util.Log.i(tag, message)
+                        is Throwable -> android.util.Log.i(tag, message, other)
+                        is Array<*> -> android.util.Log.i(tag, message.format(*other))
+                    }
+
+                    "v" -> when (other) {
+                        null -> android.util.Log.v(tag, message)
+                        is Throwable -> android.util.Log.v(tag, message, other)
+                        is Array<*> -> android.util.Log.v(tag, message.format(*other))
+                    }
+
+                    "w" -> when (other) {
+                        null -> android.util.Log.w(tag, message)
+                        is Throwable -> android.util.Log.w(tag, message, other)
+                        is Array<*> -> android.util.Log.w(tag, message.format(*other))
+                    }
+                }
+                param.result = null
+            }
+        }
         "com.tencent.qqmusiccommon.hippy.bridge.WebApiHippyBridge".from(classLoader)
             ?.declaredMethods?.find { it.name == "invoke" }?.hookAfter { param ->
                 Log.d("kofua, invoke, hippyMapJson: ${JSONObject(param.args[0].getObjectField("mDatas") as Map<*, *>)}")

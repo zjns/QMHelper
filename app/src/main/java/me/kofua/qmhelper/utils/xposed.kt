@@ -13,6 +13,7 @@ import de.robv.android.xposed.XposedHelpers.*
 import de.robv.android.xposed.callbacks.XC_LayoutInflated
 import java.lang.reflect.Field
 import java.lang.reflect.Member
+import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.Enumeration
 
@@ -464,6 +465,19 @@ inline fun ClassLoader.allClassesList(crossinline delegator: (BaseDexClassLoader
         }.orEmpty()
 }
 
+fun Class<*>.findMethod(deep: Boolean = false, condition: (Method) -> Boolean): Method? {
+    var c: Class<*>? = this
+    while (c != null) {
+        (c.declaredMethods.find(condition) ?: if (deep) c.interfaces
+            .flatMap { it.declaredMethods.toList() }
+            .find(condition) else null)?.also {
+            it.isAccessible = true
+            return it
+        } ?: run { c = c?.superclass }
+    }
+    return null
+}
+
 val Member.isStatic: Boolean
     inline get() = Modifier.isStatic(modifiers)
 val Member.isFinal: Boolean
@@ -474,5 +488,7 @@ val Member.isNotStatic: Boolean
     inline get() = !isStatic
 val Member.isAbstract: Boolean
     inline get() = Modifier.isAbstract(modifiers)
+val Member.isPrivate: Boolean
+    inline get() = Modifier.isPrivate(modifiers)
 val Class<*>.isAbstract: Boolean
     inline get() = !isPrimitive && Modifier.isAbstract(modifiers)

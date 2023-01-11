@@ -17,7 +17,7 @@ fun Class<*>.proxy(
     .apply {
         if (onlyMethods.isNotEmpty())
             onlyMethods(onlyMethods.map { m ->
-                this@proxy.methods.first { it.name == m }
+                this@proxy.findMethod(deep = true) { it.name == m }
             }.toTypedArray())
     }.buildProxyClass()
 
