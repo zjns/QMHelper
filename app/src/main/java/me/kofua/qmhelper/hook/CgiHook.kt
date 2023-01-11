@@ -20,6 +20,7 @@ object CgiHook : BaseHook {
         val unlockFont = sPrefs.getBoolean("unlock_font", false)
         val unlockLyricKinetic = sPrefs.getBoolean("unlock_lyric_kinetic", false)
         val blockCommonAds = sPrefs.getBoolean("block_common_ads", false)
+        val purifyRedDots = sPrefs.getBoolean("purify_red_dots", false)
 
         hookInfo.jsonRespParser.hookBeforeMethod({ parseModuleItem }) out@{ param ->
             val path = param.args[1] as? String
@@ -158,6 +159,16 @@ object CgiHook : BaseHook {
                     put("maxreqtimes", 0)
                     put("maxshowtimes", 0)
                 }
+                param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
+            } else if ((path == "VipCenter.MyVipRed.get_vip_reddot"
+                        || path == "integral.task_mall_read.get_task_entry_configure")
+                && purifyRedDots
+            ) {
+                val json = param.args[2]?.toString() ?: return@out
+                val jo = json.runCatchingOrNull { toJSONObject() } ?: return@out
+                val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@out
+                data.put("reddot", 0) // for get_vip_reddot
+                data.put("red_dot_status", 0) // for get_task_entry_configure
                 param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
             }
         }
