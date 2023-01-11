@@ -2,10 +2,7 @@ package me.kofua.qmhelper.hook
 
 import me.kofua.qmhelper.from
 import me.kofua.qmhelper.hookInfo
-import me.kofua.qmhelper.utils.getObjectField
-import me.kofua.qmhelper.utils.getObjectFieldAs
-import me.kofua.qmhelper.utils.hookAfterMethod
-import me.kofua.qmhelper.utils.sPrefs
+import me.kofua.qmhelper.utils.*
 
 object CommonAdsHook : BaseHook {
     override fun hook() {
@@ -28,5 +25,6 @@ object CommonAdsHook : BaseHook {
                 }
             }
         }
+        hookInfo.bannerManager.replaceMethod({ requestAd }) { null }
     }
 }

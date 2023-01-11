@@ -205,6 +205,8 @@ class UserManager : ClassInfo() {
     var isLogin: Method = defMethod
 }
 
+class BannerManager(var requestAd: Method = defMethod) : ClassInfo()
+
 class HookInfo : Serializable {
     var lastUpdateTime: Long = 0L
     var clientVersionCode: Int = 0
@@ -254,4 +256,5 @@ class HookInfo : Serializable {
     var jceRespConverter: JceResponseConverter = JceResponseConverter()
     var webRequestHeaders: WebRequestHeaders = WebRequestHeaders()
     var userManager: UserManager = UserManager()
+    var bannerManager: BannerManager = BannerManager()
 }

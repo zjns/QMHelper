@@ -864,6 +864,15 @@ class QMPackage private constructor() {
                 getMusicUin = method { name = getMusicUinMethod.name }
                 isLogin = method { name = isLoginMethod.name }
             }
+            bannerManager = BannerManager().apply {
+                val method = dexHelper.findMethodUsingString("[requestAdvertisement] start")
+                    .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) } ?: return@apply
+                clazz = clazz { name = method.declaringClass.name }
+                requestAd = method {
+                    name = method.name
+                    paramTypes = method.paramTypes
+                }
+            }
 
             dexHelper.close()
         }
