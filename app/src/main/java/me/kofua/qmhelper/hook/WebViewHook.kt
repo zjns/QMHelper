@@ -18,6 +18,7 @@ object WebViewHook : BaseHook {
         try {
             val url = param.args[1] as String
             if (url.startsWith("https://i.y.qq.com/n2/m/theme/index.html")
+                || url.startsWith("https://i.y.qq.com/n2/m/basic/client/themev2/home/index.html")
                 || url.startsWith("https://y.qq.com/m/basic/client/themev2/detail/index.html")
                 || url.startsWith("https://y.qq.com/m/client/player_detail/index.html")
             ) {
