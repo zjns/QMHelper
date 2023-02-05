@@ -5,6 +5,8 @@ import android.app.Dialog
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import dalvik.system.BaseDexClassLoader
+import dalvik.system.PathClassLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.kofua.qmhelper.XposedInit.Companion.modulePath
@@ -111,7 +113,12 @@ class QMPackage private constructor() {
         @JvmStatic
         fun initHookInfo() = HookInfo().apply out@{
             val classLoader = currentContext.classLoader
-            //val classesList = classLoader.allClassesList().asSequence()
+            val dexClassLoaderDelegate = { delegator: BaseDexClassLoader ->
+                if (delegator.javaClass != PathClassLoader::class.java) {
+                    delegator.getFirstFieldByExactTypeOrNull<BaseDexClassLoader>() ?: delegator
+                } else delegator
+            }
+            //val classesList = classLoader.allClassesList(dexClassLoaderDelegate).asSequence()
 
             try {
                 System.loadLibrary("qmhelper")
@@ -120,7 +127,9 @@ class QMPackage private constructor() {
                 BannerTips.error(R.string.not_supported)
                 return@out
             }
-            val dexHelper = DexHelper(classLoader.findDexClassLoader() ?: return@out)
+            val dexClassLoader =
+                classLoader.findDexClassLoader(dexClassLoaderDelegate) ?: return@out
+            val dexHelper = DexHelper(dexClassLoader)
             lastUpdateTime = max(
                 getPackageLastUpdateTime(hostPackageName),
                 File(modulePath).lastModified()
