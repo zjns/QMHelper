@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import org.gradle.internal.os.OperatingSystem
 import java.io.ByteArrayOutputStream
 import java.nio.file.Paths
@@ -239,7 +241,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
-    implementation("androidx.annotation:annotation:1.5.0")
+    implementation("androidx.annotation:annotation:1.6.0")
     implementation("dev.rikka.ndk.thirdparty:cxx:1.2.0")
     implementation("com.linkedin.dexmaker:dexmaker:2.28.3")
 }
