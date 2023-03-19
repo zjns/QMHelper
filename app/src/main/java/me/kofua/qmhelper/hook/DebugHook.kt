@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import me.kofua.qmhelper.qmPackage
 import me.kofua.qmhelper.utils.*
 import org.json.JSONObject
-import java.lang.reflect.Proxy
 
 object DebugHook : BaseHook {
 
@@ -31,39 +30,19 @@ object DebugHook : BaseHook {
             View.OnLongClickListener::class.java
         ) { param ->
             val listener = param.args[0] as? View.OnLongClickListener ?: return@hookBeforeMethod
-            param.args[0] = Proxy.newProxyInstance(
-                listener.javaClass.classLoader,
-                arrayOf(View.OnLongClickListener::class.java)
-            ) { _, m, args ->
-                val v = args[0] as View
-                Log.d("kofua, onLongClicked, v: $v, listener: ${listener.javaClass.name}")
-                m(listener, *args)
+            param.args[0] = View.OnLongClickListener {
+                Log.d("kofua, onLongClicked, view: $it, listener: ${listener.javaClass.name}")
+                listener.onLongClick(it)
             }
         }
-        val btnId = getResId("info_layout", "id")
         View::class.java.hookBeforeMethod(
             "setOnClickListener",
             View.OnClickListener::class.java
         ) { param ->
             val listener = param.args[0] as? View.OnClickListener ?: return@hookBeforeMethod
-            param.args[0] = Proxy.newProxyInstance(
-                listener.javaClass.classLoader,
-                arrayOf(View.OnClickListener::class.java)
-            ) { _, m, args ->
-                args ?: return@newProxyInstance m(listener)
-                val v = args[0] as View
-                val name = v.javaClass.name
-                if (name == "com.tencent.qqmusic.fragment.morefeatures.settings.view.SettingView") {
-                    val parent = v.parent as? ViewGroup
-                    Log.d("kofua, parent: $parent, pos: ${parent?.indexOfChild(v)}")
-                }
-                Log.d("kofua, onClicked, v: $v, listener: ${listener.javaClass.name}")
-                if (v.id == btnId) {
-                    val tag = v.tag
-                    val parent = v.parent
-                    Log.d("kofua, onButtonClicked, tag: $tag, tag class: ${tag?.javaClass?.name}, parent: $parent")
-                }
-                m(listener, *args)
+            param.args[0] = View.OnClickListener {
+                Log.d("kofua, onClicked, view: $it, listener: ${listener.javaClass.name}")
+                listener.onClick(it)
             }
         }
         Activity::class.java.hookBeforeMethod("onCreate", Bundle::class.java) { param ->
