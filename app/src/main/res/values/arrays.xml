@@ -5,10 +5,14 @@
     </string-array>
 
     <string-array name="home_top_tab_entries">
+        <item>乐馆</item>
+        <item>会员</item>
         <item>有声</item>
         <item>直播</item>
     </string-array>
     <string-array name="home_top_tab_values" translatable="false">
+        <item>6</item>
+        <item>20</item>
         <item>7</item>
         <item>10</item>
     </string-array>
