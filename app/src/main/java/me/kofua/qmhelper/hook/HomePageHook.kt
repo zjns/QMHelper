@@ -10,7 +10,10 @@ object HomePageHook : BaseHook {
 
     override fun hook() {
         if (sPrefs.getBoolean("hide_music_world", false)) {
-            hookInfo.mainDesktopHeader.replaceMethod({ showMusicWorld }) { null }
+            hookInfo.mainDesktopHeader.showMusicWorld.name.ifNotEmpty {
+                hookInfo.mainDesktopHeader.replaceMethod({ showMusicWorld }) { null }
+            }
+            hookInfo.musicWorldPullEntrance.replaceMethod({ showButton }) { null }
         }
         if (sPrefs.getBoolean("hide_vip_bubble", false)) {
             hookInfo.userInfoHolder.replaceMethod({ showBubble }) { null }

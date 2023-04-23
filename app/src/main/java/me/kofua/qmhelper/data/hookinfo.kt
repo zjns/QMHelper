@@ -207,6 +207,8 @@ class UserManager : ClassInfo() {
 
 class BannerManager(var requestAd: Method = defMethod) : ClassInfo()
 
+class MusicWorldPullEntrance(var showButton: Method = defMethod) : ClassInfo()
+
 class HookInfo : Serializable {
     var lastUpdateTime: Long = 0L
     var clientVersionCode: Int = 0
@@ -257,4 +259,5 @@ class HookInfo : Serializable {
     var webRequestHeaders: WebRequestHeaders = WebRequestHeaders()
     var userManager: UserManager = UserManager()
     var bannerManager: BannerManager = BannerManager()
+    var musicWorldPullEntrance: MusicWorldPullEntrance = MusicWorldPullEntrance()
 }

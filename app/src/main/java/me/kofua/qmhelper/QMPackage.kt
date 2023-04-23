@@ -208,7 +208,7 @@ class QMPackage private constructor() {
                     declaringClass = clazzIndex,
                 ).asSequence().firstNotNullOfOrNull {
                     dexHelper.decodeMethodIndex(it)
-                } ?: return@apply
+                }
                 this.clazz = clazz { name = clazz.name }
                 addTabById = method {
                     name = addTabByIdMethod.name
@@ -218,9 +218,11 @@ class QMPackage private constructor() {
                     name = addTabByNameMethod.name
                     paramTypes = addTabByNameMethod.paramTypes
                 }
-                showMusicWorld = method {
-                    name = showMusicWorldMethod.name
-                    paramTypes = showMusicWorldMethod.paramTypes
+                showMusicWorldMethod?.let {
+                    showMusicWorld = method {
+                        name = it.name
+                        paramTypes = it.paramTypes
+                    }
                 }
             }
             adManager = AdManager().apply {
@@ -297,16 +299,20 @@ class QMPackage private constructor() {
 
                 val debugSettingFragmentClass =
                     "com.tencent.qqmusic.fragment.debug.DebugSettingFragment"
-                        .from(classLoader) ?: dexHelper.findMethodUsingString("DebugMode")
-                        .firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                        ?.declaringClass ?: return@apply
+                        .from(classLoader) ?: arrayOf(
+                        "DebugMode",
+                        "\u4f53\u9a8c\u529f\u80fd\u5f00\u5173"
+                    ).firstNotNullOfOrNull { str ->
+                        dexHelper.findMethodUsingString(str).firstOrNull()
+                            ?.let { dexHelper.decodeMethodIndex(it) }?.declaringClass
+                    } ?: return@apply
                 val baseSettingFragmentClass =
                     debugSettingFragmentClass.superclass ?: return@apply
-                val settingPackMethod = debugSettingFragmentClass.declaredMethods.find {
-                    it.returnType != String::class.java
+                val settingPackMethod = debugSettingFragmentClass.declaredMethods.find { m ->
+                    m.returnType.let { it != String::class.java && !it.isPrimitive } && m.parameterTypes.isEmpty()
                 } ?: return@apply
                 val titleMethod = debugSettingFragmentClass.declaredMethods.find {
-                    it.returnType == String::class.java
+                    it.returnType == String::class.java && it.parameterTypes.isEmpty()
                 } ?: return@apply
                 val baseSettingPackClass = settingPackMethod.returnType
                 val createSettingProviderMethod = baseSettingPackClass.methods.find {
@@ -880,6 +886,28 @@ class QMPackage private constructor() {
                 requestAd = method {
                     name = method.name
                     paramTypes = method.paramTypes
+                }
+            }
+            musicWorldPullEntrance = MusicWorldPullEntrance().apply {
+                var clazz =
+                    "com.tencent.qqmusic.fragment.mymusic.my.musicworld.MusicWorldPullEntrance"
+                        .from(classLoader)
+                val onClickListenerClass = View.OnClickListener::class.java
+                var showButtonMethod: Member? = clazz?.declaredMethods?.find { m ->
+                    m.parameterTypes.let { it.size == 1 && it[0] == onClickListenerClass }
+                            && m.returnType == Void.TYPE
+                }
+                if (showButtonMethod == null) {
+                    showButtonMethod = dexHelper.findMethodUsingString(
+                        "[showMusicWorldEntranceBtn]",
+                        parameterTypes = longArrayOf(dexHelper.encodeClassIndex(onClickListenerClass))
+                    ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
+                    clazz = showButtonMethod?.declaringClass ?: return@apply
+                }
+                clazz?.let { this.clazz = clazz { name = it.name } }
+                showButton = method {
+                    name = showButtonMethod.name
+                    paramTypes = showButtonMethod.paramTypes
                 }
             }
 
