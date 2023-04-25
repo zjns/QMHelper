@@ -103,8 +103,6 @@ class SettingFragment : ClassInfo() {
 
 class UserInfoHolder(var showBubble: Method = defMethod) : ClassInfo()
 
-class BaseABTester(var getProperty: Method = defMethod) : ClassInfo()
-
 class StrategyModule(var getStrategyId: Method = defMethod) : ClassInfo()
 
 class TopAreaDelegate : ClassInfo() {
@@ -224,7 +222,6 @@ class HookInfo : Serializable {
     var bannerTips: BannerTips = BannerTips()
     var settingFragment: SettingFragment = SettingFragment()
     var userInfoHolder: UserInfoHolder = UserInfoHolder()
-    var abTester: BaseABTester = BaseABTester()
     var strategyModule: StrategyModule = StrategyModule()
     var topAreaDelegate: TopAreaDelegate = TopAreaDelegate()
     var playViewModel: PlayerViewModel = PlayerViewModel()

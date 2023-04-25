@@ -58,7 +58,6 @@ class XposedInit : IXposedHookLoadPackage, IXposedHookZygoteInit {
                         CommonAdsHook,
                         WebViewHook,
                         JceHook,
-                        ABTesterHook,
                     )
                     val allHooks = buildList {
                         addAll(debugHooks)

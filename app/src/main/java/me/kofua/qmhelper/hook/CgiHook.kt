@@ -21,6 +21,7 @@ object CgiHook : BaseHook {
         val unlockLyricKinetic = sPrefs.getBoolean("unlock_lyric_kinetic", false)
         val blockCommonAds = sPrefs.getBoolean("block_common_ads", false)
         val purifyRedDots = sPrefs.getBoolean("purify_red_dots", false)
+        val hideSongListGuide = sPrefs.getBoolean("hide_song_list_guide", false)
 
         hookInfo.jsonRespParser.hookBeforeMethod({ parseModuleItem }) out@{ param ->
             val path = param.args[1] as? String
@@ -113,7 +114,7 @@ object CgiHook : BaseHook {
                         newShelf.put(item)
                     } else if (title == "最近播放") {
                         recentJson = item
-                    } else if (title == songListTitle) {
+                    } else {
                         newShelf.put(item)
                         recentJson?.also {
                             newShelf.put(it)
@@ -161,14 +162,30 @@ object CgiHook : BaseHook {
                 }
                 param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
             } else if ((path == "VipCenter.MyVipRed.get_vip_reddot"
-                        || path == "integral.task_mall_read.get_task_entry_configure")
+                        || path == "integral.task_mall_read.get_task_entry_configure"
+                        || path == "music.vip.DressUpConfigSvr.GetDressUpShow4Mine")
                 && purifyRedDots
             ) {
                 val json = param.args[2]?.toString() ?: return@out
                 val jo = json.runCatchingOrNull { toJSONObject() } ?: return@out
                 val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@out
                 data.put("reddot", 0) // for get_vip_reddot
+                data.put("iconurl_1", "")
+                data.put("iconurl_2", "")
                 data.put("red_dot_status", 0) // for get_task_entry_configure
+                data.put("logo", "")
+                data.put("light_logo", "")
+                data.optJSONObject("config")?.run { // for GetDressUpShow4Mine
+                    put("redDot", 0)
+                    put("icon", "")
+                }
+                param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
+            } else if (path == "abtest.ClientStrategyServer.get_strategy" && hideSongListGuide) {
+                val json = param.args[2]?.toString() ?: return@out
+                val jo = json.runCatchingOrNull { toJSONObject() } ?: return@out
+                val data = jo.optJSONObject(path)?.optJSONObject("data") ?: return@out
+                data.optJSONObject("m_strategy")?.optJSONObject("MyTAB")
+                    ?.optJSONObject("miscellany")?.put("page", "Newpage2")
                 param.args[2] = jo.toString().fromJson(qmPackage.jsonObjectClass) ?: return@out
             }
         }

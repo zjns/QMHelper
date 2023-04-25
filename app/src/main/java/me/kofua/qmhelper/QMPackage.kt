@@ -434,21 +434,6 @@ class QMPackage private constructor() {
                     paramTypes = showBubbleMethod.paramTypes
                 }
             }
-            abTester = BaseABTester().apply {
-                val clazz = dexHelper.findMethodUsingString(
-                    "[BaseABTester init]: need ABTestAnnotation"
-                ).firstOrNull()?.let { dexHelper.decodeMethodIndex(it) }
-                    ?.declaringClass ?: return@apply
-                val getPropertyMethod = clazz.declaredMethods.find {
-                    it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java
-                            && it.returnType != Void.TYPE && !it.isPrivate
-                } ?: return@apply
-                this.clazz = clazz { name = clazz.name }
-                getProperty = method {
-                    name = getPropertyMethod.name
-                    paramTypes = getPropertyMethod.paramTypes
-                }
-            }
             strategyModule = StrategyModule().apply {
                 val getStrategyIdMethod = dexHelper.findMethodUsingString(
                     "[getClientStrategyStrategyId]: this:"
