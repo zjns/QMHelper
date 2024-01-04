@@ -11,8 +11,7 @@ typealias SingleDecryptListener = (
 ) -> Unit
 
 object Decryptor {
-    private val wideEncRegex = Regex("""^.+\.(qmc\w+|mgg\w?|mflac\w?|mdolby|mmp4)(\.flac)?$""")
-    private val newWideEncRegex = Regex("""\.(qmc\w+|mgg\w?|mflac\w?|mdolby|mmp4)\.flac""")
+    private val wideEncRegex = Regex("""^(.+)\.(qmc\w+|mgg\w?|mflac\w?|mdolby|mmp4)(\.flac)?$""")
     private val pureRegex = Regex("""\s\[mqms(\d)*]""")
 
     data class Ext(val ext: String, val ver: Int)
@@ -85,19 +84,20 @@ object Decryptor {
         saveDir?.mkdirs()
         val srcFilePath = srcFile.absolutePath
         if (!srcFile.isEncrypted) return false
-        val newEnc = srcFilePath.contains(newWideEncRegex)
+        val matchResult = wideEncRegex.matchEntire(srcFilePath)!!
+        val newEnc = matchResult.groups[3] != null
         val fileNoExt = if (newEnc) {
-            srcFilePath.replace(newWideEncRegex, "")
+            matchResult.groups[1]!!.value
         } else srcFilePath.substringBeforeLast(".")
         val fileExt = if (newEnc) {
-            wideEncRegex.matchEntire(srcFilePath)!!.groups[1]!!.value
+            matchResult.groups[2]!!.value
         } else srcFilePath.substringAfterLast(".", "")
         val decExt = decExtMap[fileExt]?.ext
             ?: if (fileExt.isEmpty()) "dec" else "$fileExt.dec"
         val destFilePath = (if (saveDir == null) {
             "$fileNoExt.$decExt"
         } else if (newEnc) {
-            File(saveDir, "${srcFile.name.replace(newWideEncRegex, "")}.$decExt").absolutePath
+            File(saveDir, "${srcFile.name.replace(wideEncRegex, "$1")}.$decExt").absolutePath
         } else {
             File(saveDir, "${srcFile.nameWithoutExtension}.$decExt").absolutePath
         }).replace(pureRegex, "")
