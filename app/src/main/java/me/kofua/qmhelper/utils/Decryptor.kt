@@ -34,6 +34,7 @@ object Decryptor {
         "mflac" to Ext("flac", 2),
         "mflac0" to Ext("flac", 2),
         "mflac1" to Ext("flac", 2),
+        "mflac2" to Ext("flac", 2),
         "mdolby" to Ext("m4a", 2),
         "mmp4" to Ext("mp4", 2)
     )
