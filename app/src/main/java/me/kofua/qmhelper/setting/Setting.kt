@@ -106,15 +106,10 @@ class Setting {
     var type: Type = Type.SWITCH
     var title: String? = null
     var rightDesc: String? = null
-    var dotRightDesc: String? = null
     var summary: String? = null
     var isSwitchOn: IsSwitchOn? = null
     var onSwitchChanged: OnSwitchChanged? = null
-    var tag: Any? = null
-    var redDot: Boolean = false
-    var enabled: Boolean = true
     var clickListener: View.OnClickListener? = null
-    var touchListener: View.OnTouchListener? = null
 
     private fun build(): Any? {
         val builder = hookInfo.setting.builder

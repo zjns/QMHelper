@@ -254,18 +254,27 @@ class QMPackage private constructor() {
                 val buildMethod = settingBuilderClass.declaredMethods.find {
                     it.returnType == settingClass
                 } ?: return@apply
-                val fields = settingClass.declaredFields.takeIf { it.size > 15 } ?: return@apply
+                val fields = settingClass.declaredFields
                 val builderFields = settingBuilderClass.declaredFields
-                    .takeIf { it.size >= 17 } ?: return@apply
-                val switchListenerField = builderFields[6]
-                val switchListenerClass = switchListenerField.type.takeIf {
-                    it.isInterface && it.methods.size == 2
+                val switchListenerField = builderFields.find { f ->
+                    f.type.let { it.isInterface && it.methods.size == 2 }
                 } ?: return@apply
+                val clickListenerField = builderFields.find { f ->
+                    f.type == View.OnClickListener::class.java
+                } ?: return@apply
+                val switchListenerClass = switchListenerField.type
                 val isSwitchOnMethod = switchListenerClass.methods.find {
                     it.returnType == Boolean::class.javaPrimitiveType
                 } ?: return@apply
                 val onSwitchStatusChangeMethod = switchListenerClass.methods.find { m ->
-                    m.parameterTypes.let { it.size == 1 && it[0] == Boolean::class.javaPrimitiveType }
+                    m.parameterTypes.contentEquals(arrayOf(Boolean::class.javaPrimitiveType))
+                } ?: return@apply
+                val redDotListenerField = fields.find { f ->
+                    f.type.let { t ->
+                        t.isInterface && t.methods.size == 1 && t.methods[0].let {
+                            it.parameterTypes.isEmpty() && it.returnType == Boolean::class.javaPrimitiveType
+                        }
+                    }
                 } ?: return@apply
                 val startPos = fields.indexOfFirst { it.type == Int::class.javaPrimitiveType }
                     .takeIf { it > -1 } ?: return@apply
@@ -273,22 +282,25 @@ class QMPackage private constructor() {
                 with = method { name = withMethod.name }
                 type = field { name = fields[startPos].name }
                 title = field { name = fields[startPos + 1].name }
-                rightDesc = field { name = fields[startPos + 3].name }
-                redDotListener = field { name = fields[startPos + 10].name }
+                if (clientVersionCode >= 4958/*13.0.0.8*/) {
+                    rightDesc = field { name = fields[startPos + 2].name }
+                } else {
+                    rightDesc = field { name = fields[startPos + 3].name }
+                }
+                redDotListener = field { name = redDotListenerField.name }
                 builder = SettingBuilder().apply {
                     clazz = clazz { name = settingBuilderClass.name }
                     build = method { name = buildMethod.name }
                     type = field { name = builderFields[0].name }
                     title = field { name = builderFields[1].name }
                     rightDesc = field { name = builderFields[2].name }
-                    dotRightDesc = field { name = builderFields[3].name }
-                    summary = field { name = builderFields[5].name }
+                    if (clientVersionCode >= 4958/*13.0.0.8*/) {
+                        summary = field { name = builderFields[4].name }
+                    } else {
+                        summary = field { name = builderFields[5].name }
+                    }
                     switchListener = field { name = switchListenerField.name }
-                    tag = field { name = builderFields[8].name }
-                    redDot = field { name = builderFields[11].name }
-                    enabled = field { name = builderFields[12].name }
-                    clickListener = field { name = builderFields[13].name }
-                    touchListener = field { name = builderFields[14].name }
+                    clickListener = field { name = clickListenerField.name }
                 }
                 switchListener = SwitchListener().apply {
                     clazz = clazz { name = switchListenerClass.name }

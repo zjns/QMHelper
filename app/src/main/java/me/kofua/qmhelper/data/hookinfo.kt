@@ -53,14 +53,9 @@ class SettingBuilder : ClassInfo() {
     var type: Field = defField
     var title: Field = defField
     var rightDesc: Field = defField
-    var dotRightDesc: Field = defField
     var summary: Field = defField
     var switchListener: Field = defField
-    var tag: Field = defField
-    var redDot: Field = defField
-    var enabled: Field = defField
     var clickListener: Field = defField
-    var touchListener: Field = defField
 }
 
 class SwitchListener : ClassInfo() {
