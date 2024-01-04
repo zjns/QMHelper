@@ -564,8 +564,8 @@ class SettingPack {
             putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri.toUri())
         }
         try {
-            activity?.startActivityForResult(intent, CODE_CHOOSE_DECRYPT_DIR)
             BannerTips.success(R.string.pls_choose_save_dir)
+            activity?.startActivityForResult(intent, CODE_CHOOSE_DECRYPT_DIR)
         } catch (_: ActivityNotFoundException) {
             BannerTips.error(R.string.open_file_manager_failed)
         }

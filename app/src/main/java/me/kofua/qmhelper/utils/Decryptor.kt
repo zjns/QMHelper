@@ -11,7 +11,9 @@ typealias SingleDecryptListener = (
 ) -> Unit
 
 object Decryptor {
-    private val wideEncExt = arrayOf("qmc", "mgg", "mflac", "mdolby", "mmp4")
+    private val wideEncRegex = Regex("""^.+\.(qmc\w+|mgg\w?|mflac\w?|mdolby|mmp4)(\.flac)?$""")
+    private val newWideEncRegex = Regex("""\.(qmc\w+|mgg\w?|mflac\w?|mdolby|mmp4)\.flac""")
+    private val pureRegex = Regex("""\s\[mqms(\d)*]""")
 
     data class Ext(val ext: String, val ver: Int)
 
@@ -29,6 +31,7 @@ object Decryptor {
         "mgg0" to Ext("ogg", 2),
         "mggl" to Ext("ogg", 2),
         "mgg1" to Ext("ogg", 2),
+        "mgg2" to Ext("ogg", 2),
         "mflac" to Ext("flac", 2),
         "mflac0" to Ext("flac", 2),
         "mflac1" to Ext("flac", 2),
@@ -36,10 +39,7 @@ object Decryptor {
         "mmp4" to Ext("mp4", 2)
     )
     private val File.isEncrypted: Boolean
-        get() = absolutePath.substringAfterLast(".").let { ext ->
-            wideEncExt.any { ext.contains(it) }
-        }
-    private val pureRegex = Regex("""\s\[mqms(\d)*]""")
+        get() = name.matches(wideEncRegex)
 
     fun batchDecrypt(
         saveDir: File,
@@ -85,12 +85,19 @@ object Decryptor {
         saveDir?.mkdirs()
         val srcFilePath = srcFile.absolutePath
         if (!srcFile.isEncrypted) return false
-        val fileNoExt = srcFilePath.substringBeforeLast(".")
-        val fileExt = srcFilePath.substringAfterLast(".", "")
+        val newEnc = srcFilePath.contains(newWideEncRegex)
+        val fileNoExt = if (newEnc) {
+            srcFilePath.replace(newWideEncRegex, "")
+        } else srcFilePath.substringBeforeLast(".")
+        val fileExt = if (newEnc) {
+            wideEncRegex.matchEntire(srcFilePath)!!.groups[1]!!.value
+        } else srcFilePath.substringAfterLast(".", "")
         val decExt = decExtMap[fileExt]?.ext
             ?: if (fileExt.isEmpty()) "dec" else "$fileExt.dec"
         val destFilePath = (if (saveDir == null) {
             "$fileNoExt.$decExt"
+        } else if (newEnc) {
+            File(saveDir, "${srcFile.name.replace(newWideEncRegex, "")}.$decExt").absolutePath
         } else {
             File(saveDir, "${srcFile.nameWithoutExtension}.$decExt").absolutePath
         }).replace(pureRegex, "")
